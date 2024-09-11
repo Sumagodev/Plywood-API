@@ -10,19 +10,29 @@ import mongoose from "mongoose";
 // Create a new dealership owner (linked to an existing user)
 export const createDealershipOwner = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const { userId, image, cityId, productId, Product, stateId } = req.body;
+
         // Check if the user exists
-        const user = await User.findById(req.body.userId).exec();
+        const user = await User.findById(userId).exec();
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
 
         // Handle image upload if provided
-        if (req.body.image) {
-            req.body.image = await storeFileAndReturnNameBase64(req.body.image);
+        if (image && typeof image === 'string') {
+            req.body.image = await storeFileAndReturnNameBase64(image);
+        }
+
+        // Ensure cityId is an array
+        if (cityId && !Array.isArray(cityId)) {
+            return res.status(400).json({ message: "cityId must be an array" });
         }
 
         // Create a new dealership owner entry
-        const newOwner = new DealershipOwner(req.body);
+        const newOwner = new DealershipOwner({
+            ...req.body,
+            productId: productId || Product, // Use productId if provided, otherwise fall back to Product
+        });
         const savedOwner = await newOwner.save();
 
         res.status(201).json({ message: "Dealership Owner Created Successfully", data: savedOwner });
@@ -30,6 +40,7 @@ export const createDealershipOwner = async (req: Request, res: Response, next: N
         next(error);
     }
 };
+
 // Get all dealership owners
 export const getAllDealershipOwners = async (req: Request, res: Response, next: NextFunction) => {
     try {

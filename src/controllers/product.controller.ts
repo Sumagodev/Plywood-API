@@ -81,14 +81,14 @@ export const getProduct = async (req: Request, res: Response, next: NextFunction
     // Fetch the products based on the query
     const products = await Product.find(query).skip((pageValue - 1) * limitValue).limit(limitValue).lean().exec();
 
-    const userIds = products.map(product => product.createdById);
+    const userIds = products.map(product => product?.createdById).filter(Boolean); // Ensure no undefined values
 
     // Fetch users based on the createdById in the products
     const users = await User.find({ _id: { $in: userIds } }).lean().exec();
 
     // Create maps for city and state names
-    const cityIds = Array.from(new Set(users.map(user => user.cityId)));
-    const stateIds = Array.from(new Set(users.map(user => user.stateId)));
+    const cityIds = Array.from(new Set(users.map(user => user?.cityId).filter(Boolean)));
+    const stateIds = Array.from(new Set(users.map(user => user?.stateId).filter(Boolean)));
 
     const cities = await City.find({ _id: { $in: cityIds } }).lean().exec();
     const states = await State.find({ _id: { $in: stateIds } }).lean().exec();
@@ -98,23 +98,22 @@ export const getProduct = async (req: Request, res: Response, next: NextFunction
 
     // Add city and state names, product image, price, verification status, and phone to the products
     const populatedProducts = products.map(product => {
-      const createdByUser = users.find(user => user._id.toString() === product.createdById.toString());
+      const createdByUser = users.find(user => user?._id.toString() === product?.createdById?.toString());
 
-      const cityName = createdByUser ? cityNameMap.get(createdByUser.cityId.toString()) : "Unknown City";
-      const stateName = createdByUser ? stateNameMap.get(createdByUser.stateId.toString()) : "Unknown State";
-      const phone = createdByUser ? createdByUser.phone : "Unknown Phone";
-      const isVerified = createdByUser ? createdByUser.isVerified : false;
-      const productImg = product.imageArr && product.imageArr.length > 0 ? product.imageArr[0] : "No Image Available";
+      const cityName = createdByUser ? cityNameMap.get(createdByUser?.cityId?.toString()) : "Unknown City";
+      const stateName = createdByUser ? stateNameMap.get(createdByUser?.stateId?.toString()) : "Unknown State";
+      const phone = createdByUser?.phone || "Unknown Phone";
+      const isVerified = createdByUser?.isVerified || false;
+      const productImg = product?.imageArr?.length > 0 ? product.imageArr[0] : "No Image Available";
 
       return {
         cityName,
         stateName,
         productImg, // Assuming 'img' is the field for the product image
-        productPrice: product.sellingprice, // Assuming 'sellingprice' is the field for the product price
+        productPrice: product?.sellingprice, // Assuming 'sellingprice' is the field for the product price
         isVerified, // User verification status
-        phone ,
-        ...product,
-        // User phone number
+        phone,
+        ...product, // User phone number
       };
     });
 

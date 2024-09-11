@@ -77,27 +77,28 @@ const getProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
         }
         // Fetch the products based on the query
         const products = yield product_model_1.Product.find(query).skip((pageValue - 1) * limitValue).limit(limitValue).lean().exec();
-        const userIds = products.map(product => product.createdById);
+        const userIds = products.map(product => product === null || product === void 0 ? void 0 : product.createdById).filter(Boolean); // Ensure no undefined values
         // Fetch users based on the createdById in the products
         const users = yield user_model_1.User.find({ _id: { $in: userIds } }).lean().exec();
         // Create maps for city and state names
-        const cityIds = Array.from(new Set(users.map(user => user.cityId)));
-        const stateIds = Array.from(new Set(users.map(user => user.stateId)));
+        const cityIds = Array.from(new Set(users.map(user => user === null || user === void 0 ? void 0 : user.cityId).filter(Boolean)));
+        const stateIds = Array.from(new Set(users.map(user => user === null || user === void 0 ? void 0 : user.stateId).filter(Boolean)));
         const cities = yield City_model_1.City.find({ _id: { $in: cityIds } }).lean().exec();
         const states = yield State_model_1.State.find({ _id: { $in: stateIds } }).lean().exec();
         const cityNameMap = new Map(cities.map(city => [city._id.toString(), city.name]));
         const stateNameMap = new Map(states.map(state => [state._id.toString(), state.name]));
         // Add city and state names, product image, price, verification status, and phone to the products
         const populatedProducts = products.map(product => {
-            const createdByUser = users.find(user => user._id.toString() === product.createdById.toString());
-            const cityName = createdByUser ? cityNameMap.get(createdByUser.cityId.toString()) : "Unknown City";
-            const stateName = createdByUser ? stateNameMap.get(createdByUser.stateId.toString()) : "Unknown State";
-            const phone = createdByUser ? createdByUser.phone : "Unknown Phone";
-            const isVerified = createdByUser ? createdByUser.isVerified : false;
-            const productImg = product.imageArr && product.imageArr.length > 0 ? product.imageArr[0] : "No Image Available";
+            var _a, _b, _c;
+            const createdByUser = users.find(user => { var _a; return (user === null || user === void 0 ? void 0 : user._id.toString()) === ((_a = product === null || product === void 0 ? void 0 : product.createdById) === null || _a === void 0 ? void 0 : _a.toString()); });
+            const cityName = createdByUser ? cityNameMap.get((_a = createdByUser === null || createdByUser === void 0 ? void 0 : createdByUser.cityId) === null || _a === void 0 ? void 0 : _a.toString()) : "Unknown City";
+            const stateName = createdByUser ? stateNameMap.get((_b = createdByUser === null || createdByUser === void 0 ? void 0 : createdByUser.stateId) === null || _b === void 0 ? void 0 : _b.toString()) : "Unknown State";
+            const phone = (createdByUser === null || createdByUser === void 0 ? void 0 : createdByUser.phone) || "Unknown Phone";
+            const isVerified = (createdByUser === null || createdByUser === void 0 ? void 0 : createdByUser.isVerified) || false;
+            const productImg = ((_c = product === null || product === void 0 ? void 0 : product.imageArr) === null || _c === void 0 ? void 0 : _c.length) > 0 ? product.imageArr[0] : "No Image Available";
             return Object.assign({ cityName,
                 stateName,
-                productImg, productPrice: product.sellingprice, // Assuming 'sellingprice' is the field for the product price
+                productImg, productPrice: product === null || product === void 0 ? void 0 : product.sellingprice, // Assuming 'sellingprice' is the field for the product price
                 isVerified,
                 phone }, product);
         });

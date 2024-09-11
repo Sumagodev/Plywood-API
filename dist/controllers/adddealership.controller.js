@@ -16,17 +16,22 @@ const adddealership_model_1 = require("../models/adddealership.model");
 // Create a new dealership owner (linked to an existing user)
 const createDealershipOwner = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        const { userId, image, cityId, productId, Product, stateId } = req.body;
         // Check if the user exists
-        const user = yield user_model_1.User.findById(req.body.userId).exec();
+        const user = yield user_model_1.User.findById(userId).exec();
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
         // Handle image upload if provided
-        if (req.body.image) {
-            req.body.image = yield (0, fileSystem_1.storeFileAndReturnNameBase64)(req.body.image);
+        if (image && typeof image === 'string') {
+            req.body.image = yield (0, fileSystem_1.storeFileAndReturnNameBase64)(image);
+        }
+        // Ensure cityId is an array
+        if (cityId && !Array.isArray(cityId)) {
+            return res.status(400).json({ message: "cityId must be an array" });
         }
         // Create a new dealership owner entry
-        const newOwner = new adddealership_model_1.DealershipOwner(req.body);
+        const newOwner = new adddealership_model_1.DealershipOwner(Object.assign(Object.assign({}, req.body), { productId: productId || Product }));
         const savedOwner = yield newOwner.save();
         res.status(201).json({ message: "Dealership Owner Created Successfully", data: savedOwner });
     }
