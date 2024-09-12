@@ -15,6 +15,7 @@ const fileSystem_1 = require("../helpers/fileSystem");
 const AdvertisementSubscription_model_1 = require("../models/AdvertisementSubscription.model");
 const user_model_1 = require("../models/user.model");
 const City_model_1 = require("../models/City.model");
+const State_model_1 = require("../models/State.model");
 const product_model_1 = require("../models/product.model");
 const addAdvertisementSubscription = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -115,43 +116,55 @@ exports.getAdvertisementSubscription = getAdvertisementSubscription;
 // };
 const getAdvertisementSubscriptionForHomepage = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Initialize variables
         let AdvertisementSubscriptionArr = [];
         let query = {};
+        // Adjust time for today's date
+        let today = new Date();
+        today.setHours(23, 59, 59, 999);
         // Check for search query
         if (req.query.q) {
             query.name = new RegExp(req.query.q, "i");
         }
-        // Find all advertisements with query
+        // Find all advertisements based on the query
         const advertisements = yield AdvertisementSubscription_model_1.Advertisement.find(query).lean().exec();
-        // Collect userIds and productIds
+        if (advertisements.length === 0) {
+            return res.status(200).json({
+                message: "No advertisements found",
+                data: [],
+                success: true
+            });
+        }
+        // Fetch user and product IDs from advertisements
         const userIds = advertisements.map(ad => ad.userId);
         const productIds = advertisements.map(ad => ad.productId);
-        // Fetch users and products in parallel
-        const users = yield user_model_1.User.find({ _id: { $in: userIds } }).lean().exec();
-        const products = yield product_model_1.Product.find({ _id: { $in: productIds } }).lean().exec();
-        // Create maps for city names and product prices
-        const cityMap = new Map();
-        const productMap = new Map();
-        // Populate cityMap
-        for (const user of users) {
-            cityMap.set(user._id.toString(), user.cityId.toString());
-        }
-        // Populate productMap
-        // for (const product of products) {
-        //     productMap.set(product._id.toString(), product.price);
-        // }
-        // Fetch cities based on city IDs
-        const cityIds = Array.from(new Set(cityMap.values())); // Unique cityIds
+        // Fetch Users, Products, and Cities (based on user city IDs) in parallel
+        const [users, products] = yield Promise.all([
+            user_model_1.User.find({ _id: { $in: userIds } }).lean().exec(),
+            product_model_1.Product.find({ _id: { $in: productIds } }).lean().exec(),
+        ]);
+        // Map city IDs from users
+        const cityIds = users.map(user => user.cityId);
+        const staeIds = users.map(user => user.stateId);
         const cities = yield City_model_1.City.find({ _id: { $in: cityIds } }).lean().exec();
-        const cityNameMap = new Map(cities.map(city => [city._id.toString(), city.name]));
-        // Enhance advertisements with city names and product prices
+        const states = yield State_model_1.State.find({ _id: { $in: staeIds } }).lean().exec();
+        // Create mappings for cities, products, and users
+        const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
+        const stateMap = new Map(states.map(state => [state._id.toString(), state.name]));
+        const productMap = new Map(products.map(product => [product._id.toString(), product]));
+        const userMap = new Map(users.map(user => [user._id.toString(), user]));
+        // Map advertisements to include city name, product details, and user details
         AdvertisementSubscriptionArr = advertisements.map(ad => {
-            const cityId = cityMap.get(ad.userId.toString());
-            const cityName = cityId ? cityNameMap.get(cityId) || 'Unknown City' : 'Unknown City';
-            const price = productMap.get(ad.productId.toString()) || 'N/A';
-            return Object.assign(Object.assign({}, ad), { cityName,
-                price });
+            var _a, _b;
+            const userCityId = ((_a = userMap.get(ad.userId.toString())) === null || _a === void 0 ? void 0 : _a.cityId.toString()) || '';
+            const userStaeid = ((_b = userMap.get(ad.userId.toString())) === null || _b === void 0 ? void 0 : _b.stateId.toString()) || '';
+            const cityName = cityMap.get(userCityId) || 'Unknown City';
+            const stateName = stateMap.get(userStaeid) || 'Unknown state';
+            const product = productMap.get(ad.productId.toString()) || null;
+            const user = userMap.get(ad.userId.toString()) || null;
+            return Object.assign(Object.assign({ productname: product ? product.name : "N/A", verifeied: product ? product.createdByObj.isVerified : "false", phone: user ? user.phone : "false", cityName,
+                stateName }, ad), { 
+                // Full user object
+                price: product ? product.price : 'N/A' });
         });
         res.status(200).json({
             message: "Get Advertisement Subscription",
