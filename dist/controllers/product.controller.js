@@ -624,12 +624,16 @@ const getProductYouMayLike = (req, res, next) => __awaiter(void 0, void 0, void 
             if (productData.createdByObj && 'token' in productData.createdByObj) {
                 delete productData.createdByObj.token;
             }
-            return Object.assign({ cityName,
+            return {
+                cityName,
                 stateName,
                 address,
+                // Include address in the response
                 productName,
                 productPrice,
-                createdByObj }, productData);
+                createdByObj,
+                product
+            };
         })));
         res.json({ message: 'Suggested Products', data: populatedProducts });
     }

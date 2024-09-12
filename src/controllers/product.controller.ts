@@ -393,6 +393,7 @@ export const getProductById = async (req: Request, res: Response, next: NextFunc
   }
 };
 
+
 export const getSimilarProducts: RequestHandler = async (req, res, next) => {
   try {
     const productArr = await Product.find({ categoryId: new mongoose.Types.ObjectId(req.params.id) }).exec();
@@ -660,7 +661,7 @@ export const getProductYouMayLike = async (req: Request, res: Response, next: Ne
     // Create maps for cities and states
     const cityMap = new Map();
     const stateMap = new Map();
-    
+
     users.forEach((user) => {
       cityMap.set(user._id.toString(), user.cityId);
       stateMap.set(user._id.toString(), user.stateId); // Store stateId for each user
@@ -684,7 +685,7 @@ export const getProductYouMayLike = async (req: Request, res: Response, next: Ne
 
         // Find the user who created the product
         const createdByObj = users.find((user) => user._id.toString() === product.createdById.toString());
-        
+
         // Get city and state details
         const cityId = createdByObj?.cityId || null;
         const cityName = cityId ? cityNameMap.get(cityId.toString()) || "Unknown City" : "Unknown City";
@@ -695,25 +696,28 @@ export const getProductYouMayLike = async (req: Request, res: Response, next: Ne
         const address = createdByObj?.address || "Unknown Address";
 
         // Fetch product details
+
         const productDetail = productDetails.find((p) => p._id.toString() === product._id.toString());
         const productName = productDetail ? productDetail.name : "Unknown Product";
         const productPrice = productDetail ? productDetail.price : "N/A";
 
         const productData = { ...product }; // Clone the product object
-        
+
         // Remove the token field if it exists
         if (productData.createdByObj && 'token' in productData.createdByObj) {
           delete productData.createdByObj.token;
         }
-     
+
         return {
+        
           cityName,
           stateName,   // Include stateName in the response
-          address,     // Include address in the response
+          address,
+          // Include address in the response
           productName,
           productPrice,
           createdByObj,
-          ...productData,
+          product
         };
       })
     );
