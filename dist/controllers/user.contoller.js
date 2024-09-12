@@ -1288,6 +1288,7 @@ const getTopVendors = (req, res, next) => __awaiter(void 0, void 0, void 0, func
                     "countryId": { "$first": "$countryId" },
                     "stateId": { "$first": "$stateId" },
                     "cityId": { "$first": "$cityId" },
+                    "phone": { "$first": "$phone" },
                 },
             },
             {
@@ -1295,18 +1296,40 @@ const getTopVendors = (req, res, next) => __awaiter(void 0, void 0, void 0, func
                     "rating": -1, // Ensure the sorting by rating
                 },
             },
+            {
+                "$skip": (pageValue - 1) * limitValue,
+            },
+            {
+                "$limit": limitValue,
+            },
         ];
-        // Add pagination
-        let totalPipeline = [...pipeline];
-        totalPipeline.push({ $count: "count" });
-        pipeline.push({ $skip: (pageValue - 1) * limitValue });
-        pipeline.push({ $limit: limitValue });
-        // Execute the query
-        let profiles = yield user_model_1.User.aggregate(pipeline);
-        let totalProfiles = yield user_model_1.User.aggregate(totalPipeline);
-        totalProfiles = totalProfiles.length > 0 ? totalProfiles[0].count : 0;
-        const totalPages = Math.ceil(totalProfiles / limitValue);
-        res.json({ message: "Top Profiles", data: profiles, total: totalPages });
+        // Execute the aggregation pipeline
+        const profiles = yield user_model_1.User.aggregate(pipeline);
+        // Step 1: Extract cityIds and stateIds from the profiles
+        const cityIds = profiles
+            .map((profile) => profile.cityId)
+            .filter((id) => id); // Ensure no null or undefined values
+        const stateIds = profiles
+            .map((profile) => profile.stateId)
+            .filter((id) => id); // Ensure no null or undefined values
+        // Step 2: Fetch city and state details
+        const cityDetails = yield City_model_1.City.find({ _id: { $in: cityIds } }).select("name _id");
+        const stateDetails = yield State_model_1.State.find({ _id: { $in: stateIds } }).select("name _id");
+        // Step 3: Merge city and state details into the profiles
+        const finalProfiles = profiles.map((profile) => {
+            const city = cityDetails.find((c) => c._id.toString() === (profile.cityId || '').toString());
+            const state = stateDetails.find((s) => s._id.toString() === (profile.stateId || '').toString());
+            return Object.assign(Object.assign({}, profile), { cityName: city ? city.name : null, stateName: state ? state.name : null });
+        });
+        // Get total profiles count for pagination
+        const totalPipeline = [
+            { "$match": Object.assign({}, query) },
+            { "$count": "count" },
+        ];
+        const totalProfiles = yield user_model_1.User.aggregate(totalPipeline);
+        const total = totalProfiles.length > 0 ? totalProfiles[0].count : 0;
+        const totalPages = Math.ceil(total / limitValue);
+        res.json({ message: "Top Profiles", data: finalProfiles, total: totalPages });
     }
     catch (error) {
         next(error);

@@ -1371,6 +1371,7 @@ export const getTopVendors = async (req: Request, res: Response, next: NextFunct
           "countryId": { "$first": "$countryId" },
           "stateId": { "$first": "$stateId" },
           "cityId": { "$first": "$cityId" },
+          "phone": { "$first": "$phone" },
         },
       },
       {
@@ -1378,23 +1379,52 @@ export const getTopVendors = async (req: Request, res: Response, next: NextFunct
           "rating": -1, // Ensure the sorting by rating
         },
       },
+      {
+        "$skip": (pageValue - 1) * limitValue,
+      },
+      {
+        "$limit": limitValue,
+      },
     ];
 
-    // Add pagination
-    let totalPipeline = [...pipeline];
-    totalPipeline.push({ $count: "count" });
+    // Execute the aggregation pipeline
+    const profiles = await User.aggregate(pipeline);
 
-    pipeline.push({ $skip: (pageValue - 1) * limitValue });
-    pipeline.push({ $limit: limitValue });
+    // Step 1: Extract cityIds and stateIds from the profiles
+    const cityIds = profiles
+      .map((profile: any) => profile.cityId)
+      .filter((id: any) => id); // Ensure no null or undefined values
+    const stateIds = profiles
+      .map((profile: any) => profile.stateId)
+      .filter((id: any) => id); // Ensure no null or undefined values
 
-    // Execute the query
-    let profiles: any = await User.aggregate(pipeline);
-    let totalProfiles: any = await User.aggregate(totalPipeline);
+    // Step 2: Fetch city and state details
+    const cityDetails = await City.find({ _id: { $in: cityIds } }).select("name _id");
+    const stateDetails = await State.find({ _id: { $in: stateIds } }).select("name _id");
 
-    totalProfiles = totalProfiles.length > 0 ? totalProfiles[0].count : 0;
-    const totalPages = Math.ceil(totalProfiles / limitValue);
+    // Step 3: Merge city and state details into the profiles
+    const finalProfiles = profiles.map((profile: any) => {
+      const city = cityDetails.find((c: any) => c._id.toString() === (profile.cityId || '').toString());
+      const state = stateDetails.find((s: any) => s._id.toString() === (profile.stateId || '').toString());
 
-    res.json({ message: "Top Profiles", data: profiles, total: totalPages });
+      return {
+        ...profile,
+        cityName: city ? city.name : null,
+        stateName: state ? state.name : null,
+      };
+    });
+
+    // Get total profiles count for pagination
+    const totalPipeline = [
+      { "$match": { ...query } },
+      { "$count": "count" },
+    ];
+
+    const totalProfiles: any = await User.aggregate(totalPipeline);
+    const total = totalProfiles.length > 0 ? totalProfiles[0].count : 0;
+    const totalPages = Math.ceil(total / limitValue);
+
+    res.json({ message: "Top Profiles", data: finalProfiles, total: totalPages });
   } catch (error) {
     next(error);
   }
