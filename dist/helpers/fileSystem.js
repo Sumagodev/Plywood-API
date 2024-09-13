@@ -20,8 +20,7 @@ const storeFileAndReturnNameBase64 = (base64) => __awaiter(void 0, void 0, void 
     const extension = tempBase64[0].split("/")[1];
     const filename = new Date().getTime() + `.${extension.split(";")[0]}`;
     return new Promise((resolve, reject) => {
-        console.log(process.env.BASE_URL, "================================");
-        fs_1.default.writeFile(`${process.env.BASE_URL}/uploads/${filename}`, tempBase64[1], "base64", (err) => {
+        fs_1.default.writeFile(`/home/ubuntu/cloud_bazar/cloud_bazar/public/uploads/${filename}`, tempBase64[1], "base64", (err) => {
             if (err) {
                 console.error(err);
                 reject(err);

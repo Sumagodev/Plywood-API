@@ -2,8 +2,7 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
-const fs = require('fs');
-const path = require('path');
+import path from "path";
 import cookieParser from "cookie-parser";
 import logger from "morgan";
 import indexRouter from "./routes/index.route";
@@ -14,6 +13,7 @@ import productRouter from "./routes/product.route";
 import countryRouter from "./routes/country.routes";
 import stateRouter from "./routes/state.routes";
 import stateDetailRouter from "./routes/stateDetail.routes";
+
 import cityRouter from "./routes/city.routes";
 import subscriptionRouter from "./routes/subscription.routes";
 import leadRouter from "./routes/leads.routes";
@@ -95,26 +95,4 @@ app.use("/homepageBanners", homepageBannerRouter);
 
 app.use(errorHandler);
 
-const logDirectoryTree = (dirPath:String, level = 0) => {
-  const files = fs.readdirSync(dirPath);
-
-  files.forEach((file:File) => {
-    const filePath = path.join(dirPath, file);
-    const isDirectory = fs.statSync(filePath).isDirectory();
-
-    // Print with indentation based on the level (subfolder depth)
-    console.log(' '.repeat(level * 2) + (isDirectory ? '📁 ' : '📄 ') + file);
-
-    // If it's a directory, recursively call the function
-    if (isDirectory) {
-      logDirectoryTree(filePath, level + 1);
-    }
-  });
-};
-
-const rootDir = path.join(__dirname, 'playbackend');
-
-// Start logging from the root directory
-console.log(`${path.basename(rootDir)}`);
-logDirectoryTree(rootDir);
 export default app;
