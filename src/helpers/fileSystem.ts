@@ -33,7 +33,7 @@ export const storeFileAndReturnNameBase64 = async (base64: string) => {
     // Extract file extension and filename
     const extension = tempBase64[0].split("/")[1].split(";")[0];
     const filename = `${Date.now()}.${extension}`;
-
+    
     // Define the absolute path to the uploads directory
     const uploadDir = path.join(__dirname, "../public/uploads");
     console.log(uploadDir, "================================");
