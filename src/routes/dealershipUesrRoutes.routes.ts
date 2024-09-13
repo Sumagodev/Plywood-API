@@ -9,8 +9,8 @@ import {
 
 const router = express.Router();
 
-router.post('/applications', createApplication);
-router.get('/applications', getApplications); // You can pass dealershipOwnerId or userId as query parameters
+router.post('/applyForDealershipOpportunitiy', createApplication);
+router.get('/getapplyForDealershipOpportunitiy', getApplications); // You can pass dealershipOwnerId or userId as query parameters
 router.get('/applications/:id', getApplicationById);
 router.put('/applications/:id', updateApplication);
 router.delete('/applications/:id', deleteApplication);
