@@ -5,12 +5,12 @@ export interface Idealer extends Document {
   Organisation_name: string;
   dealershipOwnerId: mongoose.Types.ObjectId;
   Type: string;
-  Product: string;
   Brand: string;
   productId?: Types.ObjectId; // Optional if not always provided
   userId: Types.ObjectId;
   image?: string;
   countryId?: string;
+  email?: string;
   stateId?: string;
   cityId: string[]; // Updated to be an array of strings
   createdAt: Date;
@@ -22,11 +22,11 @@ const dealershipApplicationSchema = new Schema<Idealer>(
   {
     Organisation_name: { type: String, required: true },
     Type: { type: String, required: true },
-    Product: { type: String, required: true },
     Brand: { type: String, required: true },
     productId: {
       type: Schema.Types.ObjectId,
       ref: "Product",
+      required: false, // Set to false if optional
     },
     userId: {
       type: Schema.Types.ObjectId,
@@ -41,7 +41,8 @@ const dealershipApplicationSchema = new Schema<Idealer>(
     image: { type: String },
     countryId: { type: String },
     stateId: { type: String },
-    cityId: [{ type: String }], // Define cityId as an array of strings
+    email: { type: String },
+    cityId: [{ type: String }], // Array of strings
   },
   { timestamps: true }
 );

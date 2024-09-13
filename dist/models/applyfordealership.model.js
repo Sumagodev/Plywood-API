@@ -29,11 +29,11 @@ const mongoose_1 = __importStar(require("mongoose"));
 const dealershipApplicationSchema = new mongoose_1.Schema({
     Organisation_name: { type: String, required: true },
     Type: { type: String, required: true },
-    Product: { type: String, required: true },
     Brand: { type: String, required: true },
     productId: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: "Product",
+        required: false, // Set to false if optional
     },
     userId: {
         type: mongoose_1.Schema.Types.ObjectId,
@@ -48,7 +48,8 @@ const dealershipApplicationSchema = new mongoose_1.Schema({
     image: { type: String },
     countryId: { type: String },
     stateId: { type: String },
-    cityId: [{ type: String }], // Define cityId as an array of strings
+    email: { type: String },
+    cityId: [{ type: String }], // Array of strings
 }, { timestamps: true });
 // Correct model export
 exports.DealershipApplication = mongoose_1.default.models.DealershipApplication || (0, mongoose_1.model)("DealershipApplication", dealershipApplicationSchema);

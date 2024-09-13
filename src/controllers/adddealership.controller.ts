@@ -4,6 +4,7 @@ import { storeFileAndReturnNameBase64 } from "../helpers/fileSystem";
 import { Advertisement } from "../models/AdvertisementSubscription.model";
 import { User } from "../models/user.model";
 import { City } from "../models/City.model";
+import { State } from "../models/State.model";
 import { Product } from "../models/product.model";
 import { DealershipOwner } from "../models/adddealership.model";
 import mongoose from "mongoose";
@@ -41,15 +42,64 @@ export const createDealershipOwner = async (req: Request, res: Response, next: N
     }
 };
 
-// Get all dealership owners
+
 export const getAllDealershipOwners = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const owners = await DealershipOwner.find().populate("userId").exec();
-        res.status(200).json({ data: owners });
-    } catch (error) {
-        next(error);
+        // Find all dealership owners and populate the userId field
+        const owners = await DealershipOwner.find()
+   // Populate userId with cityId and stateId
+            .exec();
+
+        if (!owners.length) {
+            return res.status(200).json({
+                message: "No dealership owners found",
+                data: [],
+                success: true
+            });
+        }
+
+        // Extract city and state IDs from the owners
+        const cityIds = Array.from(new Set(owners.flatMap(owner => owner.cityId)));
+        const stateIds = Array.from(new Set(owners.flatMap(owner => owner.stateId)));
+
+        // Fetch cities and states based on extracted IDs
+        const [cities, states] = await Promise.all([
+            City.find({ _id: { $in: cityIds } }).lean().exec(),
+            State.find({ _id: { $in: stateIds } }).lean().exec()
+        ]);
+
+        // Create mappings for cities and states
+        const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
+        const stateMap = new Map(states.map(state => [state._id.toString(), state.name]));
+
+        // Format the output to include city names and state names
+        const ownersWithCityState = owners.map(owner => {
+            // Map over the cityIds array to get city names
+            const cities = owner.cityId.map((cityId: string) => ({
+                cityId,
+                cityName: cityMap.get(cityId) || 'Unknown City'
+            }));
+
+            // Get the state name
+            const stateName = stateMap.get(owner.stateId) || 'Unknown State';
+
+            return {
+                ...owner.toObject(), // Convert Mongoose document to plain JavaScript object
+                stateName,
+                cities // Include cities array
+            };
+        });
+
+        res.status(200).json({
+            message: "Get Dealership Owners",
+            data: ownersWithCityState,
+            success: true
+        });
+    } catch (err) {
+        next(err);
     }
 };
+
 
 // Get a single dealership owner by ID
 export const getDealershipOwnerById = async (req: Request, res: Response, next: NextFunction) => {

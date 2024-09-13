@@ -11,48 +11,53 @@ import mongoose from "mongoose";
 
 export const createApplication = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { dealershipOwnerId, productId, userId } = req.body;
-
-        // Validate dealershipOwnerId
-        if (!mongoose.Types.ObjectId.isValid(dealershipOwnerId)) {
-            return res.status(400).json({ message: "Invalid DealershipOwner ID" });
-        }
-        const dealershipOwnerExists = await DealershipOwner.findById(dealershipOwnerId).exec();
-        if (!dealershipOwnerExists) {
-            return res.status(404).json({ message: "Dealership Owner not found" });
-        }
-
-        // Validate productId
-        if (!mongoose.Types.ObjectId.isValid(productId)) {
-            return res.status(400).json({ message: "Invalid Product ID" });
-        }
+      const { dealershipOwnerId, productId, userId } = req.body;
+  
+      // Validate dealershipOwnerId
+      if (!mongoose.Types.ObjectId.isValid(dealershipOwnerId)) {
+        return res.status(400).json({ message: "Invalid DealershipOwner ID" });
+      }
+      const dealershipOwnerExists = await DealershipOwner.findById(dealershipOwnerId).exec();
+      if (!dealershipOwnerExists) {
+        return res.status(404).json({ message: "Dealership Owner not found" });
+      }
+  
+      // Validate productId if provided
+      if (productId && !mongoose.Types.ObjectId.isValid(productId)) {
+        return res.status(400).json({ message: "Invalid Product ID" });
+      }
+      if (productId) {
         const productExists = await Product.findById(productId).exec();
         if (!productExists) {
-            return res.status(404).json({ message: "Product not found" });
+          return res.status(404).json({ message: "Product not found" });
         }
-
-        // Validate userId
-        if (!mongoose.Types.ObjectId.isValid(userId)) {
-            return res.status(400).json({ message: "Invalid User ID" });
-        }
-        const userExists = await User.findById(userId).exec();
-        if (!userExists) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        // If validation passes, proceed to save the application
-        const newApplication = new DealershipApplication(req.body);
-        const savedApplication = await newApplication.save();
-        res.status(201).json({ message: "Application Submitted Successfully", data: savedApplication });
+      }
+  
+      // Validate userId
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({ message: "Invalid User ID" });
+      }
+      const userExists = await User.findById(userId).exec();
+      if (!userExists) {
+        return res.status(404).json({ message: "User not found" });
+      }
+  
+      // Create and save the application
+      const newApplication = new DealershipApplication(req.body);
+      const savedApplication = await newApplication.save();
+      res.status(201).json({ message: "Application Submitted Successfully", data: savedApplication });
+  
     } catch (error) {
-        next(error);
+      console.error("Error details:", error);
+     
+      next(error);
     }
-};
-
+  };
+  
 // Get all applications (optional: filter by dealershipOwnerId or userId)
 export const getApplications = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const applications = await DealershipApplication.find(req.query).populate('dealershipOwnerId').populate('userId').exec();
+        const applications = await DealershipApplication.find(req.query).populate('dealershipOwnerId').exec();
         res.status(200).json({ data: applications });
     } catch (error) {
         next(error);

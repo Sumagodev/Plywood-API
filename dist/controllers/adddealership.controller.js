@@ -12,6 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteDealershipOwner = exports.updateDealershipOwner = exports.getDealershipOwnerById = exports.getAllDealershipOwners = exports.createDealershipOwner = void 0;
 const fileSystem_1 = require("../helpers/fileSystem");
 const user_model_1 = require("../models/user.model");
+const City_model_1 = require("../models/City.model");
+const State_model_1 = require("../models/State.model");
 const adddealership_model_1 = require("../models/adddealership.model");
 // Create a new dealership owner (linked to an existing user)
 const createDealershipOwner = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -40,14 +42,52 @@ const createDealershipOwner = (req, res, next) => __awaiter(void 0, void 0, void
     }
 });
 exports.createDealershipOwner = createDealershipOwner;
-// Get all dealership owners
 const getAllDealershipOwners = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const owners = yield adddealership_model_1.DealershipOwner.find().populate("userId").exec();
-        res.status(200).json({ data: owners });
+        // Find all dealership owners and populate the userId field
+        const owners = yield adddealership_model_1.DealershipOwner.find()
+            // Populate userId with cityId and stateId
+            .exec();
+        if (!owners.length) {
+            return res.status(200).json({
+                message: "No dealership owners found",
+                data: [],
+                success: true
+            });
+        }
+        // Extract city and state IDs from the owners
+        const cityIds = Array.from(new Set(owners.flatMap(owner => owner.cityId)));
+        const stateIds = Array.from(new Set(owners.flatMap(owner => owner.stateId)));
+        // Fetch cities and states based on extracted IDs
+        const [cities, states] = yield Promise.all([
+            City_model_1.City.find({ _id: { $in: cityIds } }).lean().exec(),
+            State_model_1.State.find({ _id: { $in: stateIds } }).lean().exec()
+        ]);
+        // Create mappings for cities and states
+        const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
+        const stateMap = new Map(states.map(state => [state._id.toString(), state.name]));
+        // Format the output to include city names and state names
+        const ownersWithCityState = owners.map(owner => {
+            // Map over the cityIds array to get city names
+            const cities = owner.cityId.map((cityId) => ({
+                cityId,
+                cityName: cityMap.get(cityId) || 'Unknown City'
+            }));
+            // Get the state name
+            const stateName = stateMap.get(owner.stateId) || 'Unknown State';
+            return Object.assign(Object.assign({}, owner.toObject()), { // Convert Mongoose document to plain JavaScript object
+                stateName,
+                cities // Include cities array
+             });
+        });
+        res.status(200).json({
+            message: "Get Dealership Owners",
+            data: ownersWithCityState,
+            success: true
+        });
     }
-    catch (error) {
-        next(error);
+    catch (err) {
+        next(err);
     }
 });
 exports.getAllDealershipOwners = getAllDealershipOwners;
