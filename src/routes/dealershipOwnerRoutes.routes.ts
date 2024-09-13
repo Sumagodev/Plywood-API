@@ -10,13 +10,13 @@ import {
 const router = Router();
 
 // Route to create a new dealership owner
-router.post("/dealership-owners", createDealershipOwner);
+router.post("/addDealershipOpportunity", createDealershipOwner);
 
 // Route to get all dealership owners
-router.get("/dealership-owners", getAllDealershipOwners);
+router.get("/getDelearshipOpportunities", getAllDealershipOwners);
 
 // Route to get a single dealership owner by ID
-router.get("/dealership-owners/:id", getDealershipOwnerById);
+router.get("/getDelearshipOpportunities/:id", getDealershipOwnerById);
 
 // Route to update a dealership owner by ID
 router.put("/dealership-owners/:id", updateDealershipOwner);
