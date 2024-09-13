@@ -16,7 +16,7 @@ export const storeFileAndReturnNameBase64 = async (base64: string) => {
     const filename = `${Date.now()}.${extension}`;
 
     // Define the absolute path to the uploads directory
-    const uploadDir = path.join(__dirname, "../public/uploads");
+    const uploadDir = path.join(__dirname, "./public/uploads");
     
     // Ensure the uploads directory exists
     if (!fs.existsSync(uploadDir)) {
