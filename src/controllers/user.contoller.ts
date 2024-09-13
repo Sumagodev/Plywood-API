@@ -1166,6 +1166,9 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
           "name": {
             "$first": "$name",
           },
+          "phone": {
+            "$first": "$phone",
+          },
           "companyName": {
             "$first": "$companyObj.name",
           },
