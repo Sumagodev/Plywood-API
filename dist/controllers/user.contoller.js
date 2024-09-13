@@ -1100,6 +1100,9 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                     "name": {
                         "$first": "$name",
                     },
+                    "phone": {
+                        "$first": "$phone",
+                    },
                     "companyName": {
                         "$first": "$companyObj.name",
                     },

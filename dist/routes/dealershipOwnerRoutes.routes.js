@@ -4,11 +4,11 @@ const express_1 = require("express");
 const adddealership_controller_1 = require("../controllers/adddealership.controller"); // Import your controller functions
 const router = (0, express_1.Router)();
 // Route to create a new dealership owner
-router.post("/dealership-owners", adddealership_controller_1.createDealershipOwner);
+router.post("/addDealershipOpportunity", adddealership_controller_1.createDealershipOwner);
 // Route to get all dealership owners
-router.get("/dealership-owners", adddealership_controller_1.getAllDealershipOwners);
+router.get("/getDelearshipOpportunities", adddealership_controller_1.getAllDealershipOwners);
 // Route to get a single dealership owner by ID
-router.get("/dealership-owners/:id", adddealership_controller_1.getDealershipOwnerById);
+router.get("/getDelearshipOpportunities/:id", adddealership_controller_1.getDealershipOwnerById);
 // Route to update a dealership owner by ID
 router.put("/dealership-owners/:id", adddealership_controller_1.updateDealershipOwner);
 // Route to delete a dealership owner by ID
