@@ -6,9 +6,7 @@ export const storeFileAndReturnNameBase64 = async (base64: string) => {
   const extension = tempBase64[0].split("/")[1];
   const filename = new Date().getTime() + `.${extension.split(";")[0]}`;
   return new Promise((resolve, reject) => {
-    console.log(process.env.BASE_URL, "================================");
-    
-    fs.writeFile(`${process.env.BASE_URL}/uploads/${filename}`, tempBase64[1], "base64", (err) => {
+    fs.writeFile(`../../..public/uploads/${filename}`, tempBase64[1], "base64", (err) => {
       if (err) {
         console.error(err);
         reject(err);
