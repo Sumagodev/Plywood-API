@@ -445,55 +445,102 @@ exports.getAllProductsBySupplierId = getAllProductsBySupplierId;
 // };
 const searchProductWithQuery = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { name, categoryId, minPrice, maxPrice, cityId, stateId, role } = req.query;
-        // Initialize the query object
-        let productQuery = {};
-        // Name filter
-        if (name) {
-            const regex = new RegExp(name, 'i');
-            productQuery.name = regex;
+        let query = {};
+        // Role filter
+        if (req.query.role && req.query.role !== "null") {
+            query = Object.assign(Object.assign({}, query), { "createdByObj.role": { $ne: req.query.role } });
+        }
+        // Name, creator's name, short description, long description, and brand name filter
+        if (req.query.name) {
+            const regex = new RegExp(`${req.query.name}`, "i");
+            let brandArr = yield brand_model_1.Brand.find({ name: regex }).exec();
+            let brandIds = brandArr.length > 0 ? brandArr.map(el => `${el._id}`) : [];
+            query = Object.assign(Object.assign({}, query), { $or: [
+                    { name: regex },
+                    { "createdByObj.name": regex },
+                    { "shortDescription": regex },
+                    { "longDescription": regex },
+                    ...(brandIds.length > 0 ? [{ "brand": { $in: brandIds } }] : [])
+                ] });
         }
         // Category filter
-        if (categoryId) {
-            productQuery.categoryId = categoryId;
+        if (req.query.categoryId) {
+            query = Object.assign(Object.assign({}, query), { "categoryId": req.query.categoryId });
         }
         // Price filter
-        if (minPrice || maxPrice) {
+        if (req.query.minPrice || req.query.maxPrice) {
             const priceQuery = {};
-            if (minPrice)
-                priceQuery.$gte = parseFloat(minPrice);
-            if (maxPrice)
-                priceQuery.$lte = parseFloat(maxPrice);
-            productQuery.price = priceQuery;
+            if (req.query.minPrice)
+                priceQuery.$gte = parseFloat(req.query.minPrice);
+            if (req.query.maxPrice)
+                priceQuery.$lte = parseFloat(req.query.maxPrice);
+            query = Object.assign(Object.assign({}, query), { "price": priceQuery });
         }
-        // Find users based on cityId, stateId, and role
-        let userQuery = {};
-        if (cityId) {
-            userQuery.cityId = cityId;
+        // Selling Price filter
+        if (req.query.minSellingPrice || req.query.maxSellingPrice) {
+            const sellingPriceQuery = {};
+            if (req.query.minSellingPrice)
+                sellingPriceQuery.$gte = parseFloat(req.query.minSellingPrice);
+            if (req.query.maxSellingPrice)
+                sellingPriceQuery.$lte = parseFloat(req.query.maxSellingPrice);
+            query = Object.assign(Object.assign({}, query), { "sellingprice": sellingPriceQuery });
         }
-        if (stateId) {
-            userQuery.stateId = stateId;
+        // Specification filters
+        if (req.query.thickness) {
+            query = Object.assign(Object.assign({}, query), { "specification.thickness": new RegExp(`${req.query.thickness}`, "i") });
         }
-        if (role) {
-            userQuery.role = role;
+        if (req.query.application) {
+            query = Object.assign(Object.assign({}, query), { "specification.application": new RegExp(`${req.query.application}`, "i") });
         }
-        const users = yield user_model_1.User.find(userQuery).select('_id').exec();
-        const userIds = users.map(user => user._id);
-        if (userIds.length > 0) {
-            // Filter products created by the found users
-            productQuery.createdById = { $in: userIds };
+        if (req.query.grade) {
+            query = Object.assign(Object.assign({}, query), { "specification.grade": new RegExp(`${req.query.grade}`, "i") });
         }
-        else {
-            // If no users match the criteria, return an empty result
-            return res.status(200).json({ message: 'No products found', data: [], success: true });
+        if (req.query.color) {
+            query = Object.assign(Object.assign({}, query), { "specification.color": new RegExp(`${req.query.color}`, "i") });
         }
-        // Execute the query
-        const products = yield product_model_1.Product.find(productQuery)
+        if (req.query.size) {
+            query = Object.assign(Object.assign({}, query), { "specification.size": new RegExp(`${req.query.size}`, "i") });
+        }
+        if (req.query.wood) {
+            query = Object.assign(Object.assign({}, query), { "specification.wood": new RegExp(`${req.query.wood}`, "i") });
+        }
+        if (req.query.glue) {
+            query = Object.assign(Object.assign({}, query), { "specification.glue": new RegExp(`${req.query.glue}`, "i") });
+        }
+        if (req.query.warranty) {
+            query = Object.assign(Object.assign({}, query), { "specification.warranty": new RegExp(`${req.query.warranty}`, "i") });
+        }
+        // Status filter
+        if (req.query.status) {
+            query = Object.assign(Object.assign({}, query), { status: req.query.status === "true" });
+        }
+        // Approval status filter
+        if (req.query.approved) {
+            query = Object.assign(Object.assign({}, query), { approved: req.query.approved });
+        }
+        // User filters
+        if (req.query.userName || req.query.userEmail || req.query.userPhone) {
+            const userQuery = {};
+            if (req.query.userName) {
+                userQuery.name = new RegExp(`${req.query.userName}`, "i");
+            }
+            if (req.query.userEmail) {
+                userQuery.email = new RegExp(`${req.query.userEmail}`, "i");
+            }
+            if (req.query.userPhone) {
+                userQuery.phone = new RegExp(`${req.query.userPhone}`, "i");
+            }
+            const users = yield user_model_1.User.find(userQuery).select('_id').exec();
+            const userIds = users.map(user => user._id);
+            query = Object.assign(Object.assign({}, query), { createdById: { $in: userIds } });
+        }
+        console.log(JSON.stringify(query, null, 2), "query");
+        const arr = yield product_model_1.Product.find(query)
             .populate('createdById', 'name email phone')
             .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1 })
             .lean()
             .exec();
-        res.status(200).json({ message: 'Products retrieved successfully', data: products, success: true });
+        res.status(200).json({ message: "Arr", data: arr, success: true });
     }
     catch (error) {
         next(error);

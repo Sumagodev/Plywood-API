@@ -17,6 +17,50 @@ const UserFcmTokens_model_1 = require("../models/UserFcmTokens.model");
 const Notifications_model_1 = require("../models/Notifications.model");
 const fcmNotify_1 = require("../helpers/fcmNotify");
 const constant_1 = require("../helpers/constant");
+// export const addProductReview = async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         console.log(req.body);
+//         // const ProductReviewNameCheck = await ProductReview.findOne({
+//         //     name: new RegExp(`^${req.body.name}$`, "i"), productId: req.body.productId
+//         // }).exec();
+//         // if (ProductReviewNameCheck) throw new Error("You have already added a review for this product");
+//         console.log(req.body)
+//         const newEntry = new ProductReview(req.body).save();
+//         if (!newEntry) {
+//             throw new Error("Unable to create ProductReview");
+//         }
+//         // let userObj = await User.findById(req.body?.userId).exec();
+//         let reviewArr = await ProductReview.find({ userId: req.body?.userId }).exec();
+//         let total = reviewArr && reviewArr.length > 0 ? reviewArr.length : 0;
+//         let totalRatings = reviewArr && reviewArr.length > 0 ? reviewArr.reduce((acc, el) => acc + el.rating, 0) : 0
+//         console.log(totalRatings, total, "totalRatings")
+//         let rating: number = 0;
+//         if (totalRatings != 0 && total != 0) {
+//             rating = Math.round(totalRatings / total);
+//         }
+//         // Math.round((typeof (totalRatings / total) == "number" || typeof (totalRatings / total) == "bigint") ? (totalRatings / total) : 0);
+//         // console.log(rating, (typeof (totalRatings / total) == "number" || typeof (totalRatings / total) == "bigint") ? (totalRatings / total) : 0, '(typeof (totalRatings / total) == "number" || typeof (totalRatings / total) == "bigint") ? (totalRatings / total) : 0');
+//         await User.findByIdAndUpdate(req.body?.userId, { rating: rating }).exec();
+//         // await Product.findByIdAndUpdate(req.body.productId, { "createdByObj.rating": rating }).exec();
+//         let fcmTokensArr = await UserFcmToken.find({ userId: req.body.userId }).exec();
+//         console.log(fcmTokensArr)
+//         let obj = {
+//             tokens: fcmTokensArr.map((el:any) => el.fcmToken),
+//             data: { title: notification_text.review_text_obj.title, content: notification_text.review_text_obj.content }
+//         }
+//         let saveNotificationObj = {
+//             userId: req.body.userId,
+//             title: obj.data.title,
+//             content: obj.data.content
+//         }
+//         await new Notifications(saveNotificationObj).save()
+//         console.log(saveNotificationObj, "NOTIFICATION OBJ")
+//         await fcmMulticastNotify(obj)
+//         res.status(200).json({ message: "Review Successfully Created", success: true });
+//     } catch (err) {
+//         next(err);
+//     }
+// };
 const addProductReview = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     try {

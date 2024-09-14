@@ -498,80 +498,122 @@ export const getAllProductsBySupplierId: RequestHandler = async (req, res, next)
 //     next(error);
 //   }
 // };
-
 export const searchProductWithQuery: RequestHandler = async (req, res, next) => {
   try {
-      const {
-        name,
-        categoryId,
-        minPrice,
-        maxPrice,
-        cityId,
-        stateId,
-        role
-      } = req.query;
-  
-      // Initialize the query object
-      let productQuery: any = {};
-  
-      // Name filter
-      if (name) {
-        const regex = new RegExp(name as string, 'i');
-        productQuery.name = regex;
+    let query: any = {};
+
+    // Role filter
+    if (req.query.role && req.query.role !== "null") {
+      query = { ...query, "createdByObj.role": { $ne: req.query.role } };
+    }
+
+    // Name, creator's name, short description, long description, and brand name filter
+    if (req.query.name) {
+      const regex = new RegExp(`${req.query.name}`, "i");
+      let brandArr = await Brand.find({ name: regex }).exec();
+      let brandIds = brandArr.length > 0 ? brandArr.map(el => `${el._id}`) : [];
+
+      query = {
+        ...query,
+        $or: [
+          { name: regex },
+          { "createdByObj.name": regex },
+          { "shortDescription": regex },
+          { "longDescription": regex },
+          ...(brandIds.length > 0 ? [{ "brand": { $in: brandIds } }] : [])
+        ]
+      };
+    }
+
+    // Category filter
+    if (req.query.categoryId) {
+      query = { ...query, "categoryId": req.query.categoryId };
+    }
+
+    // Price filter
+    if (req.query.minPrice || req.query.maxPrice) {
+      const priceQuery: any = {};
+      if (req.query.minPrice) priceQuery.$gte = parseFloat(req.query.minPrice as string);
+      if (req.query.maxPrice) priceQuery.$lte = parseFloat(req.query.maxPrice as string);
+      query = { ...query, "price": priceQuery };
+    }
+
+    // Selling Price filter
+    if (req.query.minSellingPrice || req.query.maxSellingPrice) {
+      const sellingPriceQuery: any = {};
+      if (req.query.minSellingPrice) sellingPriceQuery.$gte = parseFloat(req.query.minSellingPrice as string);
+      if (req.query.maxSellingPrice) sellingPriceQuery.$lte = parseFloat(req.query.maxSellingPrice as string);
+      query = { ...query, "sellingprice": sellingPriceQuery };
+    }
+
+    // Specification filters
+    if (req.query.thickness) {
+      query = { ...query, "specification.thickness": new RegExp(`${req.query.thickness}`, "i") };
+    }
+    if (req.query.application) {
+      query = { ...query, "specification.application": new RegExp(`${req.query.application}`, "i") };
+    }
+    if (req.query.grade) {
+      query = { ...query, "specification.grade": new RegExp(`${req.query.grade}`, "i") };
+    }
+    if (req.query.color) {
+      query = { ...query, "specification.color": new RegExp(`${req.query.color}`, "i") };
+    }
+    if (req.query.size) {
+      query = { ...query, "specification.size": new RegExp(`${req.query.size}`, "i") };
+    }
+    if (req.query.wood) {
+      query = { ...query, "specification.wood": new RegExp(`${req.query.wood}`, "i") };
+    }
+    if (req.query.glue) {
+      query = { ...query, "specification.glue": new RegExp(`${req.query.glue}`, "i") };
+    }
+    if (req.query.warranty) {
+      query = { ...query, "specification.warranty": new RegExp(`${req.query.warranty}`, "i") };
+    }
+
+    // Status filter
+    if (req.query.status) {
+      query = { ...query, status: req.query.status === "true" };
+    }
+
+    // Approval status filter
+    if (req.query.approved) {
+      query = { ...query, approved: req.query.approved };
+    }
+
+    // User filters
+    if (req.query.userName || req.query.userEmail || req.query.userPhone) {
+      const userQuery: any = {};
+
+      if (req.query.userName) {
+        userQuery.name = new RegExp(`${req.query.userName}`, "i");
       }
-  
-      // Category filter
-      if (categoryId) {
-        productQuery.categoryId = categoryId;
+      if (req.query.userEmail) {
+        userQuery.email = new RegExp(`${req.query.userEmail}`, "i");
       }
-  
-      // Price filter
-      if (minPrice || maxPrice) {
-        const priceQuery: any = {};
-        if (minPrice) priceQuery.$gte = parseFloat(minPrice as string);
-        if (maxPrice) priceQuery.$lte = parseFloat(maxPrice as string);
-        productQuery.price = priceQuery;
+      if (req.query.userPhone) {
+        userQuery.phone = new RegExp(`${req.query.userPhone}`, "i");
       }
-  
-      // Find users based on cityId, stateId, and role
-      let userQuery: any = {};
-  
-      if (cityId) {
-        userQuery.cityId = cityId;
-      }
-  
-      if (stateId) {
-        userQuery.stateId = stateId;
-      }
-  
-      if (role) {
-        userQuery.role = role;
-      }
-  
+
       const users = await User.find(userQuery).select('_id').exec();
       const userIds = users.map(user => user._id);
-  
-      if (userIds.length > 0) {
-        // Filter products created by the found users
-        productQuery.createdById = { $in: userIds };
-      } else {
-        // If no users match the criteria, return an empty result
-        return res.status(200).json({ message: 'No products found', data: [], success: true });
-      }
-  
-      // Execute the query
-      const products = await Product.find(productQuery)
-        .populate('createdById', 'name email phone')
-        .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1 })
-        .lean()
-        .exec();
-  
-      res.status(200).json({ message: 'Products retrieved successfully', data: products, success: true });
-    } catch (error) {
-      next(error);
+      query = { ...query, createdById: { $in: userIds } };
     }
-  };
 
+    console.log(JSON.stringify(query, null, 2), "query");
+
+    const arr = await Product.find(query)
+      .populate('createdById', 'name email phone')
+      .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1 })
+      .lean()
+      .exec();
+
+    res.status(200).json({ message: "Arr", data: arr, success: true });
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const updateAppById = async (req: Request, res: Response, next: NextFunction) => {
   try {
