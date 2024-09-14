@@ -376,7 +376,7 @@ const getSimilarProducts = (req, res, next) => __awaiter(void 0, void 0, void 0,
                 categoryId: product.categoryId,
                 cityName,
                 productName: product.name,
-                productID: product._id,
+                productId: product._id,
                 isVerified: (user === null || user === void 0 ? void 0 : user.isVerified) || false,
                 price: product.sellingprice
             };

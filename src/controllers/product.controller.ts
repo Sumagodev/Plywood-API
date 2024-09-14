@@ -424,7 +424,7 @@ export const getSimilarProducts: RequestHandler = async (req, res, next) => {
         categoryId: product.categoryId,
         cityName, // City name fetched based on user's cityId
         productName: product.name,
-        productID: product._id,
+        productId: product._id,
         isVerified: user?.isVerified || false, // Assuming isVerified is a property on the user
         price: product.sellingprice
       };

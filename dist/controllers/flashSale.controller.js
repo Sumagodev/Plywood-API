@@ -69,11 +69,90 @@ const getFlashSale = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
     }
 });
 exports.getFlashSale = getFlashSale;
+// export const getAllFlashSales = async (req: Request, res: Response, next: NextFunction) => {
+//   try {
+//     let FlashSaleArr: any = [];
+//     let query: any = {};
+//     let saleCount = await FlashSale.find(query).countDocuments();
+//     let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
+//     let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
+//     let pipeLine: any = [
+//       {
+//         "$lookup": {
+//           "from": "users",
+//           "localField": "userId",
+//           "foreignField": "_id",
+//           "as": "userId",
+//         },
+//       },
+//       {
+//         "$lookup": {
+//           "from": "products",
+//           "localField": "productId",
+//           "foreignField": "_id",
+//           "as": "productId",
+//         },
+//       },
+//       {
+//         "$unwind": {
+//           "path": "$productId",
+//           "preserveNullAndEmptyArrays": false,
+//         },
+//       },
+//       {
+//         "$unwind": {
+//           "path": "$userId",
+//           "preserveNullAndEmptyArrays": false,
+//         },
+//       },
+//     ];
+//     if (req.query.q) {
+//       pipeLine.push({
+//         "$match": {
+//           "$or": [
+//             {
+//               "userId.name": new RegExp(`^${req.query.q}`, "i"),
+//             },
+//             {
+//               "productId.name": new RegExp(`^${req.query.q}`, "i"),
+//             },
+//           ],
+//         },
+//       });
+//     }
+//     if (req.query.endDate) {
+//       pipeLine.push({
+//         "$match": 
+//             {
+//               "endDate":{
+//                 "$gte": new Date(`${req.query.endDate}`)
+//               } 
+//             },
+//         },
+//       );
+//     }
+//     pipeLine.push(
+//       {
+//         "$skip": (pageValue - 1) * limitValue,
+//       },
+//       {
+//         "$limit": limitValue,
+//       }
+//     );
+//     FlashSaleArr = await FlashSale.aggregate(pipeLine).exec();
+//     // FlashSaleArr = await FlashSale.find(query).skip((pageValue - 1) * limitValue).limit(limitValue).populate('productId').populate('userId').lean().exec();
+//     res.status(200).json({ message: "getFlashSale", data: FlashSaleArr, totalPages: saleCount, success: true });
+//   } catch (err) {
+//     next(err);
+//   }
+// };
 const getAllFlashSales = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let FlashSaleArr = [];
         let query = {};
+        // Count total flash sales
         let saleCount = yield FlashSale_model_1.FlashSale.find(query).countDocuments();
+        // Pagination values
         let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
         let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
         let pipeLine = [
@@ -105,37 +184,36 @@ const getAllFlashSales = (req, res, next) => __awaiter(void 0, void 0, void 0, f
                     "preserveNullAndEmptyArrays": false,
                 },
             },
+            // Exclude expired flash sales where endDate is less than current date
+            {
+                "$match": {
+                    "endDate": { "$gte": new Date() }
+                },
+            },
         ];
+        // Optional search query
         if (req.query.q) {
             pipeLine.push({
                 "$match": {
                     "$or": [
-                        {
-                            "userId.name": new RegExp(`^${req.query.q}`, "i"),
-                        },
-                        {
-                            "productId.name": new RegExp(`^${req.query.q}`, "i"),
-                        },
+                        { "userId.name": new RegExp(`^${req.query.q}`, "i") },
+                        { "productId.name": new RegExp(`^${req.query.q}`, "i") },
                     ],
                 },
             });
         }
+        // Optional endDate filtering (if user provides an end date)
         if (req.query.endDate) {
             pipeLine.push({
                 "$match": {
-                    "endDate": {
-                        "$gte": new Date(`${req.query.endDate}`)
-                    }
+                    "endDate": { "$gte": new Date(`${req.query.endDate}`) },
                 },
             });
         }
-        pipeLine.push({
-            "$skip": (pageValue - 1) * limitValue,
-        }, {
-            "$limit": limitValue,
-        });
+        // Pagination
+        pipeLine.push({ "$skip": (pageValue - 1) * limitValue }, { "$limit": limitValue });
+        // Execute the aggregation pipeline
         FlashSaleArr = yield FlashSale_model_1.FlashSale.aggregate(pipeLine).exec();
-        // FlashSaleArr = await FlashSale.find(query).skip((pageValue - 1) * limitValue).limit(limitValue).populate('productId').populate('userId').lean().exec();
         res.status(200).json({ message: "getFlashSale", data: FlashSaleArr, totalPages: saleCount, success: true });
     }
     catch (err) {
