@@ -354,10 +354,37 @@ const getProductById = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
 exports.getProductById = getProductById;
 const getSimilarProducts = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const productArr = yield product_model_1.Product.find({ categoryId: new mongoose_1.default.Types.ObjectId(req.params.id) }).exec();
+        const productArr = yield product_model_1.Product.find({ categoryId: new mongoose_1.default.Types.ObjectId(req.params.id) }).lean().exec();
         if (!productArr)
             throw new Error("Products not found");
-        res.status(200).json({ message: "Products", data: productArr, success: true });
+        // Extract userIds and cityIds from the products (assuming the user is linked to each product)
+        const userIds = productArr.map(product => product.createdById);
+        // Fetch users associated with these products
+        const users = yield user_model_1.User.find({ _id: { $in: userIds } }).lean().exec();
+        const cityIds = users.map(user => user.cityId);
+        // Fetch the city names based on cityIds
+        const cities = yield City_model_1.City.find({ _id: { $in: cityIds } }).lean().exec();
+        // Create a mapping of cityId to city name
+        const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
+        // Create a user map to easily get user details
+        const userMap = new Map(users.map(user => [user._id.toString(), user]));
+        // Map through products and include the desired fields along with city name
+        const filteredProducts = productArr.map((product) => {
+            const user = userMap.get(product.createdById.toString());
+            const cityName = user ? cityMap.get(user.cityId.toString()) || 'Unknown City' : 'Unknown City';
+            return {
+                categoryId: product.categoryId,
+                cityName,
+                productName: product.name,
+                isVerified: (user === null || user === void 0 ? void 0 : user.isVerified) || false,
+                price: product.sellingprice
+            };
+        });
+        res.status(200).json({
+            message: "Filtered Products with City Names",
+            data: filteredProducts,
+            success: true
+        });
     }
     catch (error) {
         next(error);

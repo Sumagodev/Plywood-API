@@ -393,17 +393,51 @@ export const getProductById = async (req: Request, res: Response, next: NextFunc
   }
 };
 
-
 export const getSimilarProducts: RequestHandler = async (req, res, next) => {
   try {
-    const productArr = await Product.find({ categoryId: new mongoose.Types.ObjectId(req.params.id) }).exec();
+    const productArr = await Product.find({ categoryId: new mongoose.Types.ObjectId(req.params.id) }).lean().exec();
     if (!productArr) throw new Error("Products not found");
 
-    res.status(200).json({ message: "Products", data: productArr, success: true });
+    // Extract userIds and cityIds from the products (assuming the user is linked to each product)
+    const userIds = productArr.map(product => product.createdById);
+
+    // Fetch users associated with these products
+    const users = await User.find({ _id: { $in: userIds } }).lean().exec();
+    const cityIds = users.map(user => user.cityId);
+
+    // Fetch the city names based on cityIds
+    const cities = await City.find({ _id: { $in: cityIds } }).lean().exec();
+
+    // Create a mapping of cityId to city name
+    const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
+
+    // Create a user map to easily get user details
+    const userMap = new Map(users.map(user => [user._id.toString(), user]));
+
+    // Map through products and include the desired fields along with city name
+    const filteredProducts = productArr.map((product: any) => {
+      const user = userMap.get(product.createdById.toString());
+      const cityName = user ? cityMap.get(user.cityId.toString()) || 'Unknown City' : 'Unknown City';
+
+      return {
+        categoryId: product.categoryId,
+        cityName, // City name fetched based on user's cityId
+        productName: product.name,
+        isVerified: user?.isVerified || false, // Assuming isVerified is a property on the user
+        price: product.sellingprice
+      };
+    });
+
+    res.status(200).json({
+      message: "Filtered Products with City Names",
+      data: filteredProducts,
+      success: true
+    });
   } catch (error) {
     next(error);
   }
 };
+
 
 
 export const getAllProductsBySupplierId: RequestHandler = async (req, res, next) => {
