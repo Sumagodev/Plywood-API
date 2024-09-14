@@ -1026,250 +1026,159 @@ export const checkForValidSubscriptionAndReturnBoolean = async (req: Request, re
 };
 
 export const getAllUsersForWebsite = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    console.log(req.query, "query");
-
-    let query: any = {};
-
-    if (req.query.userId) {
-      query.createdById = req.query.userId;
-    }
-
-    if (req.query.searchQuery) {
-      let regex = new RegExp(`${req.query.searchQuery}`, "i");
-
-      const rangeQuery = [
+    try {
+      console.log(req.query, "query");
+  
+      let query: any = {};
+  
+      // Optional search query
+      if (req.query.searchQuery) {
+        let regex = new RegExp(`${req.query.searchQuery}`, "i");
+        query = { ...query, $or: [{ name: regex }, { companyName: regex }] };
+      }
+  
+      // Optional filters
+      if (req.query.q) {
+        let regex = new RegExp(`${req.query.q}`, "i");
+        query = { ...query, $or: [{ name: regex }, { companyName: regex }] };
+      }
+  
+      if (req.query.role) {
+        query = { ...query, "role": req.query.role };
+      }
+  
+      if (req.query.category) {
+        query = { ...query, "categoryIdArr.categoryId": req.query.category };
+      }
+  
+      if (req.query.rating) {
+        let ratingValue: number = +req.query.rating;
+        query = { ...query, "rating": { $gte: ratingValue } };
+      }
+  
+      if (req.query.locations) {
+        let locationArr = `${req.query.locations}`.split(",");
+        query = { ...query, "cityId": { $in: [...locationArr] } };
+      }
+  
+      if (req.query.state) {
+        let locationArr = `${req.query.state}`.split(",");
+        query = { ...query, "stateId": { $in: [...locationArr] } };
+      }
+  
+      // Pagination
+      let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
+      let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 10;
+  
+      const pipeline: any = [
         {
-          name: regex,
+          "$match": {
+            ...query,
+          },
         },
         {
-          companyName: regex,
+          "$lookup": {
+            "from": "products",
+            "localField": "_id",
+            "foreignField": "createdById",
+            "pipeline": [
+              {
+                "$match": {
+                  "approved": "APPROVED",
+                },
+              },
+            ],
+            "as": "productsArr",
+          },
+        },
+        {
+          "$addFields": {
+            "productsCount": {
+              "$size": "$productsArr",
+            },
+          },
+        },
+        {
+          "$unwind": {
+            "path": "$productsArr",
+            "preserveNullAndEmptyArrays": true,
+          },
+        },
+        {
+          "$unwind": {
+            "path": "$productsArr.categoryArr",
+            "preserveNullAndEmptyArrays": true,
+          },
+        },
+        {
+          "$group": {
+            "_id": "$_id",
+            "name": { "$first": "$name" },
+            "companyName": { "$first": "$companyObj.name" },
+            "bannerImage": { "$first": "$bannerImage" },
+            "profileImage": { "$first": "$profileImage" },
+            "productsCount": { "$first": "$productsCount" },
+            "rating": { "$first": "$rating" },
+            "categoryIdArr": { "$addToSet": { "categoryId": { "$toString": "$productsArr.categoryArr.categoryId" } } },
+            "countryId": { "$first": "$countryId" },
+            "stateId": { "$first": "$stateId" },
+            "cityId": { "$first": "$cityId" },
+            "phone": { "$first": "$phone" },
+          },
+        },
+        // Remove the $sort stage here (previously sorting by rating)
+        {
+          "$skip": (pageValue - 1) * limitValue,
+        },
+        {
+          "$limit": limitValue,
         },
       ];
-      query = { ...query, ...{ $or: rangeQuery } };
-    }
-    if (req.query.q) {
-      // query = { ...query, name: new RegExp(`${req.query.q}`, "i") };
-      let regex = new RegExp(`${req.query.q}`, "i");
-
-      const rangeQuery = [
-        {
-          name: regex,
-        },
-        {
-          companyName: regex,
-        },
+  
+      // Execute the aggregation pipeline
+      const profiles = await User.aggregate(pipeline);
+  
+      // Step 1: Extract cityIds and stateIds from the profiles
+      const cityIds = profiles
+        .map((profile: any) => profile.cityId)
+        .filter((id: any) => id); // Ensure no null or undefined values
+      const stateIds = profiles
+        .map((profile: any) => profile.stateId)
+        .filter((id: any) => id); // Ensure no null or undefined values
+  
+      // Step 2: Fetch city and state details
+      const cityDetails = await City.find({ _id: { $in: cityIds } }).select("name _id");
+      const stateDetails = await State.find({ _id: { $in: stateIds } }).select("name _id");
+  
+      // Step 3: Merge city and state details into the profiles
+      const finalProfiles = profiles.map((profile: any) => {
+        const city = cityDetails.find((c: any) => c._id.toString() === (profile.cityId || '').toString());
+        const state = stateDetails.find((s: any) => s._id.toString() === (profile.stateId || '').toString());
+  
+        return {
+          ...profile,
+          cityName: city ? city.name : null,
+          stateName: state ? state.name : null,
+        };
+      });
+  
+      // Get total profiles count for pagination
+      const totalPipeline = [
+        { "$match": { ...query } },
+        { "$count": "count" },
       ];
-      query = { ...query, ...{ $or: rangeQuery } };
+  
+      const totalProfiles: any = await User.aggregate(totalPipeline);
+      const total = totalProfiles.length > 0 ? totalProfiles[0].count : 0;
+      const totalPages = Math.ceil(total / limitValue);
+  
+      res.json({ message: "Top Profiles", data: finalProfiles, total: totalPages });
+    } catch (error) {
+      next(error);
     }
+  };
+  
 
-    let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
-    let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
-
-    let mainRoleQuery = {};
-
-    if (req.query.role && req.query.role != null && req.query.role != "null") {
-      mainRoleQuery = { ...mainRoleQuery, "role": { $ne: req.query.role } };
-    }
-
-    if (req.query.userTypes) {
-      let userTypesArr = `${req.query.userTypes}`.split(",").filter((el) => el != "");
-      query = { ...query, "role": { $in: [...userTypesArr.map((el) => new RegExp(el, "i"))] } };
-    }
-
-    if (req.query.category) {
-      query = { ...query, "categoryIdArr.categoryId": req.query.category };
-    }
-    if (req.query.categories) {
-      let categoryArr = `${req.query.categories}`.split(",");
-      query = {
-        ...query,
-        $or: [
-          { "categoryIdArr.categoryId": { $in: [...categoryArr] } },
-          { "categoryArr.categoryId": { $in: [...categoryArr.map((el) => new mongoose.Types.ObjectId(el))] } },
-        ],
-      };
-    }
-    if (req.query.locations) {
-      let locationArr = `${req.query.locations}`.split(",");
-      query = { ...query, "cityId": { $in: [...locationArr] } };
-    }
-    if (req.query.state) {
-      let locationArr = `${req.query.state}`.split(",");
-      query = { ...query, "stateId": { $in: [...locationArr] } };
-    }
-    // if (req.query.city) {
-    //   let locationArr = `${req.query.city}`.split(",");
-    //   query = { ...query, "state": { $in: [...locationArr] } };
-    // }
-    if (req.query.rating) {
-      let ratingValue: number = +req.query.rating;
-      query = { ...query, "rating": { $gte: ratingValue } };
-    }
-    if (req.query.vendors) {
-      let vendorArr: any = `${req.query.vendors}`.split(",");
-      query = { ...query, $or: vendorArr.map((el: any) => ({ "brandIdArr.brandId": el })) };
-    }
-
-    console.log(query, "query");
-
-    const pipeline: any = [
-      {
-        "$match": {
-          $and: [
-            { "role": { "$ne": ROLES.SALES } },
-            { "role": { "$ne": ROLES.ADMIN } },
-            { "role": { "$ne": ROLES.FIELDUSER } },
-          ],
-        },
-      },
-      {
-        "$match": mainRoleQuery,
-      },
-      {
-        "$lookup": {
-          "from": "products",
-          "localField": "_id",
-          "foreignField": "createdById",
-          "pipeline": [
-            {
-              "$match": {
-                "approved": "APPROVED",
-              },
-            },
-          ],
-          "as": "productsArr",
-        },
-      },
-      {
-        "$addFields": {
-          "productsCount": {
-            "$size": "$productsArr",
-          },
-        },
-      },
-      {
-        "$unwind": {
-          "path": "$productsArr",
-          "preserveNullAndEmptyArrays": true,
-        },
-      },
-      {
-        "$unwind": {
-          "path": "$productsArr.categoryArr",
-          "preserveNullAndEmptyArrays": true,
-        },
-      },
-      {
-        "$group": {
-          "_id": "$_id",
-          "name": {
-            "$first": "$name",
-          },
-          "phone": {
-            "$first": "$phone",
-          },
-          "companyName": {
-            "$first": "$companyObj.name",
-          },
-          "bannerImage": {
-            "$first": "$bannerImage",
-          },
-          "productsCount": {
-            "$first": "$productsCount",
-          },
-          "profileImage": {
-            "$first": "$profileImage",
-          },
-          "categoryIdArr": {
-            "$addToSet": {
-              "categoryId": {
-                "$toString": "$productsArr.categoryArr.categoryId",
-              },
-            },
-          },
-          "categoryArr": {
-            $first: "$categoryArr",
-          },
-          "brandIdArr": {
-            "$addToSet": {
-              "brandId": "$productsArr.brand",
-            },
-          },
-          "countryId": {
-            "$first": "$countryId",
-          },
-          "stateId": {
-            "$first": "$stateId",
-          },
-          "cityId": {
-            "$first": "$cityId",
-          },
-          "role": {
-            "$first": "$role",
-          },
-          "rating": {
-            "$first": "$rating",
-          },
-          "createdByObj": {
-            "$first": {
-              "role": "$productsArr.createdByObj.role",
-            },
-          },
-        },
-      },
-      {
-        "$match": {
-          ...query,
-        },
-      },
-      {
-        "$sort": {
-          "name": 1,
-        },
-      },
-      // {
-      //   $skip: (pageValue - 1) * limitValue,
-      // },
-      // {
-      //   $limit: limitValue,
-      // },
-    ];
-
-    // {
-    //   '$match': {
-    //     'role': {
-    //       '$ne': 'ADMIN'
-    //     },
-    //     ...query,
-    //   }
-    // },
-
-    // let query: any = { $and: [{ role: { $ne: ROLES.ADMIN } }] };
-    let totalPipeline = [...pipeline];
-    totalPipeline.push({
-      $count: "count",
-    });
-    pipeline.push({
-      $skip: (pageValue - 1) * limitValue,
-    });
-    pipeline.push({
-      $limit: limitValue,
-    });
-    let users: any = await User.aggregate(pipeline);
-
-    console.log(JSON.stringify(totalPipeline, null, 2), "asd");
-
-    let totalUsers: any = await User.aggregate(totalPipeline);
-    console.log(totalUsers, "totalUsers");
-    totalUsers = totalUsers.length > 0 ? totalUsers[0].count : 0;
-    const totalPages = Math.ceil(totalUsers / limitValue);
-    // console.log(JSON.stringify(users, null, 2))
-    res.json({ message: "ALL Users", data: users, total: totalPages });
-  } catch (error) {
-    next(error);
-  }
-};
 
 export const getTopVendors = async (req: Request, res: Response, next: NextFunction) => {
   try {

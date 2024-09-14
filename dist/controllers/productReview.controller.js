@@ -88,12 +88,12 @@ const getProductReview = (req, res, next) => __awaiter(void 0, void 0, void 0, f
         // Pagination settings
         let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
         let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
-        // Fetch the reviews, populating both product and user details
+        // Fetch the reviews, populating both product and user details (including profileImage)
         let ProductReviewArr = yield productReview_model_1.ProductReview.find(query)
             .populate("productId") // Populate product details
             .populate({
             path: "userId",
-            select: "profileImage",
+            select: "profileImage name",
             model: user_model_1.User, // Specify the User model
         })
             .skip((pageValue - 1) * limitValue)

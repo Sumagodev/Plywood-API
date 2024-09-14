@@ -420,9 +420,11 @@ export const getSimilarProducts: RequestHandler = async (req, res, next) => {
       const cityName = user ? cityMap.get(user.cityId.toString()) || 'Unknown City' : 'Unknown City';
 
       return {
+        
         categoryId: product.categoryId,
         cityName, // City name fetched based on user's cityId
         productName: product.name,
+        productID: product._id,
         isVerified: user?.isVerified || false, // Assuming isVerified is a property on the user
         price: product.sellingprice
       };

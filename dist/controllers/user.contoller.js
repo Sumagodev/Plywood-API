@@ -978,53 +978,25 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
     try {
         console.log(req.query, "query");
         let query = {};
-        if (req.query.userId) {
-            query.createdById = req.query.userId;
-        }
+        // Optional search query
         if (req.query.searchQuery) {
             let regex = new RegExp(`${req.query.searchQuery}`, "i");
-            const rangeQuery = [
-                {
-                    name: regex,
-                },
-                {
-                    companyName: regex,
-                },
-            ];
-            query = Object.assign(Object.assign({}, query), { $or: rangeQuery });
+            query = Object.assign(Object.assign({}, query), { $or: [{ name: regex }, { companyName: regex }] });
         }
+        // Optional filters
         if (req.query.q) {
-            // query = { ...query, name: new RegExp(`${req.query.q}`, "i") };
             let regex = new RegExp(`${req.query.q}`, "i");
-            const rangeQuery = [
-                {
-                    name: regex,
-                },
-                {
-                    companyName: regex,
-                },
-            ];
-            query = Object.assign(Object.assign({}, query), { $or: rangeQuery });
+            query = Object.assign(Object.assign({}, query), { $or: [{ name: regex }, { companyName: regex }] });
         }
-        let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
-        let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
-        let mainRoleQuery = {};
-        if (req.query.role && req.query.role != null && req.query.role != "null") {
-            mainRoleQuery = Object.assign(Object.assign({}, mainRoleQuery), { "role": { $ne: req.query.role } });
-        }
-        if (req.query.userTypes) {
-            let userTypesArr = `${req.query.userTypes}`.split(",").filter((el) => el != "");
-            query = Object.assign(Object.assign({}, query), { "role": { $in: [...userTypesArr.map((el) => new RegExp(el, "i"))] } });
+        if (req.query.role) {
+            query = Object.assign(Object.assign({}, query), { "role": req.query.role });
         }
         if (req.query.category) {
             query = Object.assign(Object.assign({}, query), { "categoryIdArr.categoryId": req.query.category });
         }
-        if (req.query.categories) {
-            let categoryArr = `${req.query.categories}`.split(",");
-            query = Object.assign(Object.assign({}, query), { $or: [
-                    { "categoryIdArr.categoryId": { $in: [...categoryArr] } },
-                    { "categoryArr.categoryId": { $in: [...categoryArr.map((el) => new mongoose_1.default.Types.ObjectId(el))] } },
-                ] });
+        if (req.query.rating) {
+            let ratingValue = +req.query.rating;
+            query = Object.assign(Object.assign({}, query), { "rating": { $gte: ratingValue } });
         }
         if (req.query.locations) {
             let locationArr = `${req.query.locations}`.split(",");
@@ -1034,31 +1006,12 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
             let locationArr = `${req.query.state}`.split(",");
             query = Object.assign(Object.assign({}, query), { "stateId": { $in: [...locationArr] } });
         }
-        // if (req.query.city) {
-        //   let locationArr = `${req.query.city}`.split(",");
-        //   query = { ...query, "state": { $in: [...locationArr] } };
-        // }
-        if (req.query.rating) {
-            let ratingValue = +req.query.rating;
-            query = Object.assign(Object.assign({}, query), { "rating": { $gte: ratingValue } });
-        }
-        if (req.query.vendors) {
-            let vendorArr = `${req.query.vendors}`.split(",");
-            query = Object.assign(Object.assign({}, query), { $or: vendorArr.map((el) => ({ "brandIdArr.brandId": el })) });
-        }
-        console.log(query, "query");
+        // Pagination
+        let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
+        let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 10;
         const pipeline = [
             {
-                "$match": {
-                    $and: [
-                        { "role": { "$ne": constant_1.ROLES.SALES } },
-                        { "role": { "$ne": constant_1.ROLES.ADMIN } },
-                        { "role": { "$ne": constant_1.ROLES.FIELDUSER } },
-                    ],
-                },
-            },
-            {
-                "$match": mainRoleQuery,
+                "$match": Object.assign({}, query),
             },
             {
                 "$lookup": {
@@ -1097,103 +1050,54 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
             {
                 "$group": {
                     "_id": "$_id",
-                    "name": {
-                        "$first": "$name",
-                    },
-                    "phone": {
-                        "$first": "$phone",
-                    },
-                    "companyName": {
-                        "$first": "$companyObj.name",
-                    },
-                    "bannerImage": {
-                        "$first": "$bannerImage",
-                    },
-                    "productsCount": {
-                        "$first": "$productsCount",
-                    },
-                    "profileImage": {
-                        "$first": "$profileImage",
-                    },
-                    "categoryIdArr": {
-                        "$addToSet": {
-                            "categoryId": {
-                                "$toString": "$productsArr.categoryArr.categoryId",
-                            },
-                        },
-                    },
-                    "categoryArr": {
-                        $first: "$categoryArr",
-                    },
-                    "brandIdArr": {
-                        "$addToSet": {
-                            "brandId": "$productsArr.brand",
-                        },
-                    },
-                    "countryId": {
-                        "$first": "$countryId",
-                    },
-                    "stateId": {
-                        "$first": "$stateId",
-                    },
-                    "cityId": {
-                        "$first": "$cityId",
-                    },
-                    "role": {
-                        "$first": "$role",
-                    },
-                    "rating": {
-                        "$first": "$rating",
-                    },
-                    "createdByObj": {
-                        "$first": {
-                            "role": "$productsArr.createdByObj.role",
-                        },
-                    },
+                    "name": { "$first": "$name" },
+                    "companyName": { "$first": "$companyObj.name" },
+                    "bannerImage": { "$first": "$bannerImage" },
+                    "profileImage": { "$first": "$profileImage" },
+                    "productsCount": { "$first": "$productsCount" },
+                    "rating": { "$first": "$rating" },
+                    "categoryIdArr": { "$addToSet": { "categoryId": { "$toString": "$productsArr.categoryArr.categoryId" } } },
+                    "countryId": { "$first": "$countryId" },
+                    "stateId": { "$first": "$stateId" },
+                    "cityId": { "$first": "$cityId" },
+                    "phone": { "$first": "$phone" },
                 },
             },
+            // Remove the $sort stage here (previously sorting by rating)
             {
-                "$match": Object.assign({}, query),
+                "$skip": (pageValue - 1) * limitValue,
             },
             {
-                "$sort": {
-                    "name": 1,
-                },
+                "$limit": limitValue,
             },
-            // {
-            //   $skip: (pageValue - 1) * limitValue,
-            // },
-            // {
-            //   $limit: limitValue,
-            // },
         ];
-        // {
-        //   '$match': {
-        //     'role': {
-        //       '$ne': 'ADMIN'
-        //     },
-        //     ...query,
-        //   }
-        // },
-        // let query: any = { $and: [{ role: { $ne: ROLES.ADMIN } }] };
-        let totalPipeline = [...pipeline];
-        totalPipeline.push({
-            $count: "count",
+        // Execute the aggregation pipeline
+        const profiles = yield user_model_1.User.aggregate(pipeline);
+        // Step 1: Extract cityIds and stateIds from the profiles
+        const cityIds = profiles
+            .map((profile) => profile.cityId)
+            .filter((id) => id); // Ensure no null or undefined values
+        const stateIds = profiles
+            .map((profile) => profile.stateId)
+            .filter((id) => id); // Ensure no null or undefined values
+        // Step 2: Fetch city and state details
+        const cityDetails = yield City_model_1.City.find({ _id: { $in: cityIds } }).select("name _id");
+        const stateDetails = yield State_model_1.State.find({ _id: { $in: stateIds } }).select("name _id");
+        // Step 3: Merge city and state details into the profiles
+        const finalProfiles = profiles.map((profile) => {
+            const city = cityDetails.find((c) => c._id.toString() === (profile.cityId || '').toString());
+            const state = stateDetails.find((s) => s._id.toString() === (profile.stateId || '').toString());
+            return Object.assign(Object.assign({}, profile), { cityName: city ? city.name : null, stateName: state ? state.name : null });
         });
-        pipeline.push({
-            $skip: (pageValue - 1) * limitValue,
-        });
-        pipeline.push({
-            $limit: limitValue,
-        });
-        let users = yield user_model_1.User.aggregate(pipeline);
-        console.log(JSON.stringify(totalPipeline, null, 2), "asd");
-        let totalUsers = yield user_model_1.User.aggregate(totalPipeline);
-        console.log(totalUsers, "totalUsers");
-        totalUsers = totalUsers.length > 0 ? totalUsers[0].count : 0;
-        const totalPages = Math.ceil(totalUsers / limitValue);
-        // console.log(JSON.stringify(users, null, 2))
-        res.json({ message: "ALL Users", data: users, total: totalPages });
+        // Get total profiles count for pagination
+        const totalPipeline = [
+            { "$match": Object.assign({}, query) },
+            { "$count": "count" },
+        ];
+        const totalProfiles = yield user_model_1.User.aggregate(totalPipeline);
+        const total = totalProfiles.length > 0 ? totalProfiles[0].count : 0;
+        const totalPages = Math.ceil(total / limitValue);
+        res.json({ message: "Top Profiles", data: finalProfiles, total: totalPages });
     }
     catch (error) {
         next(error);
