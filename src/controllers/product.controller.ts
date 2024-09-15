@@ -612,7 +612,7 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
     console.log(JSON.stringify(query, null, 2), "query");
 
     const arr = await Product.find(query)
-      .populate('createdById', 'name email phone mainImage')
+      .populate('createdById', 'name email phone mainImage isVerified')
       .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainImage: 1, isVerified: 1 })
       .lean()
       .exec();
