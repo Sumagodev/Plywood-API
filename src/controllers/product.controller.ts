@@ -603,6 +603,9 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
       if (req.query.userPhone) {
         userQuery.phone = new RegExp(`${req.query.userPhone}`, "i");
       }
+      if (req.query.isVerified) {
+        userQuery.isVerified = new RegExp(`${req.query.isVerified}`, "i");
+      }
 
       const users = await Product.find(userQuery).select('_id').exec();
       const userIds = users.map(user => user._id);
@@ -612,7 +615,7 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
     console.log(JSON.stringify(query, null, 2), "query");
 
     const arr = await Product.find(query)
-      .populate('createdById', 'name email phone mainImage approved')
+      .populate('createdById', 'name email phone mainImage isVerified approved')
       .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainImage: 1, approved: 1 })
       .lean()
       .exec();
