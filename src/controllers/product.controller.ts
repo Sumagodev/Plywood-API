@@ -584,7 +584,7 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
     if (req.query.approved) {
       query = { ...query, approved: req.query.approved };
     }
-  
+
     // User filters
     if (req.query.userName || req.query.userEmail || req.query.userPhone) {
       const userQuery: any = {};
@@ -599,7 +599,7 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
         userQuery.phone = new RegExp(`${req.query.userPhone}`, "i");
       }
 
-      const users = await Product.find(userQuery).select('_id').exec();
+      const users = await User.find(userQuery).select('_id isVerified').exec(); // Ensure 'isVerified' is included
       const userIds = users.map(user => user._id);
       query = { ...query, createdById: { $in: userIds } };
     }
