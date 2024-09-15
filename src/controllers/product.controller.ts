@@ -426,7 +426,9 @@ export const getSimilarProducts: RequestHandler = async (req, res, next) => {
         productName: product.name,
         productId: product._id,
         isVerified: user?.isVerified || false, // Assuming isVerified is a property on the user
-        price: product.sellingprice
+        price: product.sellingprice,
+        productImage: product.mainImage || 'No image available', // Assuming mainImage field exists
+        userMobileNumber: user ? user.phone || 'No mobile number available' : 'No mobile number available' // Assuming mobileNumber field exists
       };
     });
 

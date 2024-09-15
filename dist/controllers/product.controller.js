@@ -378,7 +378,9 @@ const getSimilarProducts = (req, res, next) => __awaiter(void 0, void 0, void 0,
                 productName: product.name,
                 productId: product._id,
                 isVerified: (user === null || user === void 0 ? void 0 : user.isVerified) || false,
-                price: product.sellingprice
+                price: product.sellingprice,
+                productImage: product.mainImage || 'No image available',
+                userMobileNumber: user ? user.phone || 'No mobile number available' : 'No mobile number available' // Assuming mobileNumber field exists
             };
         });
         res.status(200).json({
