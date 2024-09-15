@@ -584,12 +584,7 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
     if (req.query.approved) {
       query = { ...query, approved: req.query.approved };
     }
-    // isVerified filter
-    if (req.query.isVerified) {
-      query = { ...query, isVerified: req.query.isVerified === "true" };
-    }
-
-
+  
     // User filters
     if (req.query.userName || req.query.userEmail || req.query.userPhone) {
       const userQuery: any = {};
