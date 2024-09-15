@@ -68,8 +68,8 @@ typings/
 #dist
 tsconfig.tsbuildinfo
 
-
-
+/config.ts
+/config.js
 /public
 
 # Logs
