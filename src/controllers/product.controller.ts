@@ -607,7 +607,7 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
 
     const arr = await Product.find(query)
       .populate('createdById', 'name email phone mainImage ')
-      .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1 })
+      .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1,mainImage:1 })
       .lean()
       .exec();
 
