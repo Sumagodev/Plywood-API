@@ -733,7 +733,7 @@ export const getProductYouMayLike = async (req: Request, res: Response, next: Ne
         const stateName = stateId ? stateNameMap.get(stateId.toString()) || "Unknown State" : "Unknown State";
 
         const address = createdByObj?.address || "Unknown Address";
-
+        const phone = createdByObj?.phone || "Unknown phone";
         // Fetch product details
 
         const productDetail = productDetails.find((p) => p._id.toString() === product._id.toString());
@@ -752,6 +752,7 @@ export const getProductYouMayLike = async (req: Request, res: Response, next: Ne
           cityName,
           stateName,   // Include stateName in the response
           address,
+          phone,
           // Include address in the response
           productName,
           productPrice,
