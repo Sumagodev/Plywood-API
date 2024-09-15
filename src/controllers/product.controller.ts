@@ -420,11 +420,12 @@ export const getSimilarProducts: RequestHandler = async (req, res, next) => {
       const cityName = user ? cityMap.get(user.cityId.toString()) || 'Unknown City' : 'Unknown City';
 
       return {
-        
+
         categoryId: product.categoryId,
         cityName, // City name fetched based on user's cityId
         productName: product.name,
         productId: product._id,
+
         isVerified: user?.isVerified || false, // Assuming isVerified is a property on the user
         price: product.sellingprice,
         productImage: product.mainImage || 'No image available', // Assuming mainImage field exists
@@ -583,6 +584,11 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
     if (req.query.approved) {
       query = { ...query, approved: req.query.approved };
     }
+    // isVerified filter
+    if (req.query.isVerified) {
+      query = { ...query, isVerified: req.query.isVerified === "true" };
+    }
+
 
     // User filters
     if (req.query.userName || req.query.userEmail || req.query.userPhone) {
@@ -598,7 +604,7 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
         userQuery.phone = new RegExp(`${req.query.userPhone}`, "i");
       }
 
-      const users = await User.find(userQuery).select('_id').exec();
+      const users = await Product.find(userQuery).select('_id').exec();
       const userIds = users.map(user => user._id);
       query = { ...query, createdById: { $in: userIds } };
     }
@@ -606,10 +612,11 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
     console.log(JSON.stringify(query, null, 2), "query");
 
     const arr = await Product.find(query)
-      .populate('createdById', 'name email phone mainImage ')
-      .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1,mainImage:1 })
+      .populate('createdById', 'name email phone mainImage')
+      .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainImage: 1, isVerified: 1 })
       .lean()
       .exec();
+
 
     res.status(200).json({ message: "Arr", data: arr, success: true });
   } catch (error) {
@@ -747,7 +754,7 @@ export const getProductYouMayLike = async (req: Request, res: Response, next: Ne
         }
 
         return {
-        
+
           cityName,
           stateName,   // Include stateName in the response
           address,
