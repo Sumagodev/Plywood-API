@@ -9,6 +9,7 @@ import { User } from "../models/user.model";
 import { City } from "../models/City.model";
 import { State } from "../models/State.model";
 import { FlashSale } from "../models/FlashSale.model";
+import { userInfo } from "node:os";
 
 
 export const getProduct = async (req: Request, res: Response, next: NextFunction) => {
@@ -598,17 +599,31 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
       if (req.query.userPhone) {
         userQuery.phone = new RegExp(`${req.query.userPhone}`, "i");
       }
+      if (req.query.userPhone) {
+        userQuery.isVerified = new RegExp(`${req.query.isVerified}`, "i");
+      }
+      // Fetch users based on userQuery
+      const users = await User.find(userQuery).select('_id isVerified').exec();
 
-      const users = await User.find(userQuery).select('_id isVerified').exec(); // Ensure 'isVerified' is included
-      const userIds = users.map(user => user._id);
+      // Map through users to get both _id and isVerified
+      const userInfo = users.map(user => ({
+        _id: user._id,
+        isVerified: user.isVerified
+      }));
+
+      // Extract just the userIds for use in your query
+      const userIds = userInfo.map(user => user._id);
+
+      // Update the main query with userIds for filtering products by createdById
       query = { ...query, createdById: { $in: userIds } };
+
     }
 
     console.log(JSON.stringify(query, null, 2), "query");
 
     const arr = await Product.find(query)
-      .populate('createdById', 'name email phone mainImage isVerified') // Include 'isVerified' here
-      .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainImage: 1, isVerified: 1 }) // Select necessary fields
+      .populate('createdById', 'name email phone mainImage isVerified','userInfo')
+      .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainImage: 1, isVerified: 1 })
       .lean()
       .exec();
 
