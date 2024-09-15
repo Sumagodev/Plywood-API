@@ -536,17 +536,20 @@ const searchProductWithQuery = (req, res, next) => __awaiter(void 0, void 0, voi
             if (req.query.userPhone) {
                 userQuery.phone = new RegExp(`${req.query.userPhone}`, "i");
             }
+            if (req.query.isVerified) {
+                userQuery.isVerified = new RegExp(`${req.query.isVerified}`, "i");
+            }
             const users = yield product_model_1.Product.find(userQuery).select('_id').exec();
             const userIds = users.map(user => user._id);
             query = Object.assign(Object.assign({}, query), { createdById: { $in: userIds } });
         }
         console.log(JSON.stringify(query, null, 2), "query");
         const arr = yield product_model_1.Product.find(query)
-            .populate('createdById', 'name email phone mainImage')
-            .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainImage: 1, isVerified: 1 })
+            .populate('createdById', 'name email phone mainImage isVerified approved')
+            .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainImage: 1, approved: 1 })
             .lean()
             .exec();
-        res.status(200).json({ message: "Arr", data: arr, success: true });
+        res.status(200).json({ message: "Arr", data: product_model_1.Product, success: true });
     }
     catch (error) {
         next(error);
