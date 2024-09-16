@@ -128,7 +128,7 @@ export const getAllStateDetails = async (req: Request, res: Response, next: Next
     }
 
     // Respond with all state details, including the populated state information
-    res.status(200).json({ success: "True............................", data: stateDetails });
+    res.status(200).json({ success: "True............................", dataffdfffd: stateDetails });
   } catch (err) {
     next(err);
   }
