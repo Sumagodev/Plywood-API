@@ -618,6 +618,10 @@ const searchProductWithQuery = (req, res, next) => __awaiter(void 0, void 0, voi
                     ]
                 } });
         }
+        if (req.query.brand) {
+            const brand = new mongoose_1.default.Types.ObjectId(req.query.brand);
+            query = Object.assign(Object.assign({}, query), { brand: brand });
+        }
         // Specification filters
         if (req.query.thickness) {
             query = Object.assign(Object.assign({}, query), { "specification.thickness": new RegExp(`${req.query.thickness}`, "i") });
