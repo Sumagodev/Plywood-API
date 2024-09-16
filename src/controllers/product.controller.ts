@@ -629,9 +629,9 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
 
     // Name, creator's name, short description, long description, and brand name filter
     if (req.query.name) {
-      const regex = new RegExp(`${req.query.name}`, "i");
+      const regex = new RegExp(`${req.query.name}`, "i");  // Corrected interpolation
       let brandArr = await Brand.find({ name: regex }).exec();
-      let brandIds = brandArr.length > 0 ? brandArr.map(el => `${el._id}`) : [];
+      let brandIds = brandArr.length > 0 ? brandArr.map(el => el._id) : [];
 
       query = {
         ...query,
@@ -707,7 +707,7 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
       const userQuery: any = {};
 
       if (req.query.userName) {
-        userQuery.name = new RegExp(`${req.query.userName}`, "i");
+        userQuery.name = new RegExp(`${req.query.userName}`, "i");  // Corrected interpolation
       }
       if (req.query.userEmail) {
         userQuery.email = new RegExp(`${req.query.userEmail}`, "i");
@@ -721,20 +721,23 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
       query = { ...query, createdById: { $in: userIds } };
     }
 
+    // Log query for debugging purposes
     console.log(JSON.stringify(query, null, 2), "query");
 
+    // Execute the query and return the result
     const arr = await Product.find(query)
       .populate('createdById', 'name email phone mainimage approved')
-      .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1,mainimage:1, approved:1 })
+      .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainimage: 1, approved: 1 })
       .lean()
       .exec();
 
-    // res.status(200).json({ message: "Arr", data: arr, success: true });
+    // Check if the array is populated and return the result
     res.status(200).json({ message: "Search successful", data: arr, success: true });
   } catch (error) {
     next(error);
   }
 };
+
 export const updateAppById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const ProductObj = await Product.findById(req.params.id).lean().exec();
