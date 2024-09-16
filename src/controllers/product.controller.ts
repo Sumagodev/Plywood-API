@@ -730,7 +730,6 @@ console.log()
       .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainImage: 1, approved: 1 })
       .lean()
       .exec();
-
     // Check if the array is populated and return the result
     res.status(200).json({ message: "Search successful", data: arr, success: true });
   } catch (error) {
