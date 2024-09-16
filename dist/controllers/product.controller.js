@@ -643,8 +643,8 @@ const searchProductWithQuery = (req, res, next) => __awaiter(void 0, void 0, voi
         console.log(JSON.stringify(query, null, 2), "query");
         // Execute the query and return the result
         const arr = yield product_model_1.Product.find(query)
-            .populate('createdById', 'name email phone mainimage approved')
-            .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainimage: 1, approved: 1 })
+            .populate('createdById', 'name email phone mainImage approved')
+            .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainImage: 1, approved: 1 })
             .lean()
             .exec();
         // Check if the array is populated and return the result
