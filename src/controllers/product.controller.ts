@@ -726,8 +726,8 @@ console.log()
 
     // Execute the query and return the result
     const arr = await Product.find(query)
-      .populate('createdById', 'name email phone mainimage approved')
-      .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainimage: 1, approved: 1 })
+      .populate('createdById', 'name email phone mainImage approved')
+      .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainImage: 1, approved: 1 })
       .lean()
       .exec();
 
