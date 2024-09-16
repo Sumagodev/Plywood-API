@@ -123,7 +123,7 @@ const getAllStateDetails = (req, res, next) => __awaiter(void 0, void 0, void 0,
             throw new Error("No StateDetails found");
         }
         // Respond with all state details, including the populated state information
-        res.status(200).json({ success: "True............................", dataffdfffd: stateDetails });
+        res.status(200).json({ success: true, data: stateDetails });
     }
     catch (err) {
         next(err);
