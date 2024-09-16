@@ -1044,6 +1044,7 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
         {
           companyName: regex,
         },
+       
       ];
       query = { ...query, ...{ $or: rangeQuery } };
     }
@@ -1057,6 +1058,12 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
         },
         {
           companyName: regex,
+        },
+        {
+          phone: regex,
+        },
+        {
+          address: regex,
         },
       ];
       query = { ...query, ...{ $or: rangeQuery } };
@@ -1165,6 +1172,12 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
           "name": {
             "$first": "$name",
           },
+          "phone": {
+            "$first": "$phone",
+          },
+          "address": {
+            "$first": "$address",
+          },
           "companyName": {
             "$first": "$companyObj.name",
           },
@@ -1212,6 +1225,9 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
               "role": "$productsArr.createdByObj.role",
             },
           },
+          "stateInfo": {
+            "$first": "$stateInfo",  // Add state info to the group result
+          }
         },
       },
       {
