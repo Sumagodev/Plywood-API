@@ -593,14 +593,13 @@ const searchProductWithQuery = (req, res, next) => __awaiter(void 0, void 0, voi
         if (req.query.minPrice || req.query.maxPrice) {
             const priceQuery = {};
             if (req.query.minPrice)
-                priceQuery.$gte = parseFloat(req.query.minPrice);
+                priceQuery.$gte = parseFloat(req.query.minPrice.replace(/,/g, ''));
             if (req.query.maxPrice)
-                priceQuery.$lte = parseFloat(req.query.maxPrice);
-            // Converting price to number for comparison
+                priceQuery.$lte = parseFloat(req.query.maxPrice.replace(/,/g, ''));
             query = Object.assign(Object.assign({}, query), { $expr: {
                     $and: [
-                        { $gte: [{ $toDouble: "$price" }, priceQuery.$gte || 0] },
-                        { $lte: [{ $toDouble: "$price" }, priceQuery.$lte || Infinity] }
+                        { $gte: [{ $toDouble: { $replaceAll: { input: "$price", find: ",", replacement: "" } } }, priceQuery.$gte || 0] },
+                        { $lte: [{ $toDouble: { $replaceAll: { input: "$price", find: ",", replacement: "" } } }, priceQuery.$lte || Infinity] }
                     ]
                 } });
         }
@@ -608,14 +607,13 @@ const searchProductWithQuery = (req, res, next) => __awaiter(void 0, void 0, voi
         if (req.query.minSellingPrice || req.query.maxSellingPrice) {
             const sellingPriceQuery = {};
             if (req.query.minSellingPrice)
-                sellingPriceQuery.$gte = parseFloat(req.query.minSellingPrice);
+                sellingPriceQuery.$gte = parseFloat(req.query.minSellingPrice.replace(/,/g, ''));
             if (req.query.maxSellingPrice)
-                sellingPriceQuery.$lte = parseFloat(req.query.maxSellingPrice);
-            // Converting sellingprice to number for comparison
+                sellingPriceQuery.$lte = parseFloat(req.query.maxSellingPrice.replace(/,/g, ''));
             query = Object.assign(Object.assign({}, query), { $expr: {
                     $and: [
-                        { $gte: [{ $toDouble: "$sellingprice" }, sellingPriceQuery.$gte || 0] },
-                        { $lte: [{ $toDouble: "$sellingprice" }, sellingPriceQuery.$lte || Infinity] }
+                        { $gte: [{ $toDouble: { $replaceAll: { input: "$sellingprice", find: ",", replacement: "" } } }, sellingPriceQuery.$gte || 0] },
+                        { $lte: [{ $toDouble: { $replaceAll: { input: "$sellingprice", find: ",", replacement: "" } } }, sellingPriceQuery.$lte || Infinity] }
                     ]
                 } });
         }
