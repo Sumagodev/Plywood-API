@@ -559,7 +559,6 @@ const searchProductWithQuery = (req, res, next) => __awaiter(void 0, void 0, voi
             const regex = new RegExp(`${req.query.name}`, "i"); // Corrected interpolation
             let brandArr = yield brand_model_1.Brand.find({ name: regex }).exec();
             let brandIds = brandArr.length > 0 ? brandArr.map(el => el._id) : [];
-            console.log();
             query = Object.assign(Object.assign({}, query), { $or: [
                     { name: regex },
                     { "createdByObj.name": regex },
@@ -570,8 +569,18 @@ const searchProductWithQuery = (req, res, next) => __awaiter(void 0, void 0, voi
         }
         // Category filter
         if (req.query.categoryId) {
-            query = Object.assign(Object.assign({}, query), { "categoryId": req.query.categoryId });
-        }
+            // Convert categoryId to ObjectId if it's in string format
+            const categoryId = mongoose.Types.ObjectId(req.query.categoryId );
+            query = { ...query, "categoryId": categoryId };
+          }
+      
+        // if (req.query.categoryId) {
+        //     const categoryId = new mongoose_1.default.Types.ObjectId(req.query.categoryId);
+        //     query = Object.assign(Object.assign({}, query), { categoryId: categoryId });
+        // }
+        // if (req.query.categoryId) {
+        //   query = { ...query, "categoryId": req.query.categoryId };
+        // }
         // Price filter
         if (req.query.minPrice || req.query.maxPrice) {
             const priceQuery = {};
