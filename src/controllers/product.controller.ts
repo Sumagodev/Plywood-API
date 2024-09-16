@@ -706,6 +706,11 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
         }
       };
     }
+
+    if (req.query.brand) {
+      const brand = new mongoose.Types.ObjectId(req.query.brand as string);
+      query = { ...query, brand: brand };
+    }
     // Specification filters
     if (req.query.thickness) {
       query = { ...query, "specification.thickness": new RegExp(`${req.query.thickness}`, "i") };
