@@ -1103,6 +1103,7 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
     //   let locationArr = `${req.query.city}`.split(",");
     //   query = { ...query, "state": { $in: [...locationArr] } };
     // }
+    
     if (req.query.rating) {
       let ratingValue: number = +req.query.rating;
       query = { ...query, "rating": { $gte: ratingValue } };
