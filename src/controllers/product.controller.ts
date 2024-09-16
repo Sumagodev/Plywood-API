@@ -632,7 +632,7 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
       const regex = new RegExp(`${req.query.name}`, "i");  // Corrected interpolation
       let brandArr = await Brand.find({ name: regex }).exec();
       let brandIds = brandArr.length > 0 ? brandArr.map(el => el._id) : [];
-console.log()
+
       query = {
         ...query,
         $or: [
@@ -647,8 +647,13 @@ console.log()
 
     // Category filter
     if (req.query.categoryId) {
-      query = { ...query, "categoryId": req.query.categoryId };
+      const categoryId = new mongoose.Types.ObjectId(req.query.categoryId as string);
+      query = { ...query, categoryId: categoryId };
     }
+
+    // if (req.query.categoryId) {
+    //   query = { ...query, "categoryId": req.query.categoryId };
+    // }
 
     // Price filter
     if (req.query.minPrice || req.query.maxPrice) {
