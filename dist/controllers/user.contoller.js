@@ -1083,20 +1083,31 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                 },
             },
             {
+                "$addFields": {
+                    "stateIdObj": {
+                        "$toObjectId": "$stateId"  // Convert the string stateId to ObjectId
+                    }
+                }
+            },
+            {
                 "$lookup": {
                     "from": "states", // Lookup the states collection
-                    "localField": "stateId", // Match on stateId from the user document
+                    "localField": "stateIdObj", // Use the converted ObjectId field for matching
                     "foreignField": "_id", // Match on _id from the states collection
                     "as": "stateInfo", // Store the result in stateInfo
                 },
             },
             {
                 "$addFields": {
-                    "productsCount": {
-                        "$size": "$productsArr",
-                    },
                     "stateName": {
                         "$arrayElemAt": ["$stateInfo.name", 0], // Get the first state name from the matched results
+                    },
+                },
+            },
+            {
+                "$addFields": {
+                    "productsCount": {
+                        "$size": "$productsArr",
                     },
                 },
             },
