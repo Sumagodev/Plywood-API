@@ -1099,7 +1099,7 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
             },
             {
                 "$addFields": {
-                    "cityName": {
+                    "stateName": {
                         "$arrayElemAt": ["$stateInfo.name", 0], // Get the first state name from the matched results
                     },
                 },
@@ -1121,7 +1121,7 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
             },
             {
                 "$addFields": {
-                    "stateName": {
+                    "cityName": {
                         "$arrayElemAt": ["$cityInfo.name", 0], // Get the first state name from the matched results
                     },
                 },
