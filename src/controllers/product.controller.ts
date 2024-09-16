@@ -655,22 +655,58 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
     //   query = { ...query, "categoryId": req.query.categoryId };
     // }
 
-    // Price filter
+    // // Price filter
+    // if (req.query.minPrice || req.query.maxPrice) {
+    //   const priceQuery: any = {};
+    //   if (req.query.minPrice) priceQuery.$gte = parseFloat(req.query.minPrice as string);
+    //   if (req.query.maxPrice) priceQuery.$lte = parseFloat(req.query.maxPrice as string);
+    //   query = { ...query, "price": priceQuery };
+    // }
+
+    // // Selling Price filter
+    // if (req.query.minSellingPrice || req.query.maxSellingPrice) {
+    //   const sellingPriceQuery: any = {};
+    //   if (req.query.minSellingPrice) sellingPriceQuery.$gte = parseFloat(req.query.minSellingPrice as string);
+    //   if (req.query.maxSellingPrice) sellingPriceQuery.$lte = parseFloat(req.query.maxSellingPrice as string);
+    //   query = { ...query, "sellingprice": sellingPriceQuery };
+    // }
+
+
+    // Price filter (corrected)
     if (req.query.minPrice || req.query.maxPrice) {
       const priceQuery: any = {};
       if (req.query.minPrice) priceQuery.$gte = parseFloat(req.query.minPrice as string);
       if (req.query.maxPrice) priceQuery.$lte = parseFloat(req.query.maxPrice as string);
-      query = { ...query, "price": priceQuery };
+
+      // Converting price to number for comparison
+      query = {
+        ...query,
+        $expr: {
+          $and: [
+            { $gte: [{ $toDouble: "$price" }, priceQuery.$gte || 0] },
+            { $lte: [{ $toDouble: "$price" }, priceQuery.$lte || Infinity] }
+          ]
+        }
+      };
     }
 
-    // Selling Price filter
+    // Selling Price filter (corrected)
     if (req.query.minSellingPrice || req.query.maxSellingPrice) {
       const sellingPriceQuery: any = {};
       if (req.query.minSellingPrice) sellingPriceQuery.$gte = parseFloat(req.query.minSellingPrice as string);
       if (req.query.maxSellingPrice) sellingPriceQuery.$lte = parseFloat(req.query.maxSellingPrice as string);
-      query = { ...query, "sellingprice": sellingPriceQuery };
-    }
 
+      // Converting sellingprice to number for comparison
+      query = {
+        ...query,
+        $expr: {
+          $and: [
+            { $gte: [{ $toDouble: "$sellingprice" }, sellingPriceQuery.$gte || 0] },
+            { $lte: [{ $toDouble: "$sellingprice" }, sellingPriceQuery.$lte || Infinity] }
+          ]
+        }
+      };
+    }
     // Specification filters
     if (req.query.thickness) {
       query = { ...query, "specification.thickness": new RegExp(`${req.query.thickness}`, "i") };
