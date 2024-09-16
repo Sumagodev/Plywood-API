@@ -13,8 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getProductYouMayLike = exports.updateAppById = exports.searchProductWithQuery = exports.getAllProductsBySupplierId = exports.getSimilarProducts = exports.getProductById = exports.getById = exports.deleteById = exports.updateById = exports.addProduct = exports.getProduct = void 0;
-const mongoose_2 = __importDefault(require("mongoose"));
-import mongoose, { Number, Types } from "mongoose";
+const mongoose_1 = __importDefault(require("mongoose"));
 const fileSystem_1 = require("../helpers/fileSystem");
 const product_model_1 = require("../models/product.model");
 const stringify_1 = require("../helpers/stringify");
@@ -46,7 +45,7 @@ const getProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
         }
         if (req.query.users) {
             let usersArr = `${req.query.users}`.split(",");
-            query = Object.assign(Object.assign({}, query), { "createdById": { $in: usersArr.map(el => new mongoose_2.default.Types.ObjectId(el)) } });
+            query = Object.assign(Object.assign({}, query), { "createdById": { $in: usersArr.map(el => new mongoose_1.default.Types.ObjectId(el)) } });
         }
         if (req.query.categories) {
             let categoryArr = `${req.query.categories}`.split(",");
@@ -355,7 +354,7 @@ const getProductById = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
 exports.getProductById = getProductById;
 const getSimilarProducts = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const productArr = yield product_model_1.Product.find({ categoryId: new mongoose_2.default.Types.ObjectId(req.params.id) }).lean().exec();
+        const productArr = yield product_model_1.Product.find({ categoryId: new mongoose_1.default.Types.ObjectId(req.params.id) }).lean().exec();
         if (!productArr)
             throw new Error("Products not found");
         // Extract userIds and cityIds from the products (assuming the user is linked to each product)
@@ -570,7 +569,7 @@ const searchProductWithQuery = (req, res, next) => __awaiter(void 0, void 0, voi
         }
         // Category filter
         if (req.query.categoryId) {
-            const categoryId = new mongoose.Types.ObjectId(req.query.categoryId);
+            const categoryId = new mongoose_1.default.Types.ObjectId(req.query.categoryId);
             query = Object.assign(Object.assign({}, query), { categoryId: categoryId });
         }
         // if (req.query.categoryId) {
