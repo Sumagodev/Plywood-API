@@ -1059,12 +1059,7 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
         {
           companyName: regex,
         },
-        {
-          phone: regex,
-        },
-        {
-          address: regex,
-        },
+        
       ];
       query = { ...query, ...{ $or: rangeQuery } };
     }
@@ -1155,6 +1150,24 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
         },
       },
       {
+        "$lookup": {
+          "from": "states",
+          "localField": "stateId",
+          "foreignField": "_id",
+          "as": "stateInfo",
+        },
+      },
+      {
+        "$addFields": {
+          "productsCount": {
+            "$size": "$productsArr",
+          },
+          "stateName": {
+            "$arrayElemAt": ["$stateInfo.name", 0],
+          },
+        },
+      },
+      {
         "$unwind": {
           "path": "$productsArr",
           "preserveNullAndEmptyArrays": true,
@@ -1225,9 +1238,9 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
               "role": "$productsArr.createdByObj.role",
             },
           },
-          "stateInfo": {
-            "$first": "$stateInfo",  // Add state info to the group result
-          }
+          "stateName": {
+            "$first": "$stateName",
+          },
         },
       },
       {
