@@ -729,7 +729,8 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
       .lean()
       .exec();
 
-    res.status(200).json({ message: "Arr", data: arr, success: true });
+    // res.status(200).json({ message: "Arr", data: arr, success: true });
+    res.status(200).json({ message: "Search successful", data: arr, success: true });
   } catch (error) {
     next(error);
   }
