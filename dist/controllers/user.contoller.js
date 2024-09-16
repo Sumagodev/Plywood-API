@@ -1085,22 +1085,44 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
             {
                 "$addFields": {
                     "stateIdObj": {
-                        "$toObjectId": "$stateId"  // Convert the string stateId to ObjectId
+                        "$toObjectId": "$stateId"  
                     }
                 }
             },
             {
                 "$lookup": {
-                    "from": "states", // Lookup the states collection
-                    "localField": "stateIdObj", // Use the converted ObjectId field for matching
-                    "foreignField": "_id", // Match on _id from the states collection
-                    "as": "stateInfo", // Store the result in stateInfo
+                    "from": "states", 
+                    "localField": "stateIdObj",
+                    "foreignField": "_id",
+                    "as": "stateInfo", 
+                },
+            },
+            {
+                "$addFields": {
+                    "cityName": {
+                        "$arrayElemAt": ["$stateInfo.name", 0], // Get the first state name from the matched results
+                    },
+                },
+            },
+            {
+                "$addFields": {
+                    "cityIdObj": {
+                        "$toObjectId": "$cityId"  
+                    }
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "cities", 
+                    "localField": "cityIdObj",
+                    "foreignField": "_id",
+                    "as": "cityInfo", 
                 },
             },
             {
                 "$addFields": {
                     "stateName": {
-                        "$arrayElemAt": ["$stateInfo.name", 0], // Get the first state name from the matched results
+                        "$arrayElemAt": ["$cityInfo.name", 0], // Get the first state name from the matched results
                     },
                 },
             },
@@ -1184,6 +1206,9 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                     },
                     "stateName": {
                         "$first": "$stateName",
+                    },
+                    "cityName": {
+                        "$first": "$cityName",
                     },
                 },
             },
