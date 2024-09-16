@@ -126,6 +126,8 @@ export const getAllStateDetails = async (req: Request, res: Response, next: Next
     if (!stateDetails.length) {
       throw new Error("No StateDetails found");
     }
+
+    
     // Respond with all state details, including the populated state information
     res.status(200).json({ success: true, data: stateDetails });
   } catch (err) {
