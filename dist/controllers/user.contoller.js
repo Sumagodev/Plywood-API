@@ -1083,6 +1083,24 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                 },
             },
             {
+                "$lookup": {
+                    "from": "states", // Lookup the states collection
+                    "localField": "stateId", // Match on stateId from the user document
+                    "foreignField": "_id", // Match on _id from the states collection
+                    "as": "stateInfo", // Store the result in stateInfo
+                },
+            },
+            {
+                "$addFields": {
+                    "productsCount": {
+                        "$size": "$productsArr",
+                    },
+                    "stateName": {
+                        "$arrayElemAt": ["$stateInfo.name", 0], // Get the first state name from the matched results
+                    },
+                },
+            },
+            {
                 "$unwind": {
                     "path": "$productsArr",
                     "preserveNullAndEmptyArrays": true,
@@ -1099,6 +1117,12 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                     "_id": "$_id",
                     "name": {
                         "$first": "$name",
+                    },
+                    "phone": {
+                        "$first": "$phone",
+                    },
+                    "address": {
+                        "$first": "$address",
                     },
                     "companyName": {
                         "$first": "$companyObj.name",
@@ -1146,6 +1170,9 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                         "$first": {
                             "role": "$productsArr.createdByObj.role",
                         },
+                    },
+                    "stateName": {
+                        "$first": "$stateName",
                     },
                 },
             },
