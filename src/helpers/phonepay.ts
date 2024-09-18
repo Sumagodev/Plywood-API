@@ -6,7 +6,7 @@ export const createPhonePaymentOrder = async (options: any) => {
   try {
 
     let obj = {
-      "merchantId": `PLYWOODONLINE`,
+      "merchantId": `${process.env.PHONEPE_MERCHANT_ID}`,
       "merchantUserId": uuidv4().replace(/-/g, ""),
       "merchantTransactionId": `${options.orderId}`,
       "amount": options?.amount,
@@ -27,7 +27,7 @@ export const createPhonePaymentOrder = async (options: any) => {
     let objJsonB64 = Buffer.from(objJsonStr).toString("base64");
 
 
-    let hashStr = objJsonB64 + '/pg/v1/pay' + '67e0bb84-810c-4700-ae30-10cd8bef31e4'
+    let hashStr = objJsonB64 + '/pg/v1/pay' + process.env.PHONEPE_SALT
     console.log(hashStr, "objJsonB64objJsonB64objJsonB64objJsonB64objJsonB64")
 
     let hash = crypto.createHash('SHA256').update(hashStr).digest('hex');
@@ -48,7 +48,7 @@ export const createPhonePaymentOrder = async (options: any) => {
     let config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: 'https://api.phonepe.com/apis/hermes' + '/pg/v1/pay',
+      url: process.env.PHONEPE_PROD_URL + '/pg/v1/pay',
       headers: {
         'X-VERIFY': hash + '###1',
         'Content-Type': 'application/json'
@@ -77,11 +77,11 @@ export const checkStatusPhonePaymentOrder = async (options: any) => {
     if (!merchantId || !merchantTransactionId) {
       return { sucess: false, data: {} };
     }
-    let hashStr = '/pg/v1/status/' + merchantId + '/' + merchantTransactionId + '67e0bb84-810c-4700-ae30-10cd8bef31e4'
+    let hashStr = '/pg/v1/status/' + merchantId + '/' + merchantTransactionId + process.env.PHONEPE_SALT
     console.log(hashStr, "hashStrhashStrhashStr")
     let hash = crypto.createHash('SHA256').update(hashStr).digest('hex');
     const phonepeRHeader = {
-      headers: { accept: 'application/json', 'Content-Type': 'application/json', 'X-VERIFY': hash + '###1', 'X-MERCHANT-ID': 'PLYWOODONLINE' },
+      headers: { accept: 'application/json', 'Content-Type': 'application/json', 'X-VERIFY': hash + '###1', 'X-MERCHANT-ID': process.env.PHONEPE_MERCHANT_ID },
     };
 
     console.log(phonepeRHeader, "phonepeRHeaderphonepeRHeaderphonepeRHeaderphonepeRHeaderphonepeRHeader")
@@ -95,10 +95,10 @@ export const checkStatusPhonePaymentOrder = async (options: any) => {
     let config = {
       method: 'get',
       maxBodyLength: Infinity,
-      url: 'https://api.phonepe.com/apis/hermes' + '/pg/v1/status/' + merchantId + '/' + merchantTransactionId,
+      url: process.env.PHONEPE_PROD_URL + '/pg/v1/status/' + merchantId + '/' + merchantTransactionId,
       headers: {
         'X-VERIFY': hash + '###1',
-        'X-MERCHANT-ID': 'PLYWOODONLINE'
+        'X-MERCHANT-ID': process.env.PHONEPE_MERCHANT_ID
       },
     };
 

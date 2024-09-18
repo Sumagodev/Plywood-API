@@ -73,7 +73,7 @@ export const buySubscription = async (req: Request, res: Response, next: NextFun
 
     options.orderId = paymentObjResponse._id;
     options.mobile = userObj?.phone;
-    options.successUrl = `https://api.plywoodbazar.com/v2/usersubscription/phonepePaymentStatusCheck/` + paymentObjResponse._id;
+    options.successUrl = `${process.env.BASE_URL}/usersubscription/phonepePaymentStatusCheck/` + paymentObjResponse._id;
     options.payfrom = req.body.patfrom;
     let phoResone = await createPhonePaymentOrder(options);
     console.log(phoResone, "phoResone");
@@ -112,7 +112,7 @@ export const phonepePaymentStatusCheck = async (req: Request, res: Response, nex
       // throw new Error("Payment is already Done");
       console.log(req.body, "Payment is already Done");
 
-      res.redirect(`https://plywoodbazar.com/Payment/${orderObj._id}?msg=Payment is already Done`);
+      res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?msg=Payment is already Done`);
       // res.json({ message: "Payment is already Done ", success: true, orderId: orderObj._id, data: orderObj });
 
       return;
@@ -170,7 +170,7 @@ export const phonepePaymentStatusCheck = async (req: Request, res: Response, nex
     await sendMail(emailArr, orderObj._id, customerTitle, orderObj);
     let emailAr2 = [{ name: "Plywood Bazar", email: "admin@plywoodbazar.com" }];
     await sendMail(emailAr2, orderObj._id, adminTitle, orderObj);
-    console.log("asdsadad", 'https://plywoodbazar.com');
+    console.log("asdsadad", process.env.APP_URL);
 
     let crmObj = {
       PersonName: userObj?.name,
@@ -203,7 +203,7 @@ export const phonepePaymentStatusCheck = async (req: Request, res: Response, nex
     }
     await postSpiCrmLead(crmObj);
 
-    res.redirect(`https://plywoodbazar.com/Payment/${orderObj._id}`);
+    res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}`);
     // res.json({ message: "Payment Successfull", success: true, orderId: orderObj._id, data: phoneObj });
   } catch (err) {
     next(err);
