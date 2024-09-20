@@ -31,6 +31,7 @@ import usertopupRouter from "./routes/usertopup.routes";
 import newsLetterRouter from "./routes/newsletter.routes";
 import websiteDataRouter from "./routes/websiteData.routes";
 import seoRouter from "./routes/seo.routes";
+import quickenqury from './routes/quickenquiry.routes'
 import homepageBannerRouter from "./routes/homepageBanner.routes";
 import { setUserAndUserObj } from "./middlewares/auth.middleware";
 import mongoose from "mongoose";
@@ -84,6 +85,8 @@ app.use("/leads", leadRouter);
 app.use("/flashSales", flashSaleRouter);
 app.use("/productReview", productReviewRouter);
 app.use("/userRequirement", userRequirementRouter);
+app.use("/quickenqury", quickenqury);
+
 app.use("/userTicket", userTicketRouter);
 app.use("/userTicketMessage", userTicketMessageRouter);
 app.use("/topup", topupRouter);

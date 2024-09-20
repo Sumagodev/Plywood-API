@@ -57,6 +57,7 @@ const usertopup_routes_1 = __importDefault(require("./routes/usertopup.routes"))
 const newsletter_routes_1 = __importDefault(require("./routes/newsletter.routes"));
 const websiteData_routes_1 = __importDefault(require("./routes/websiteData.routes"));
 const seo_routes_1 = __importDefault(require("./routes/seo.routes"));
+const quickenquiry_routes_1 = __importDefault(require("./routes/quickenquiry.routes"));
 const homepageBanner_routes_1 = __importDefault(require("./routes/homepageBanner.routes"));
 const auth_middleware_1 = require("./middlewares/auth.middleware");
 const mongoose_1 = __importDefault(require("mongoose"));
@@ -104,6 +105,7 @@ app.use("/leads", leads_routes_1.default);
 app.use("/flashSales", flashSale_routes_1.default);
 app.use("/productReview", productReviews_routes_1.default);
 app.use("/userRequirement", userRequirement_routes_1.default);
+app.use("/quickenqury", quickenquiry_routes_1.default);
 app.use("/userTicket", userTickets_routes_1.default);
 app.use("/userTicketMessage", userTicketsMessage_routes_1.default);
 app.use("/topup", topup_routes_1.default);
