@@ -116,20 +116,54 @@ export const getDealershipOwnerById = async (req: Request, res: Response, next: 
         next(error);
     }
 };
+
+
 export const getDealershipOwnerByUserId = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { userId } = req.params; // Extract userId from the request params
-        const owner = await DealershipOwner.findOne({ userId }).populate("userId").exec();
+        const { userId } = req.params;
+
+        // Convert userId to ObjectId to ensure proper matching
+        const owner = await DealershipOwner.findOne({ userId: new mongoose.Types.ObjectId(userId) })
+            .populate("userId", "name email") // Assuming userId references the User model
+            .populate("stateId", "name") // Assuming stateId references the State model
+            .populate({
+                path: "cityId", // Assuming cityId references the City model
+                select: "name",
+            })
+            .exec();
 
         if (!owner) {
             return res.status(404).json({ message: "Dealership Owner Not Found" });
         }
 
-        res.status(200).json({ data: owner });
+        // Format cities with cityId and cityName
+        const formattedCities = owner.cityId.map((city: any) => ({
+            cityId: city._id,
+            cityName: city.name,
+        }));
+
+        const dealershipInfo = {
+            _id: owner._id,
+            Organisation_name: owner.Organisation_name,
+            Type: owner.Type,
+            Product: owner.Product,
+            Brand: owner.Brand,
+            productId: owner.productId,
+            userId: owner.userId,
+            image: owner.image,
+            stateId: owner.stateId,
+            stateName: owner.stateId?.name || "", // Use populated state name
+            cities: formattedCities, // Use formatted cities
+            createdAt: owner.createdAt,
+            updatedAt: owner.updatedAt,
+        };
+
+        res.status(200).json({ data: dealershipInfo });
     } catch (error) {
-        next(error); // Pass the error to the error handler middleware
+        next(error);
     }
 };
+
 // Update a dealership owner by ID
 export const updateDealershipOwner = async (req: Request, res: Response, next: NextFunction) => {
     try {
