@@ -25,6 +25,6 @@ router.put("/dealership-owners/:id", updateDealershipOwner);
 router.delete("/dealership-owners/:id", deleteDealershipOwner);
 
 //
-router.get("/getDealershipOwnerByUserId/:id", getDealershipOwnerByUserId);
+router.get("/getDealershipOwnerByUserId/:userId", getDealershipOwnerByUserId);
 
 export default router;
