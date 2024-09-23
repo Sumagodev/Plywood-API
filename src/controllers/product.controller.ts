@@ -601,6 +601,8 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
         userQuery.phone = new RegExp(`${req.query.userPhone}`, "i");
       }
 
+      
+
       const users = await User.find(userQuery).select('_id').exec();
       const userIds = users.map(user => user._id);
       query = { ...query, createdById: { $in: userIds } };
