@@ -47,7 +47,7 @@ export const getAllDealershipOwners = async (req: Request, res: Response, next: 
     try {
         // Find all dealership owners and populate the userId field
         const owners = await DealershipOwner.find()
-   // Populate userId with cityId and stateId
+            // Populate userId with cityId and stateId
             .exec();
 
         if (!owners.length) {
@@ -116,7 +116,20 @@ export const getDealershipOwnerById = async (req: Request, res: Response, next: 
         next(error);
     }
 };
+export const getDealershipOwnerByUserId = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { userId } = req.params; // Extract userId from the request params
+        const owner = await DealershipOwner.findOne({ userId }).populate("userId").exec();
 
+        if (!owner) {
+            return res.status(404).json({ message: "Dealership Owner Not Found" });
+        }
+
+        res.status(200).json({ data: owner });
+    } catch (error) {
+        next(error); // Pass the error to the error handler middleware
+    }
+};
 // Update a dealership owner by ID
 export const updateDealershipOwner = async (req: Request, res: Response, next: NextFunction) => {
     try {

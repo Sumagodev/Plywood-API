@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteDealershipOwner = exports.updateDealershipOwner = exports.getDealershipOwnerById = exports.getAllDealershipOwners = exports.createDealershipOwner = void 0;
+exports.deleteDealershipOwner = exports.updateDealershipOwner = exports.getDealershipOwnerByUserId = exports.getDealershipOwnerById = exports.getAllDealershipOwners = exports.createDealershipOwner = void 0;
 const fileSystem_1 = require("../helpers/fileSystem");
 const user_model_1 = require("../models/user.model");
 const City_model_1 = require("../models/City.model");
@@ -106,6 +106,20 @@ const getDealershipOwnerById = (req, res, next) => __awaiter(void 0, void 0, voi
     }
 });
 exports.getDealershipOwnerById = getDealershipOwnerById;
+const getDealershipOwnerByUserId = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { userId } = req.params; // Extract userId from the request params
+        const owner = yield adddealership_model_1.DealershipOwner.findOne({ userId }).populate("userId").exec();
+        if (!owner) {
+            return res.status(404).json({ message: "Dealership Owner Not Found" });
+        }
+        res.status(200).json({ data: owner });
+    }
+    catch (error) {
+        next(error); // Pass the error to the error handler middleware
+    }
+});
+exports.getDealershipOwnerByUserId = getDealershipOwnerByUserId;
 // Update a dealership owner by ID
 const updateDealershipOwner = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
