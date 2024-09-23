@@ -118,14 +118,32 @@ export const getDealershipOwnerById = async (req: Request, res: Response, next: 
 };
 export const getDealershipOwnerByUserId = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { userId } = req.params; // Extract userId from the request params
-        const owner = await DealershipOwner.findOne({ userId }).populate("userId").exec();
+        const { userId } = req.params; // Extract userId from request params
+        const owner = await DealershipOwner.findOne({ userId })
+            .populate("userId", "name email") // Populate only relevant fields from User model
+            .exec();
 
         if (!owner) {
             return res.status(404).json({ message: "Dealership Owner Not Found" });
         }
 
-        res.status(200).json({ data: owner });
+        // Pass relevant dealership information along with owner data
+        const dealershipInfo = {
+            organisationName: owner.Organisation_name,
+            type: owner.Type,
+            product: owner.Product,
+            brand: owner.Brand,
+            productId: owner.productId,
+            userId: owner.userId, // Populated with User data
+            image: owner.image,
+            countryId: owner.countryId,
+            stateId: owner.stateId,
+            cityIds: owner.cityId, // This is an array of city IDs
+            createdAt: owner.createdAt,
+            updatedAt: owner.updatedAt
+        };
+
+        res.status(200).json({ data: dealershipInfo });
     } catch (error) {
         next(error); // Pass the error to the error handler middleware
     }
