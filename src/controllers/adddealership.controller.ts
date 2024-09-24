@@ -122,26 +122,39 @@ export const getDealershipOwnerByUserId = async (req: Request, res: Response, ne
     try {
         const { userId } = req.params;
 
-        // Convert userId to ObjectId to ensure proper matching
+        // Step 1: Check if userId is a valid ObjectId
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: "Invalid userId format" });
+        }
+
+        // Step 2: Log the userId to ensure it's received correctly
+        console.log("Querying for userId:", userId);
+
+        // Step 3: Query the database to find the DealershipOwner by userId
         const owner = await DealershipOwner.findOne({ userId: new mongoose.Types.ObjectId(userId) })
-            .populate("userId", "name email") // Assuming userId references the User model
-            .populate("stateId", "name") // Assuming stateId references the State model
+            .populate("userId", "name email") // Populate userId with name and email
+            .populate("stateId", "name") // Populate stateId with state name
             .populate({
                 path: "cityId", // Assuming cityId references the City model
                 select: "name",
             })
             .exec();
 
+        // Step 4: Log the result of the query
+        console.log("Owner found:", owner);
+
+        // Step 5: Check if no owner is found
         if (!owner) {
             return res.status(404).json({ message: "Dealership Owner Not Found" });
         }
 
-        // Format cities with cityId and cityName
+        // Step 6: Format city data if cityId references the City model
         const formattedCities = owner.cityId.map((city: any) => ({
             cityId: city._id,
             cityName: city.name,
         }));
 
+        // Step 7: Structure the dealership info to send in the response
         const dealershipInfo = {
             _id: owner._id,
             Organisation_name: owner.Organisation_name,
@@ -153,13 +166,19 @@ export const getDealershipOwnerByUserId = async (req: Request, res: Response, ne
             image: owner.image,
             stateId: owner.stateId,
             stateName: owner.stateId?.name || "", // Use populated state name
-            cities: formattedCities, // Use formatted cities
+            cities: formattedCities, // Use formatted cities if available
             createdAt: owner.createdAt,
             updatedAt: owner.updatedAt,
         };
 
+        // Step 8: Send the response with the found data
         res.status(200).json({ data: dealershipInfo });
+
     } catch (error) {
+        // Step 9: Log any errors for debugging purposes
+        console.error("Error in getDealershipOwnerByUserId:", error);
+
+        // Step 10: Pass the error to the next middleware (error handler)
         next(error);
     }
 };

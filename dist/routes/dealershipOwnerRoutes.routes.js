@@ -14,5 +14,5 @@ router.put("/dealership-owners/:id", adddealership_controller_1.updateDealership
 // Route to delete a dealership owner by ID
 router.delete("/dealership-owners/:id", adddealership_controller_1.deleteDealershipOwner);
 //
-router.get("/getDealershipOwnerByUserId/:id", adddealership_controller_1.getDealershipOwnerByUserId);
+router.get("/getDealershipOwnerByUserId/:userId", adddealership_controller_1.getDealershipOwnerByUserId);
 exports.default = router;
