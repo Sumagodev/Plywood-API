@@ -112,6 +112,9 @@ export const getDealershipApplicationByOwnerId = async (req: Request, res: Respo
           return res.status(400).json({ message: "Invalid dealershipOwnerId format" });
       }
 
+
+
+      
       // Step 2: Log dealershipOwnerId for debugging purposes
       console.log("Querying for dealershipOwnerId:", dealershipOwnerId);
 
