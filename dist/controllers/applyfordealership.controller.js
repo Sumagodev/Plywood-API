@@ -150,9 +150,8 @@ const getDealershipApplicationByOwnerId = (req, res, next) => __awaiter(void 0, 
     }
     catch (error) {
         // Step 7: Log any errors for debugging purposes
-        console.error("Error in getDealershipApplicationByOwnerId:", error);
+        res.status(404).json({ message: "No applications found for the given dealershipOwnerId" });
         // Step 8: Pass the error to the next middleware (error handler)
-        next(error);
     }
 });
 exports.getDealershipApplicationByOwnerId = getDealershipApplicationByOwnerId;
