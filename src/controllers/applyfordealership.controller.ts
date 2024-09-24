@@ -177,6 +177,11 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
           return res.status(404).json({ message: "Dealership Applications Not Found" });
       }
 
+
+
+
+
+      
       // Step 6: Format the response to include all application information without cities
       const applicationInfos = applications.map((application) => ({
           _id: application._id,
