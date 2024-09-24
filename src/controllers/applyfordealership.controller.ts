@@ -107,11 +107,6 @@ export const getDealershipApplicationByOwnerId = async (req: Request, res: Respo
   try {
       const { dealershipOwnerId } = req.params;
 
-      // Step 1: Validate dealershipOwnerId
-      if (!mongoose.Types.ObjectId.isValid(dealershipOwnerId)) {
-          return res.status(400).json({ message: "Invalid dealershipOwnerId format" });
-      }
-
 
 
       
