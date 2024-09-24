@@ -153,49 +153,56 @@ exports.deleteApplication = deleteApplication;
 const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { userId } = req.params;
-        // Step 1: Check if userId is a valid ObjectId
+        // Step 1: Validate the userId format
         if (!mongoose_1.default.Types.ObjectId.isValid(userId)) {
             return res.status(400).json({ message: "Invalid userId format" });
         }
-        // Step 2: Log the userId to ensure it's received correctly
-        console.log("Querying for applications with userId:", userId);
-        // Step 3: Query the database to find all DealershipApplications by userId
-        const applications = yield applyfordealership_model_1.DealershipApplication.find({ userId: new mongoose_1.default.Types.ObjectId(userId) })
+        // Step 2: Fetch all ownerIds associated with the given userId
+        const owners = yield adddealership_model_1.DealershipOwner.find({ userId: new mongoose_1.default.Types.ObjectId(userId) });
+        // Check if no owners are found
+        if (!owners || owners.length === 0) {
+            return res.status(404).json({ message: "No owners found for the given userId" });
+        }
+        // Extract the ownerIds
+        const ownerIds = owners.map(owner => owner._id);
+        console.log("Fetched ownerIds:", ownerIds); // Log ownerIds for debugging
+        // Step 3: Query the dealership applications using the ownerIds
+        const applications = yield applyfordealership_model_1.DealershipApplication.find({ dealershipOwnerId: { $in: ownerIds } })
             .populate("userId", "name email") // Populate userId with name and email
-            .populate("stateId", "name") // Populate stateId with state name
+            .populate("productId", "name") // Populate productId with product name
             .exec();
-        // Step 4: Log the result of the query
-        console.log("Applications found:", applications);
-        // Step 5: Check if no applications are found
+        console.log("Fetched applications:", applications); // Log applications for debugging
+        // Step 4: Check if no applications are found
         if (!applications || applications.length === 0) {
             return res.status(404).json({ message: "Dealership Applications Not Found" });
         }
-        // Step 6: Format the response to include all application information without cities
-        const applicationInfos = applications.map((application) => {
-            var _a;
+        // Step 5: Structure the response
+        const formattedApplications = applications.map(application => {
+            var _a, _b, _c, _d;
             return ({
                 _id: application._id,
                 Organisation_name: application.Organisation_name,
                 Type: application.Type,
-                Product: application.Product,
                 Brand: application.Brand,
-                productId: application.productId,
-                userId: application.userId,
+                productId: ((_a = application.productId) === null || _a === void 0 ? void 0 : _a.name) || "",
+                userId: ((_b = application.userId) === null || _b === void 0 ? void 0 : _b._id) || "",
+                userName: ((_c = application.userId) === null || _c === void 0 ? void 0 : _c.name) || "",
+                email: ((_d = application.userId) === null || _d === void 0 ? void 0 : _d.email) || "",
                 image: application.image,
+                countryId: application.countryId,
                 stateId: application.stateId,
-                stateName: ((_a = application.stateId) === null || _a === void 0 ? void 0 : _a.name) || "",
+                cityId: application.cityId,
                 createdAt: application.createdAt,
                 updatedAt: application.updatedAt,
             });
         });
-        // Step 7: Send the response with the array of application data
-        res.status(200).json({ data: applicationInfos });
+        // Step 6: Send the response
+        res.status(200).json({ data: formattedApplications });
     }
     catch (error) {
-        // Step 8: Log any errors for debugging purposes
+        // Log any errors for debugging purposes
         console.error("Error in getDealershipApplicationByUserId:", error);
-        // Step 9: Pass the error to the next middleware (error handler)
-        next(error);
+        next(error); // Pass the error to the next middleware
     }
 });
 exports.getDealershipApplicationByUserId = getDealershipApplicationByUserId;
