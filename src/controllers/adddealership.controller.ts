@@ -130,8 +130,8 @@ export const getDealershipOwnerByUserId = async (req: Request, res: Response, ne
         // Step 2: Log the userId to ensure it's received correctly
         console.log("Querying for userId:", userId);
 
-        // Step 3: Query the database to find the DealershipOwner by userId
-        const owner = await DealershipOwner.findOne({ userId: new mongoose.Types.ObjectId(userId) })
+        // Step 3: Query the database to find all DealershipOwners by userId
+        const owners = await DealershipOwner.find({ userId: new mongoose.Types.ObjectId(userId) })  // Use find to get all records
             .populate("userId", "name email") // Populate userId with name and email
             .populate("stateId", "name") // Populate stateId with state name
             .populate({
@@ -141,47 +141,49 @@ export const getDealershipOwnerByUserId = async (req: Request, res: Response, ne
             .exec();
 
         // Step 4: Log the result of the query
-        console.log("Owner found:", owner);
+        console.log("Owners found:", owners);
 
-        // Step 5: Check if no owner is found
-        if (!owner) {
-            return res.status(404).json({ message: "Dealership Owner Not Found" });
+        // Step 5: Check if no owners are found
+        if (!owners || owners.length === 0) {
+            return res.status(404).json({ message: "Dealership Owners Not Found" });
         }
 
-        // Step 6: Format city data if cityId references the City model
-        const formattedCities = owner.cityId.map((city: any) => ({
-            cityId: city._id,
-            cityName: city.name,
-        }));
+        // Step 6: Format the response to include all dealership information
+        const dealershipInfos = owners.map((owner) => {
+            const formattedCities = owner.cityId.map((city: any) => ({
+                cityId: city._id,
+                cityName: city.name,
+            }));
 
-        // Step 7: Structure the dealership info to send in the response
-        const dealershipInfo = {
-            _id: owner._id,
-            Organisation_name: owner.Organisation_name,
-            Type: owner.Type,
-            Product: owner.Product,
-            Brand: owner.Brand,
-            productId: owner.productId,
-            userId: owner.userId,
-            image: owner.image,
-            stateId: owner.stateId,
-            stateName: owner.stateId?.name || "", // Use populated state name
-            cities: formattedCities, // Use formatted cities if available
-            createdAt: owner.createdAt,
-            updatedAt: owner.updatedAt,
-        };
+            return {
+                _id: owner._id,
+                Organisation_name: owner.Organisation_name,
+                Type: owner.Type,
+                Product: owner.Product,
+                Brand: owner.Brand,
+                productId: owner.productId,
+                userId: owner.userId,
+                image: owner.image,
+                stateId: owner.stateId,
+                stateName: owner.stateId?.name || "", // Use populated state name
+                cities: formattedCities, // Use formatted cities if available
+                createdAt: owner.createdAt,
+                updatedAt: owner.updatedAt,
+            };
+        });
 
-        // Step 8: Send the response with the found data
-        res.status(200).json({ data: owner });
+        // Step 7: Send the response with the array of dealership data
+        res.status(200).json({ data: dealershipInfos });
 
     } catch (error) {
-        // Step 9: Log any errors for debugging purposes
+        // Step 8: Log any errors for debugging purposes
         console.error("Error in getDealershipOwnerByUserId:", error);
 
-        // Step 10: Pass the error to the next middleware (error handler)
+        // Step 9: Pass the error to the next middleware (error handler)
         next(error);
     }
 };
+
 
 // Update a dealership owner by ID
 export const updateDealershipOwner = async (req: Request, res: Response, next: NextFunction) => {

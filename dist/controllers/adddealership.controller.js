@@ -111,7 +111,6 @@ const getDealershipOwnerById = (req, res, next) => __awaiter(void 0, void 0, voi
 });
 exports.getDealershipOwnerById = getDealershipOwnerById;
 const getDealershipOwnerByUserId = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
     try {
         const { userId } = req.params;
         // Step 1: Check if userId is a valid ObjectId
@@ -120,8 +119,8 @@ const getDealershipOwnerByUserId = (req, res, next) => __awaiter(void 0, void 0,
         }
         // Step 2: Log the userId to ensure it's received correctly
         console.log("Querying for userId:", userId);
-        // Step 3: Query the database to find the DealershipOwner by userId
-        const owner = yield adddealership_model_1.DealershipOwner.findOne({ userId: new mongoose_1.default.Types.ObjectId(userId) })
+        // Step 3: Query the database to find all DealershipOwners by userId
+        const owners = yield adddealership_model_1.DealershipOwner.find({ userId: new mongoose_1.default.Types.ObjectId(userId) }) // Use find to get all records
             .populate("userId", "name email") // Populate userId with name and email
             .populate("stateId", "name") // Populate stateId with state name
             .populate({
@@ -130,39 +129,41 @@ const getDealershipOwnerByUserId = (req, res, next) => __awaiter(void 0, void 0,
         })
             .exec();
         // Step 4: Log the result of the query
-        console.log("Owner found:", owner);
-        // Step 5: Check if no owner is found
-        if (!owner) {
-            return res.status(404).json({ message: "Dealership Owner Not Found" });
+        console.log("Owners found:", owners);
+        // Step 5: Check if no owners are found
+        if (!owners || owners.length === 0) {
+            return res.status(404).json({ message: "Dealership Owners Not Found" });
         }
-        // Step 6: Format city data if cityId references the City model
-        const formattedCities = owner.cityId.map((city) => ({
-            cityId: city._id,
-            cityName: city.name,
-        }));
-        // Step 7: Structure the dealership info to send in the response
-        const dealershipInfo = {
-            _id: owner._id,
-            Organisation_name: owner.Organisation_name,
-            Type: owner.Type,
-            Product: owner.Product,
-            Brand: owner.Brand,
-            productId: owner.productId,
-            userId: owner.userId,
-            image: owner.image,
-            stateId: owner.stateId,
-            stateName: ((_a = owner.stateId) === null || _a === void 0 ? void 0 : _a.name) || "",
-            cities: formattedCities,
-            createdAt: owner.createdAt,
-            updatedAt: owner.updatedAt,
-        };
-        // Step 8: Send the response with the found data
-        res.status(200).json({ data: dealershipInfo });
+        // Step 6: Format the response to include all dealership information
+        const dealershipInfos = owners.map((owner) => {
+            var _a;
+            const formattedCities = owner.cityId.map((city) => ({
+                cityId: city._id,
+                cityName: city.name,
+            }));
+            return {
+                _id: owner._id,
+                Organisation_name: owner.Organisation_name,
+                Type: owner.Type,
+                Product: owner.Product,
+                Brand: owner.Brand,
+                productId: owner.productId,
+                userId: owner.userId,
+                image: owner.image,
+                stateId: owner.stateId,
+                stateName: ((_a = owner.stateId) === null || _a === void 0 ? void 0 : _a.name) || "",
+                cities: formattedCities,
+                createdAt: owner.createdAt,
+                updatedAt: owner.updatedAt,
+            };
+        });
+        // Step 7: Send the response with the array of dealership data
+        res.status(200).json({ data: dealershipInfos });
     }
     catch (error) {
-        // Step 9: Log any errors for debugging purposes
+        // Step 8: Log any errors for debugging purposes
         console.error("Error in getDealershipOwnerByUserId:", error);
-        // Step 10: Pass the error to the next middleware (error handler)
+        // Step 9: Pass the error to the next middleware (error handler)
         next(error);
     }
 });

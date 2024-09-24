@@ -114,10 +114,6 @@ exports.deleteApplication = deleteApplication;
 const getDealershipApplicationByOwnerId = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { dealershipOwnerId } = req.params;
-        // Step 1: Validate dealershipOwnerId
-        if (!mongoose_1.default.Types.ObjectId.isValid(dealershipOwnerId)) {
-            return res.status(400).json({ message: "Invalid dealershipOwnerId format" });
-        }
         // Step 2: Log dealershipOwnerId for debugging purposes
         console.log("Querying for dealershipOwnerId:", dealershipOwnerId);
         // Step 3: Query the database to find the application by dealershipOwnerId
