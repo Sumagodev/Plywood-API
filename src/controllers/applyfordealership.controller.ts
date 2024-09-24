@@ -143,9 +143,8 @@ export const getDealershipApplicationByOwnerId = async (req: Request, res: Respo
       res.status(200).json({ data: formattedApplications });
   } catch (error) {
       // Step 7: Log any errors for debugging purposes
-      console.error("Error in getDealershipApplicationByOwnerId:", error);
+      res.status(404).json({ message: "No applications found for the given dealershipOwnerId" });
 
       // Step 8: Pass the error to the next middleware (error handler)
-      next(error);
   }
 };
