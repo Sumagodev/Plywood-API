@@ -163,10 +163,6 @@ const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, v
         const applications = yield applyfordealership_model_1.DealershipApplication.find({ userId: new mongoose_1.default.Types.ObjectId(userId) })
             .populate("userId", "name email") // Populate userId with name and email
             .populate("stateId", "name") // Populate stateId with state name
-            .populate({
-            path: "cityId",
-            select: "name",
-        })
             .exec();
         // Step 4: Log the result of the query
         console.log("Applications found:", applications);
@@ -174,14 +170,10 @@ const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, v
         if (!applications || applications.length === 0) {
             return res.status(404).json({ message: "Dealership Applications Not Found" });
         }
-        // Step 6: Format the response to include all application information
+        // Step 6: Format the response to include all application information without cities
         const applicationInfos = applications.map((application) => {
             var _a;
-            const formattedCities = application.cityId.map((city) => ({
-                cityId: city._id,
-                cityName: city.name,
-            }));
-            return {
+            return ({
                 _id: application._id,
                 Organisation_name: application.Organisation_name,
                 Type: application.Type,
@@ -192,10 +184,9 @@ const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, v
                 image: application.image,
                 stateId: application.stateId,
                 stateName: ((_a = application.stateId) === null || _a === void 0 ? void 0 : _a.name) || "",
-                cities: formattedCities,
                 createdAt: application.createdAt,
                 updatedAt: application.updatedAt,
-            };
+            });
         });
         // Step 7: Send the response with the array of application data
         res.status(200).json({ data: applicationInfos });
