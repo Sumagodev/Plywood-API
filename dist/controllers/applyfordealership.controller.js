@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteApplication = exports.updateApplication = exports.getApplicationById = exports.getApplications = exports.createApplication = void 0;
+exports.getDealershipApplicationByOwnerId = exports.deleteApplication = exports.updateApplication = exports.getApplicationById = exports.getApplications = exports.createApplication = void 0;
 const user_model_1 = require("../models/user.model");
 const product_model_1 = require("../models/product.model");
 const adddealership_model_1 = require("../models/adddealership.model");
@@ -111,3 +111,52 @@ const deleteApplication = (req, res, next) => __awaiter(void 0, void 0, void 0, 
     }
 });
 exports.deleteApplication = deleteApplication;
+const getDealershipApplicationByOwnerId = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { dealershipOwnerId } = req.params;
+        // Step 1: Validate dealershipOwnerId
+        if (!mongoose_1.default.Types.ObjectId.isValid(dealershipOwnerId)) {
+            return res.status(400).json({ message: "Invalid dealershipOwnerId format" });
+        }
+        // Step 2: Log dealershipOwnerId for debugging purposes
+        console.log("Querying for dealershipOwnerId:", dealershipOwnerId);
+        // Step 3: Query the database to find the application by dealershipOwnerId
+        const applications = yield applyfordealership_model_1.DealershipApplication.find({ dealershipOwnerId: new mongoose_1.default.Types.ObjectId(dealershipOwnerId) })
+            .populate("userId", "name email") // Populate userId with name and email
+            .populate("productId", "name") // Populate productId with product name
+            .exec();
+        // Step 4: Check if no applications are found
+        if (!applications || applications.length === 0) {
+            return res.status(404).json({ message: "No applications found for the given dealershipOwnerId" });
+        }
+        // Step 5: Structure the response
+        const formattedApplications = applications.map(application => {
+            var _a;
+            return ({
+                _id: application._id,
+                Organisation_name: application.Organisation_name,
+                Type: application.Type,
+                Brand: application.Brand,
+                productId: application.productId,
+                userId: application.userId,
+                userName: ((_a = application.userId) === null || _a === void 0 ? void 0 : _a.name) || "",
+                email: application.email,
+                image: application.image,
+                countryId: application.countryId,
+                stateId: application.stateId,
+                cityId: application.cityId,
+                createdAt: application.createdAt,
+                updatedAt: application.updatedAt,
+            });
+        });
+        // Step 6: Send the response
+        res.status(200).json({ data: formattedApplications });
+    }
+    catch (error) {
+        // Step 7: Log any errors for debugging purposes
+        console.error("Error in getDealershipApplicationByOwnerId:", error);
+        // Step 8: Pass the error to the next middleware (error handler)
+        next(error);
+    }
+});
+exports.getDealershipApplicationByOwnerId = getDealershipApplicationByOwnerId;
