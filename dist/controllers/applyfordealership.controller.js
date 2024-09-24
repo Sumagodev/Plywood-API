@@ -113,11 +113,11 @@ const deleteApplication = (req, res, next) => __awaiter(void 0, void 0, void 0, 
 exports.deleteApplication = deleteApplication;
 const getDealershipApplicationByOwnerId = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { dealershipOwnerId } = req.params;
+        const { id } = req.params;
         // Step 2: Log dealershipOwnerId for debugging purposes
-        console.log("Querying for dealershipOwnerId:", dealershipOwnerId);
+        console.log("Querying for dealershipOwnerId:", id);
         // Step 3: Query the database to find the application by dealershipOwnerId
-        const applications = yield applyfordealership_model_1.DealershipApplication.find({ dealershipOwnerId: new mongoose_1.default.Types.ObjectId(dealershipOwnerId) })
+        const applications = yield applyfordealership_model_1.DealershipApplication.find({ dealershipOwnerId: new mongoose_1.default.Types.ObjectId(id) })
             .populate("userId", "name email") // Populate userId with name and email
             .populate("productId", "name") // Populate productId with product name
             .exec();
@@ -127,16 +127,16 @@ const getDealershipApplicationByOwnerId = (req, res, next) => __awaiter(void 0, 
         }
         // Step 5: Structure the response
         const formattedApplications = applications.map(application => {
-            var _a;
+            var _a, _b, _c, _d;
             return ({
                 _id: application._id,
                 Organisation_name: application.Organisation_name,
                 Type: application.Type,
                 Brand: application.Brand,
-                productId: application.productId,
-                userId: application.userId,
-                userName: ((_a = application.userId) === null || _a === void 0 ? void 0 : _a.name) || "",
-                email: application.email,
+                productId: ((_a = application.productId) === null || _a === void 0 ? void 0 : _a.name) || "",
+                userId: ((_b = application.userId) === null || _b === void 0 ? void 0 : _b._id) || "",
+                userName: ((_c = application.userId) === null || _c === void 0 ? void 0 : _c.name) || "",
+                email: ((_d = application.userId) === null || _d === void 0 ? void 0 : _d.email) || "",
                 image: application.image,
                 countryId: application.countryId,
                 stateId: application.stateId,

@@ -105,16 +105,13 @@ export const deleteApplication = async (req: Request, res: Response, next: NextF
 
 export const getDealershipApplicationByOwnerId = async (req: Request, res: Response, next: NextFunction) => {
   try {
-      const { dealershipOwnerId } = req.params;
+      const { id } = req.params;
 
-
-
-      
       // Step 2: Log dealershipOwnerId for debugging purposes
-      console.log("Querying for dealershipOwnerId:", dealershipOwnerId);
+      console.log("Querying for dealershipOwnerId:", id);
 
       // Step 3: Query the database to find the application by dealershipOwnerId
-      const applications = await DealershipApplication.find({ dealershipOwnerId: new mongoose.Types.ObjectId(dealershipOwnerId) })
+      const applications = await DealershipApplication.find({ dealershipOwnerId: new mongoose.Types.ObjectId(id) })
           .populate("userId", "name email") // Populate userId with name and email
           .populate("productId", "name") // Populate productId with product name
           .exec();
@@ -130,10 +127,10 @@ export const getDealershipApplicationByOwnerId = async (req: Request, res: Respo
           Organisation_name: application.Organisation_name,
           Type: application.Type,
           Brand: application.Brand,
-          productId: application.productId,
-          userId: application.userId,
+          productId: application.productId?.name || "", // Populated product name
+          userId: application.userId?._id || "", // User ID reference
           userName: application.userId?.name || "", // Populated user name
-          email: application.email,
+          email: application.userId?.email || "", // Populated email from userId
           image: application.image,
           countryId: application.countryId,
           stateId: application.stateId,
