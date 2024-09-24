@@ -172,7 +172,7 @@ export const getDealershipOwnerByUserId = async (req: Request, res: Response, ne
         };
 
         // Step 8: Send the response with the found data
-        res.status(200).json({ data: dealershipInfo });
+        res.status(200).json({ data: owner });
 
     } catch (error) {
         // Step 9: Log any errors for debugging purposes
