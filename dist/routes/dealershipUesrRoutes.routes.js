@@ -11,5 +11,5 @@ router.get('/getapplyForDealershipOpportunitiy', applyfordealership_controller_1
 router.get('/applications/:id', applyfordealership_controller_1.getApplicationById);
 router.put('/applications/:id', applyfordealership_controller_1.updateApplication);
 router.delete('/applications/:id', applyfordealership_controller_1.deleteApplication);
-router.get("/getApplicationsByOwnerId/:id", applyfordealership_controller_1.getDealershipApplicationByOwnerId);
+router.get("/getApplicationsByOwnerId/:id", applyfordealership_controller_1.getDealershipApplicationByUserId);
 exports.default = router;
