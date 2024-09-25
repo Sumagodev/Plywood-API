@@ -213,7 +213,7 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
         Organisation_name: application.Organisation_name,
         Type: application.Type,
         Brand: application.Brand,
-        productName: application.Product || "", // Populated product name
+        productName: application.dealershipOwnerId.Product || "", // Populated product name
         userId: application.userId?._id || "", // User ID reference
         userName: application.userId?.name || "", // Populated user name
         email: application.userId?.email || "", // Populated email from userId

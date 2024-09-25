@@ -201,7 +201,7 @@ const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, v
                 Organisation_name: application.Organisation_name,
                 Type: application.Type,
                 Brand: application.Brand,
-                productName: application.productId ? productMap.get(application.productId.toString()) || "Unknown product" : "",
+                productName: application.dealershipOwnerId.Product || "",
                 userId: ((_a = application.userId) === null || _a === void 0 ? void 0 : _a._id) || "",
                 userName: ((_b = application.userId) === null || _b === void 0 ? void 0 : _b.name) || "",
                 email: ((_c = application.userId) === null || _c === void 0 ? void 0 : _c.email) || "",
