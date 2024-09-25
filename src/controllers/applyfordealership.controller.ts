@@ -162,43 +162,38 @@ export const deleteApplication = async (req: Request, res: Response, next: NextF
 
 export const getDealershipApplicationByUserId = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { userId } = req.params;
+    // Extract userId from request query or params (depending on how it's sent)
+    const userId = req.params.userId || req.query.userId;
 
     if (!userId) {
       return res.status(400).json({ message: 'User ID is required' });
     }
 
-    // Step 1: Fetch dealership applications for the given userId
-    const applications = await DealershipApplication.find({ createdById: userId })
-      .populate('productId', 'name') // Populate the product name
-      .lean()
-      .exec();
+    // Fetch the dealership applications for the given user ID
+    const applications = await DealershipApplication.find({ createdById: userId }).lean().exec();
 
     if (!applications || applications.length === 0) {
       return res.status(404).json({ message: 'No applications found for this user' });
     }
 
-    // Step 2: Fetch user details
+    // Fetch the user details (assuming the user is related to applications)
     const user = await User.findById(userId).lean().exec();
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Step 3: Fetch city and state details
+    // Fetch city and state details
     const city = await City.findById(user.cityId).lean().exec();
     const state = await State.findById(user.stateId).lean().exec();
 
+    // Attach city and state names to the response
     const cityName = city ? city.name : 'Unknown City';
     const stateName = state ? state.name : 'Unknown State';
 
-    // Step 4: Map applications with product name, city, and state
+    // Map the applications with the user details and return the result
     const populatedApplications = applications.map((application) => ({
-      _id: application._id,
-      Organisation_name: application.Organisation_name,
-      Type: application.Type,
-      Brand: application.Brand,
-      productName: application.productId?.name || 'Unknown Product', // Populated product name
+      ...application,
       userDetails: {
         name: user.name,
         address: user.address || 'Unknown Address',
@@ -206,14 +201,12 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
         cityName,
         stateName,
       },
-      createdAt: application.createdAt,
-      updatedAt: application.updatedAt,
     }));
 
-    // Step 5: Send the populated applications in the response
+    // Send the populated applications in the response
     res.json({ message: 'Dealership Applications', data: populatedApplications });
   } catch (error) {
-    console.error('Error in getDealershipApplicationByUserId:', error);
-    res.status(500).json({ message: 'Server Error', error: error });
+    console.error(error);
+    res.status(500).json({ message: 'Server Error'});
   }
 };
