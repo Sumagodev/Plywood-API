@@ -282,7 +282,7 @@ const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, v
     catch (error) {
         // Log any errors for debugging purposes
         console.error("Error in getDealershipApplicationByUserId:", error);
-        res.status(200).json(error);
+        return res.status(500).json({ message: "Internal server error" });
     }
 });
 exports.getDealershipApplicationByUserId = getDealershipApplicationByUserId;
