@@ -309,6 +309,6 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
   } catch (error) {
     // Log any errors for debugging purposes
     console.error("Error in getDealershipApplicationByUserId:", error);
-    res.status(200).json(error);
+        next(error); // Pass the error to the next middleware
   }
 };
