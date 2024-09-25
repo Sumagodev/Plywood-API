@@ -19,7 +19,7 @@ router.get('/applications/:id', getApplicationById);
 router.put('/applications/:id', updateApplication);
 router.delete('/applications/:id', deleteApplication);
 // router.get("/getDealershipApplicationByOwnerId/:id", getDealershipApplicationByOwnerId);
-router.get("/getDealershipApplicationByUserId/:userId", getDealershipApplicationByUserId);
+router.get("/getDealershipApplicationByUserId", getDealershipApplicationByUserId);
 
 
 export default router;
