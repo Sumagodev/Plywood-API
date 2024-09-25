@@ -162,7 +162,7 @@ const getDealershipApplicationByUserId = (req, res) => __awaiter(void 0, void 0,
     try {
         const userId = req.params.userId;
         // Fetch dealership applications by userId
-        const dealershipApplications = yield applyfordealership_model_1.DealershipApplication.find({ userId })
+        const dealershipApplications = yield applyfordealership_model_1.DealershipApplication.find({ userId: new mongoose_1.default.Types.ObjectId(userId) })
             .populate('dealershipOwnerId')
             .lean()
             .exec();
