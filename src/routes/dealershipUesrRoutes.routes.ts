@@ -4,7 +4,8 @@ import {
     getApplications,
     getApplicationById,
     updateApplication,
-    deleteApplication,getDealershipApplicationByOwnerId
+    deleteApplication,getDealershipApplicationByUserId
+    // getDealershipApplicationByOwnerId
 } from '../controllers/applyfordealership.controller';
 
 const router = express.Router();
@@ -17,7 +18,8 @@ router.get('/applications/:id', getApplicationById);
 
 router.put('/applications/:id', updateApplication);
 router.delete('/applications/:id', deleteApplication);
-router.get("/getDealershipApplicationByOwnerId/:id", getDealershipApplicationByOwnerId);
+// router.get("/getDealershipApplicationByOwnerId/:id", getDealershipApplicationByOwnerId);
+router.get("/getDealershipApplicationByUserId/:userId", getDealershipApplicationByUserId);
 
 
 export default router;
