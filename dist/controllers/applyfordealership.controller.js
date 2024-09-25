@@ -160,9 +160,10 @@ exports.deleteApplication = deleteApplication;
 // };
 const getDealershipApplicationByUserId = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const userId = req.params.userId;
+        const { userId } = req.params;
+        // const dealershipApplication = await DealershipApplication.findById(applicationId)
         // Fetch dealership applications by userId
-        const dealershipApplications = yield applyfordealership_model_1.DealershipApplication.find({ userId: new mongoose_1.default.Types.ObjectId(userId) })
+        const dealershipApplications = yield applyfordealership_model_1.DealershipApplication.find({ userId })
             .populate('dealershipOwnerId')
             .lean()
             .exec();
