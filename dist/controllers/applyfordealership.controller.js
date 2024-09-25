@@ -161,41 +161,54 @@ exports.deleteApplication = deleteApplication;
 // };
 const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Extract userId from request query or params (depending on how it's sent)
-        const userId = req.params.userId || req.query.userId;
+        const { userId } = req.params;
         if (!userId) {
             return res.status(400).json({ message: 'User ID is required' });
         }
-        // Fetch the dealership applications for the given user ID
-        const applications = yield applyfordealership_model_1.DealershipApplication.find({ createdById: userId }).lean().exec();
+        // Step 1: Fetch dealership applications for the given userId
+        const applications = yield applyfordealership_model_1.DealershipApplication.find({ createdById: userId })
+            .populate('productId', 'name') // Populate the product name
+            .lean()
+            .exec();
         if (!applications || applications.length === 0) {
             return res.status(404).json({ message: 'No applications found for this user' });
         }
-        // Fetch the user details (assuming the user is related to applications)
+        // Step 2: Fetch user details
         const user = yield user_model_1.User.findById(userId).lean().exec();
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-        // Fetch city and state details
+        // Step 3: Fetch city and state details
         const city = yield City_model_1.City.findById(user.cityId).lean().exec();
         const state = yield State_model_1.State.findById(user.stateId).lean().exec();
-        // Attach city and state names to the response
         const cityName = city ? city.name : 'Unknown City';
         const stateName = state ? state.name : 'Unknown State';
-        // Map the applications with the user details and return the result
-        const populatedApplications = applications.map((application) => (Object.assign(Object.assign({}, application), { userDetails: {
-                name: user.name,
-                address: user.address || 'Unknown Address',
-                phone: user.phone || 'Unknown Phone',
-                cityName,
-                stateName,
-            } })));
-        // Send the populated applications in the response
+        // Step 4: Map applications with product name, city, and state
+        const populatedApplications = applications.map((application) => {
+            var _a;
+            return ({
+                _id: application._id,
+                Organisation_name: application.Organisation_name,
+                Type: application.Type,
+                Brand: application.Brand,
+                productName: ((_a = application.productId) === null || _a === void 0 ? void 0 : _a.name) || 'Unknown Product',
+                userDetails: {
+                    name: user.name,
+                    address: user.address || 'Unknown Address',
+                    phone: user.phone || 'Unknown Phone',
+                    cityName,
+                    stateName,
+                },
+                createdAt: application.createdAt,
+                updatedAt: application.updatedAt,
+            });
+        });
+        // Step 5: Send the populated applications in the response
         res.json({ message: 'Dealership Applications', data: populatedApplications });
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server Error' });
+        console.error('Error in getDealershipApplicationByUserId:', error);
+        res.status(500).json({ message: 'Server Error', error: error });
     }
 });
 exports.getDealershipApplicationByUserId = getDealershipApplicationByUserId;
