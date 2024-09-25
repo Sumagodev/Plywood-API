@@ -283,6 +283,6 @@ exports.getDealershipApplicationByUserId = getDealershipApplicationByUserId;
 //   } catch (error) {
 //     // Log any errors for debugging purposes
 //     console.error("Error in getDealershipApplicationByUserId:", error);
-//     return res.status(500).json({ message: "Internal server error" });
+//     res.status(200).json(error);
 //   }
 // };
