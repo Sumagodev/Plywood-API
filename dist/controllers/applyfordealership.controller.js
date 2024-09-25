@@ -282,7 +282,7 @@ const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, v
     catch (error) {
         // Log any errors for debugging purposes
         console.error("Error in getDealershipApplicationByUserId:", error);
-        next(error); // Pass the error to the next middleware
+        res.status(200).json({ error });
     }
 });
 exports.getDealershipApplicationByUserId = getDealershipApplicationByUserId;
