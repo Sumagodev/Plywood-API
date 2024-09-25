@@ -111,57 +111,52 @@ const deleteApplication = (req, res, next) => __awaiter(void 0, void 0, void 0, 
     }
 });
 exports.deleteApplication = deleteApplication;
-const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { userId } = req.params;
-        // Step 1: Fetch all ownerIds associated with the given userId
-        const owners = yield adddealership_model_1.DealershipOwner.find({ userId: new mongoose_1.default.Types.ObjectId(userId) });
-        // Check if no owners are found
-        if (!owners || owners.length === 0) {
-            return res.status(404).json({ message: "No owners found for the given userId" });
-        }
-        // Extract the ownerIds
-        const ownerIds = owners.map(owner => owner._id);
-        const productIds = owners.map((product) => product.Product);
-        // Step 2: Query the dealership applications using the ownerIds
-        const applications = yield applyfordealership_model_1.DealershipApplication.find({ dealershipOwnerId: { $in: ownerIds } })
-            .populate("userId", "name email") // Populate userId with name and email
-            .populate("productId", "name") // Populate productId with product name
-            .exec();
-        // Step 3: Check if no applications are found
-        if (!applications || applications.length === 0) {
-            return res.status(404).json({ message: "No applications found for the given userId" });
-        }
-        // Step 4: Structure the response
-        const formattedApplications = applications.map(application => {
-            var _a, _b, _c, _d;
-            return ({
-                _id: application._id,
-                Organisation_name: application.Organisation_name,
-                Type: application.Type,
-                Brand: application.Brand,
-                productId: ((_a = application.productId) === null || _a === void 0 ? void 0 : _a.name) || "",
-                userId: ((_b = application.userId) === null || _b === void 0 ? void 0 : _b._id) || "",
-                userName: ((_c = application.userId) === null || _c === void 0 ? void 0 : _c.name) || "",
-                email: ((_d = application.userId) === null || _d === void 0 ? void 0 : _d.email) || "",
-                image: application.image,
-                countryId: application.countryId,
-                stateId: application.stateId,
-                cityId: application.cityId,
-                createdAt: application.createdAt,
-                updatedAt: application.updatedAt,
-            });
-        });
-        // Step 5: Send the response
-        res.status(200).json({ data: applications });
-    }
-    catch (error) {
-        // Log any errors for debugging purposes
-        console.error("Error in getDealershipApplicationByUserId:", error);
-        next(error); // Pass the error to the next middleware
-    }
-});
-exports.getDealershipApplicationByUserId = getDealershipApplicationByUserId;
+// export const getDealershipApplicationByUserId = async (req: Request, res: Response, next: NextFunction) => {
+//   try {
+//     const { userId } = req.params;
+//     // Step 1: Fetch all ownerIds associated with the given userId
+//     const owners = await DealershipOwner.find({ userId: new mongoose.Types.ObjectId(userId) });
+//     // Check if no owners are found
+//     if (!owners || owners.length === 0) {
+//       return res.status(404).json({ message: "No owners found for the given userId" });
+//     }
+//     // Extract the ownerIds
+//     const ownerIds = owners.map(owner => owner._id);
+//     const productIds = owners.map((product) => product.Product);
+//     // Step 2: Query the dealership applications using the ownerIds
+//     const applications = await DealershipApplication.find({ dealershipOwnerId: { $in: ownerIds } })
+//       .populate("userId", "name email") // Populate userId with name and email
+//       .populate("productId", "name") // Populate productId with product name
+//       .exec();
+//     // Step 3: Check if no applications are found
+//     if (!applications || applications.length === 0) {
+//       return res.status(404).json({ message: "No applications found for the given userId" });
+//     }
+//     // Step 4: Structure the response
+//     const formattedApplications = applications.map(application => ({
+//       _id: application._id,
+//       Organisation_name: application.Organisation_name,
+//       Type: application.Type,
+//       Brand: application.Brand,
+//       productId: application.productId?.name || "", // Populated product name
+//       userId: application.userId?._id || "", // User ID reference
+//       userName: application.userId?.name || "", // Populated user name
+//       email: application.userId?.email || "", // Populated email from userId
+//       image: application.image,
+//       countryId: application.countryId,
+//       stateId: application.stateId,
+//       cityId: application.cityId,
+//       createdAt: application.createdAt,
+//       updatedAt: application.updatedAt,
+//     }));
+//     // Step 5: Send the response
+//     res.status(200).json({ data: applications });
+//   } catch (error) {
+//     // Log any errors for debugging purposes
+//     console.error("Error in getDealershipApplicationByUserId:", error);
+//     next(error); // Pass the error to the next middleware
+//   }
+// };
 // export const getDealershipApplicationByUserId = async (req: Request, res: Response, next: NextFunction) => {
 //   try {
 //     const { userId } = req.params;
@@ -224,65 +219,67 @@ exports.getDealershipApplicationByUserId = getDealershipApplicationByUserId;
 //     next(error); // Pass the error to the next middleware
 //   }
 // };
-// export const getDealershipApplicationByUserId = async (req: Request, res: Response, next: NextFunction) => {
-//   try {
-//     const { userId } = req.params;
-//     // Step 1: Fetch all ownerIds associated with the given userId
-//     const owners = await DealershipOwner.find({ userId: new mongoose.Types.ObjectId(userId) });
-//     // Check if no owners are found
-//     if (!owners || owners.length === 0) {
-//       return res.status(404).json({ message: "No owners found for the given userId" });
-//     }
-//     // Extract the ownerIds
-//     const ownerIds = owners.map(owner => owner._id);
-//     // Step 2: Query the dealership applications using the ownerIds
-//     const applications = await DealershipApplication.find({ dealershipOwnerId: { $in: ownerIds } })
-//       .populate("userId", "name email") // Populate userId with name and email
-//       .populate("productId", "name") // Populate productId with product name
-//       .lean(); // Return plain JavaScript objects for easier manipulation
-//     // Step 3: Check if no applications are found
-//     if (!applications || applications.length === 0) {
-//       return res.status(404).json({ message: "No applications found for the given userId" });
-//     }
-//     // Step 4: Fetch city names, state names, and product names
-//     const cityIds = applications.flatMap(app => app.cityId); // Flatten cityId arrays
-//     const stateIds = applications.map(app => app.stateId).filter(Boolean); // Get all stateIds
-//     const productIds = applications.map(app => app.productId).filter(Boolean).map(product => product._id); // Get productIds
-//     const cities = await City.find({ _id: { $in: cityIds } }).lean();
-//     const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
-//     const products = await Product.find({ _id: { $in: productIds } }).lean(); // Fetch products
-//     const productMap = new Map(products.map(product => [product._id.toString(), product.name])); // Create a map for product names
-//     const states = await State.find({ _id: { $in: stateIds } }).lean();
-//     const stateMap = new Map(states.map(state => [state._id.toString(), state.name]));
-//     // Step 5: Structure the response
-//     const formattedApplications = applications.map(application => {
-//       const populatedCities = application.cityId.map((cityId: string) => ({
-//         cityId,
-//         cityName: cityMap.get(cityId) || "Unknown City"
-//       }));
-//       return {
-//         _id: application._id,
-//         Organisation_name: application.Organisation_name,
-//         Type: application.Type,
-//         Brand: application.Brand,
-//         productName: application.productId ? productMap.get(application.productId.toString()) || "Unknown product" : "", // Populated product name
-//         userId: application.userId?._id || "", // User ID reference
-//         userName: application.userId?.name || "", // Populated user name
-//         email: application.userId?.email || "", // Populated email from userId
-//         image: application.image,
-//         countryId: application.countryId,
-//         stateId: application.stateId,
-//         stateName: application.stateId ? stateMap.get(application.stateId.toString()) || "Unknown State" : "", // Populated state name
-//         cities: populatedCities, // Array of cities with cityId and cityName
-//         createdAt: application.createdAt,
-//         updatedAt: application.updatedAt,
-//       };
-//     });
-//     // Step 6: Send the response
-//     res.status(200).json({ data: formattedApplications });
-//   } catch (error) {
-//     // Log any errors for debugging purposes
-//     console.error("Error in getDealershipApplicationByUserId:", error);
-//     res.status(200).json(error);
-//   }
-// };
+const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { userId } = req.params;
+        // Step 1: Fetch all ownerIds associated with the given userId
+        const owners = yield adddealership_model_1.DealershipOwner.find({ userId: new mongoose_1.default.Types.ObjectId(userId) });
+        // Check if no owners are found
+        if (!owners || owners.length === 0) {
+            return res.status(404).json({ message: "No owners found for the given userId" });
+        }
+        // Extract the ownerIds
+        const ownerIds = owners.map(owner => owner._id);
+        // Step 2: Query the dealership applications using the ownerIds
+        const applications = yield applyfordealership_model_1.DealershipApplication.find({ dealershipOwnerId: { $in: ownerIds } })
+            .populate("userId", "name email") // Populate userId with name and email
+            .populate("productId", "name") // Populate productId with product name
+            .lean(); // Return plain JavaScript objects for easier manipulation
+        // // Step 3: Check if no applications are found
+        // if (!applications || applications.length === 0) {
+        //   return res.status(404).json({ message: "No applications found for the given userId" });
+        // }
+        // // Step 4: Fetch city names, state names, and product names
+        // const cityIds = applications.flatMap(app => app.cityId); // Flatten cityId arrays
+        // const stateIds = applications.map(app => app.stateId).filter(Boolean); // Get all stateIds
+        // const productIds = applications.map(app => app.productId).filter(Boolean).map(product => product._id); // Get productIds
+        // const cities = await City.find({ _id: { $in: cityIds } }).lean();
+        // const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
+        // const products = await Product.find({ _id: { $in: productIds } }).lean(); // Fetch products
+        // const productMap = new Map(products.map(product => [product._id.toString(), product.name])); // Create a map for product names
+        // const states = await State.find({ _id: { $in: stateIds } }).lean();
+        // const stateMap = new Map(states.map(state => [state._id.toString(), state.name]));
+        // // Step 5: Structure the response
+        // const formattedApplications = applications.map(application => {
+        //   const populatedCities = application.cityId.map((cityId: string) => ({
+        //     cityId,
+        //     cityName: cityMap.get(cityId) || "Unknown City"
+        //   }));
+        //   return {
+        //     _id: application._id,
+        //     Organisation_name: application.Organisation_name,
+        //     Type: application.Type,
+        //     Brand: application.Brand,
+        //     productName: application.productId ? productMap.get(application.productId.toString()) || "Unknown product" : "", // Populated product name
+        //     userId: application.userId?._id || "", // User ID reference
+        //     userName: application.userId?.name || "", // Populated user name
+        //     email: application.userId?.email || "", // Populated email from userId
+        //     image: application.image,
+        //     countryId: application.countryId,
+        //     stateId: application.stateId,
+        //     stateName: application.stateId ? stateMap.get(application.stateId.toString()) || "Unknown State" : "", // Populated state name
+        //     cities: populatedCities, // Array of cities with cityId and cityName
+        //     createdAt: application.createdAt,
+        //     updatedAt: application.updatedAt,
+        //   };
+        // });
+        // Step 6: Send the response
+        res.status(200).json({ data: applications });
+    }
+    catch (error) {
+        // Log any errors for debugging purposes
+        console.error("Error in getDealershipApplicationByUserId:", error);
+        res.status(200).json(error);
+    }
+});
+exports.getDealershipApplicationByUserId = getDealershipApplicationByUserId;
