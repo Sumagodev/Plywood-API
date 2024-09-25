@@ -165,7 +165,7 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
     const userId = req.params.userId;
 
     // Fetch dealership applications by userId
-    const dealershipApplications = await DealershipApplication.find({ userId: new mongoose.Types.ObjectId(userId) })
+    const dealershipApplications = await DealershipOwner.find({ userId: new mongoose.Types.ObjectId(userId) })
       .populate('dealershipOwnerId')
       .lean()
       .exec();
