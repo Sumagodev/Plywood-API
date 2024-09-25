@@ -159,6 +159,7 @@ export const deleteApplication = async (req: Request, res: Response, next: NextF
 //   }
 // };
 
+
 export const getDealershipApplicationByUserId = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { userId } = req.params;
@@ -171,13 +172,13 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
       return res.status(404).json({ message: "No owners found for the given userId" });
     }
 
-    // Extract the ownerIds
+    // Extract the ownerIds and productIds
     const ownerIds = owners.map(owner => owner._id);
 
     // Step 2: Query the dealership applications using the ownerIds
     const applications = await DealershipApplication.find({ dealershipOwnerId: { $in: ownerIds } })
       .populate("userId", "name email") // Populate userId with name and email
-      .populate("Product", "name") // Populate productId with product name
+      .populate("productId", "name") // Populate productId with product name
       .lean(); // Return plain JavaScript objects for easier manipulation
 
     // Step 3: Check if no applications are found
@@ -185,19 +186,15 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
       return res.status(404).json({ message: "No applications found for the given userId" });
     }
 
-    // Step 4: Fetch city names, state names, and product names
+    // Step 4: Fetch city names and state names
     const cityIds = applications.flatMap(app => app.cityId); // Flatten cityId arrays
     const stateIds = applications.map(app => app.stateId).filter(Boolean); // Get all stateIds
-    const productIds = applications.map(app => app.productId).filter(Boolean); // Get all productIds
 
     const cities = await City.find({ _id: { $in: cityIds } }).lean();
     const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
 
     const states = await State.find({ _id: { $in: stateIds } }).lean();
     const stateMap = new Map(states.map(state => [state._id.toString(), state.name]));
-
-    const products = await Product.find({ _id: { $in: productIds } }).lean(); // Fetch products
-    const productMap = new Map(products.map(product => [product._id.toString(), product.name])); // Create a map for product names
 
     // Step 5: Structure the response
     const formattedApplications = applications.map(application => {
@@ -211,7 +208,7 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
         Organisation_name: application.Organisation_name,
         Type: application.Type,
         Brand: application.Brand,
-        productName: productMap.get(application.Product?.toString()) || "", // Populated product name
+        productName: application.productId?.name || "", // Populated product name
         userId: application.userId?._id || "", // User ID reference
         userName: application.userId?.name || "", // Populated user name
         email: application.userId?.email || "", // Populated email from userId

@@ -168,27 +168,24 @@ const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, v
         if (!owners || owners.length === 0) {
             return res.status(404).json({ message: "No owners found for the given userId" });
         }
-        // Extract the ownerIds
+        // Extract the ownerIds and productIds
         const ownerIds = owners.map(owner => owner._id);
         // Step 2: Query the dealership applications using the ownerIds
         const applications = yield applyfordealership_model_1.DealershipApplication.find({ dealershipOwnerId: { $in: ownerIds } })
             .populate("userId", "name email") // Populate userId with name and email
-            .populate("Product", "name") // Populate productId with product name
+            .populate("productId", "name") // Populate productId with product name
             .lean(); // Return plain JavaScript objects for easier manipulation
         // Step 3: Check if no applications are found
         if (!applications || applications.length === 0) {
             return res.status(404).json({ message: "No applications found for the given userId" });
         }
-        // Step 4: Fetch city names, state names, and product names
+        // Step 4: Fetch city names and state names
         const cityIds = applications.flatMap(app => app.cityId); // Flatten cityId arrays
         const stateIds = applications.map(app => app.stateId).filter(Boolean); // Get all stateIds
-        const productIds = applications.map(app => app.productId).filter(Boolean); // Get all productIds
         const cities = yield City_model_1.City.find({ _id: { $in: cityIds } }).lean();
         const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
         const states = yield State_model_1.State.find({ _id: { $in: stateIds } }).lean();
         const stateMap = new Map(states.map(state => [state._id.toString(), state.name]));
-        const products = yield product_model_1.Product.find({ _id: { $in: productIds } }).lean(); // Fetch products
-        const productMap = new Map(products.map(product => [product._id.toString(), product.name])); // Create a map for product names
         // Step 5: Structure the response
         const formattedApplications = applications.map(application => {
             var _a, _b, _c, _d;
@@ -201,7 +198,7 @@ const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, v
                 Organisation_name: application.Organisation_name,
                 Type: application.Type,
                 Brand: application.Brand,
-                productName: productMap.get((_a = application.Product) === null || _a === void 0 ? void 0 : _a.toString()) || "",
+                productName: ((_a = application.productId) === null || _a === void 0 ? void 0 : _a.name) || "",
                 userId: ((_b = application.userId) === null || _b === void 0 ? void 0 : _b._id) || "",
                 userName: ((_c = application.userId) === null || _c === void 0 ? void 0 : _c.name) || "",
                 email: ((_d = application.userId) === null || _d === void 0 ? void 0 : _d.email) || "",
