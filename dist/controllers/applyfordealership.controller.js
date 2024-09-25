@@ -191,7 +191,7 @@ const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, v
             });
         });
         // Step 5: Send the response
-        res.status(200).json({ data: formattedApplications });
+        res.status(200).json({ data: applications });
     }
     catch (error) {
         // Log any errors for debugging purposes
