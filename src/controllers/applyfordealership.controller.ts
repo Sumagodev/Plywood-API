@@ -160,6 +160,7 @@ export const deleteApplication = async (req: Request, res: Response, next: NextF
 // };
 
 
+
 export const getDealershipApplicationByUserId = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { userId } = req.params;
@@ -172,7 +173,7 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
       return res.status(404).json({ message: "No owners found for the given userId" });
     }
 
-    // Extract the ownerIds and productIds
+    // Extract the ownerIds
     const ownerIds = owners.map(owner => owner._id);
 
     // Step 2: Query the dealership applications using the ownerIds
@@ -186,19 +187,20 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
       return res.status(404).json({ message: "No applications found for the given userId" });
     }
 
-    // Step 4: Fetch city names and state names
+    // Step 4: Fetch city names, state names, and product names
     const cityIds = applications.flatMap(app => app.cityId); // Flatten cityId arrays
     const stateIds = applications.map(app => app.stateId).filter(Boolean); // Get all stateIds
-    const productIds = applications.map(app => app.productId).filter(Boolean)
+    const productIds = applications.map(app => app.productId).filter(Boolean).map(product => product._id); // Get productIds
+
     const cities = await City.find({ _id: { $in: cityIds } }).lean();
     const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
 
-    const product = await Product.find({ _id: { $in: productIds } }).lean();
-    const productMap = new Map(product.map(product => [product._id.toString(), product.name]));
-
+    const products = await Product.find({ _id: { $in: productIds } }).lean(); // Fetch products
+    const productMap = new Map(products.map(product => [product._id.toString(), product.name])); // Create a map for product names
 
     const states = await State.find({ _id: { $in: stateIds } }).lean();
     const stateMap = new Map(states.map(state => [state._id.toString(), state.name]));
+
     // Step 5: Structure the response
     const formattedApplications = applications.map(application => {
       const populatedCities = application.cityId.map((cityId: string) => ({
@@ -211,7 +213,7 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
         Organisation_name: application.Organisation_name,
         Type: application.Type,
         Brand: application.Brand,
-        productName: application.productId? productMap.get(application.productId.toString()) || "Unknown product" : "", // Populated product name
+        productName: application.productId ? productMap.get(application.productId.toString()) || "Unknown product" : "", // Populated product name
         userId: application.userId?._id || "", // User ID reference
         userName: application.userId?.name || "", // Populated user name
         email: application.userId?.email || "", // Populated email from userId
