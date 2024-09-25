@@ -182,13 +182,16 @@ const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, v
         // Step 4: Fetch city names and state names
         const cityIds = applications.flatMap(app => app.cityId); // Flatten cityId arrays
         const stateIds = applications.map(app => app.stateId).filter(Boolean); // Get all stateIds
+        const productIds = applications.map(app => app.productId).filter(Boolean);
         const cities = yield City_model_1.City.find({ _id: { $in: cityIds } }).lean();
         const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
+        const product = yield product_model_1.Product.find({ _id: { $in: productIds } }).lean();
+        const productMap = new Map(product.map(product => [product._id.toString(), product.name]));
         const states = yield State_model_1.State.find({ _id: { $in: stateIds } }).lean();
         const stateMap = new Map(states.map(state => [state._id.toString(), state.name]));
         // Step 5: Structure the response
         const formattedApplications = applications.map(application => {
-            var _a, _b, _c, _d;
+            var _a, _b, _c;
             const populatedCities = application.cityId.map((cityId) => ({
                 cityId,
                 cityName: cityMap.get(cityId) || "Unknown City"
@@ -198,10 +201,10 @@ const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, v
                 Organisation_name: application.Organisation_name,
                 Type: application.Type,
                 Brand: application.Brand,
-                productName: ((_a = application.productId) === null || _a === void 0 ? void 0 : _a.name) || "",
-                userId: ((_b = application.userId) === null || _b === void 0 ? void 0 : _b._id) || "",
-                userName: ((_c = application.userId) === null || _c === void 0 ? void 0 : _c.name) || "",
-                email: ((_d = application.userId) === null || _d === void 0 ? void 0 : _d.email) || "",
+                productName: application.productId ? productMap.get(application.productId.toString()) || "Unknown product" : "",
+                userId: ((_a = application.userId) === null || _a === void 0 ? void 0 : _a._id) || "",
+                userName: ((_b = application.userId) === null || _b === void 0 ? void 0 : _b.name) || "",
+                email: ((_c = application.userId) === null || _c === void 0 ? void 0 : _c.email) || "",
                 image: application.image,
                 countryId: application.countryId,
                 stateId: application.stateId,

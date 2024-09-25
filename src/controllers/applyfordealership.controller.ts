@@ -189,13 +189,16 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
     // Step 4: Fetch city names and state names
     const cityIds = applications.flatMap(app => app.cityId); // Flatten cityId arrays
     const stateIds = applications.map(app => app.stateId).filter(Boolean); // Get all stateIds
-
+    const productIds = applications.map(app => app.productId).filter(Boolean)
     const cities = await City.find({ _id: { $in: cityIds } }).lean();
     const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
 
+    const product = await Product.find({ _id: { $in: productIds } }).lean();
+    const productMap = new Map(product.map(product => [product._id.toString(), product.name]));
+
+
     const states = await State.find({ _id: { $in: stateIds } }).lean();
     const stateMap = new Map(states.map(state => [state._id.toString(), state.name]));
-
     // Step 5: Structure the response
     const formattedApplications = applications.map(application => {
       const populatedCities = application.cityId.map((cityId: string) => ({
@@ -208,7 +211,7 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
         Organisation_name: application.Organisation_name,
         Type: application.Type,
         Brand: application.Brand,
-        productName: application.productId?.name || "", // Populated product name
+        productName: application.productId? productMap.get(application.productId.toString()) || "Unknown product" : "", // Populated product name
         userId: application.userId?._id || "", // User ID reference
         userName: application.userId?.name || "", // Populated user name
         email: application.userId?.email || "", // Populated email from userId
