@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getDealershipApplicationByUserId = exports.deleteApplication = exports.updateApplication = exports.getApplicationById = exports.getApplications = exports.createApplication = void 0;
 const user_model_1 = require("../models/user.model");
 const City_model_1 = require("../models/City.model");
-const State_model_1 = require("../models/State.model");
 const product_model_1 = require("../models/product.model");
 const adddealership_model_1 = require("../models/adddealership.model");
 const applyfordealership_model_1 = require("../models/applyfordealership.model");
@@ -159,43 +158,47 @@ exports.deleteApplication = deleteApplication;
 //     next(error); // Pass the error to the next middleware
 //   }
 // };
-const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+const getDealershipApplicationByUserId = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Extract userId from request query or params (depending on how it's sent)
-        const userId = req.params.userId || req.query.userId;
-        if (!userId) {
-            return res.status(400).json({ message: 'User ID is required' });
+        const userId = req.params.userId;
+        // Fetch dealership applications by userId
+        const dealershipApplications = yield applyfordealership_model_1.DealershipApplication.find({ userId })
+            .populate('dealershipOwnerId')
+            .lean()
+            .exec();
+        if (!dealershipApplications || dealershipApplications.length === 0) {
+            return res.status(404).json({ message: "No dealership applications found" });
         }
-        // Fetch the dealership applications for the given user ID
-        const applications = yield applyfordealership_model_1.DealershipApplication.find({ createdById: userId }).lean().exec();
-        if (!applications || applications.length === 0) {
-            return res.status(404).json({ message: 'No applications found for this user' });
-        }
-        // Fetch the user details (assuming the user is related to applications)
-        const user = yield user_model_1.User.findById(userId).lean().exec();
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-        // Fetch city and state details
-        const city = yield City_model_1.City.findById(user.cityId).lean().exec();
-        const state = yield State_model_1.State.findById(user.stateId).lean().exec();
-        // Attach city and state names to the response
-        const cityName = city ? city.name : 'Unknown City';
-        const stateName = state ? state.name : 'Unknown State';
-        // Map the applications with the user details and return the result
-        const populatedApplications = applications.map((application) => (Object.assign(Object.assign({}, application), { userDetails: {
-                name: user.name,
-                address: user.address || 'Unknown Address',
-                phone: user.phone || 'Unknown Phone',
-                cityName,
-                stateName,
-            } })));
-        // Send the populated applications in the response
-        res.json({ message: 'Dealership Applications', data: populatedApplications });
+        // Get all cityIds from the dealership applications
+        const cityIds = [];
+        dealershipApplications.forEach((application) => {
+            cityIds.push(...application.cityId);
+        });
+        // Remove duplicates
+        const uniqueCityIds = Array.from(new Set(cityIds));
+        // Fetch city names by cityIds
+        const cities = yield City_model_1.City.find({ _id: { $in: uniqueCityIds } }).lean().exec();
+        const cityMap = new Map(cities.map((city) => [city._id.toString(), city.name]));
+        // Fetch product details for each dealership application (if applicable)
+        const productIds = dealershipApplications.map((application) => application.productId).filter(Boolean);
+        const products = yield product_model_1.Product.find({ _id: { $in: productIds } }).lean().exec();
+        const productMap = new Map(products.map((product) => [product._id.toString(), product.name]));
+        // Populate the dealership application with city names and product names
+        const populatedApplications = dealershipApplications.map((application) => {
+            const populatedCities = application.cityId.map((cityId) => ({
+                cityId,
+                cityName: cityMap.get(cityId) || "Unknown City"
+            }));
+            return Object.assign(Object.assign({}, application), { cities: populatedCities, stateName: application.stateId ? "State Name" : "Unknown State", productName: application.productId ? productMap.get(application.productId.toString()) || "Unknown Product" : "No Product" });
+        });
+        res.json({
+            message: "Dealership applications fetched successfully",
+            data: populatedApplications
+        });
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server Error' });
+        console.error("Error fetching dealership applications:", error);
+        res.status(500).json({ message: "Internal server error" });
     }
 });
 exports.getDealershipApplicationByUserId = getDealershipApplicationByUserId;

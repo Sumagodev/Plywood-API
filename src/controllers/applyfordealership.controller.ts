@@ -160,53 +160,59 @@ export const deleteApplication = async (req: Request, res: Response, next: NextF
 // };
 
 
-export const getDealershipApplicationByUserId = async (req: Request, res: Response, next: NextFunction) => {
+export const getDealershipApplicationByUserId = async (req: Request, res: Response) => {
   try {
-    // Extract userId from request query or params (depending on how it's sent)
-    const userId = req.params.userId || req.query.userId;
+    const userId = req.params.userId;
 
-    if (!userId) {
-      return res.status(400).json({ message: 'User ID is required' });
+    // Fetch dealership applications by userId
+    const dealershipApplications = await DealershipApplication.find({ userId })
+      .populate('dealershipOwnerId')
+      .lean()
+      .exec();
+
+    if (!dealershipApplications || dealershipApplications.length === 0) {
+      return res.status(404).json({ message: "No dealership applications found" });
     }
 
-    // Fetch the dealership applications for the given user ID
-    const applications = await DealershipApplication.find({ createdById: userId }).lean().exec();
+    // Get all cityIds from the dealership applications
+    const cityIds: string[] = [];
+    dealershipApplications.forEach((application) => {
+      cityIds.push(...application.cityId);
+    });
 
-    if (!applications || applications.length === 0) {
-      return res.status(404).json({ message: 'No applications found for this user' });
-    }
+    // Remove duplicates
+    const uniqueCityIds = Array.from(new Set(cityIds));
 
-    // Fetch the user details (assuming the user is related to applications)
-    const user = await User.findById(userId).lean().exec();
+    // Fetch city names by cityIds
+    const cities = await City.find({ _id: { $in: uniqueCityIds } }).lean().exec();
+    const cityMap = new Map(cities.map((city: any) => [city._id.toString(), city.name]));
 
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+    // Fetch product details for each dealership application (if applicable)
+    const productIds = dealershipApplications.map((application) => application.productId).filter(Boolean);
+    const products = await Product.find({ _id: { $in: productIds } }).lean().exec();
+    const productMap = new Map(products.map((product: any) => [product._id.toString(), product.name]));
 
-    // Fetch city and state details
-    const city = await City.findById(user.cityId).lean().exec();
-    const state = await State.findById(user.stateId).lean().exec();
+    // Populate the dealership application with city names and product names
+    const populatedApplications = dealershipApplications.map((application) => {
+      const populatedCities = application.cityId.map((cityId: string) => ({
+        cityId,
+        cityName: cityMap.get(cityId) || "Unknown City"
+      }));
 
-    // Attach city and state names to the response
-    const cityName = city ? city.name : 'Unknown City';
-    const stateName = state ? state.name : 'Unknown State';
+      return {
+        ...application,
+        cities: populatedCities,
+        stateName: application.stateId ? "State Name" : "Unknown State", // Replace with actual state fetching logic if needed
+        productName: application.productId ? productMap.get(application.productId.toString()) || "Unknown Product" : "No Product"
+      };
+    });
 
-    // Map the applications with the user details and return the result
-    const populatedApplications = applications.map((application) => ({
-      ...application,
-      userDetails: {
-        name: user.name,
-        address: user.address || 'Unknown Address',
-        phone: user.phone || 'Unknown Phone',
-        cityName,
-        stateName,
-      },
-    }));
-
-    // Send the populated applications in the response
-    res.json({ message: 'Dealership Applications', data: populatedApplications });
+    res.json({
+      message: "Dealership applications fetched successfully",
+      data: populatedApplications
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server Error'});
+    console.error("Error fetching dealership applications:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
