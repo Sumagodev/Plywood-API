@@ -11,7 +11,7 @@ import mongoose from "mongoose";
 // Create a new dealership owner (linked to an existing user)
 export const createDealershipOwner = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { userId, image, cityId, productId, Product, stateId ,categoryId} = req.body;
+        const { userId, image, cityId, productId, Product, stateId ,categoryId ,Brand,email} = req.body;
 
         // Check if the user exists
         const user = await User.findById(userId).exec();

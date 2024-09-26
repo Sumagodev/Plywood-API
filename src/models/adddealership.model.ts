@@ -7,7 +7,7 @@ export interface Idealer extends Document {
   Product: string;
   Brand: string;
   productId?: Types.ObjectId; // Optional if not always provided
-
+  email: String;
   categoryArr: [
     {
       categoryId: mongoose.Types.ObjectId,
@@ -27,12 +27,13 @@ const dealershipOwnerSchema = new Schema<Idealer>(
   {
     Organisation_name: { type: String, required: true },
     Type: { type: String, required: true },
-    Product: { type: String, required: true },
+    Product: { type: String },
     Brand: { type: String, required: true },
     productId: {
       type: Schema.Types.ObjectId,
       ref: "Product",
     },
+    email: { type: String },
     userId: {
       type: Schema.Types.ObjectId,
       ref: "User",
