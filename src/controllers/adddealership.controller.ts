@@ -8,6 +8,8 @@ import { State } from "../models/State.model";
 import { Product } from "../models/product.model";
 import { DealershipOwner } from "../models/adddealership.model";
 import mongoose from "mongoose";
+import { Category } from "../models/category.model";
+
 // Create a new dealership owner (linked to an existing user)
 export const createDealershipOwner = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -134,14 +136,6 @@ export const getDealershipOwnerByUserId = async (req: Request, res: Response, ne
         const owners = await DealershipOwner.find({ userId: new mongoose.Types.ObjectId(userId) })
             .populate("userId", "name email")  // Populate userId with name and email
             .populate("stateId", "name")       // Populate stateId with state name
-            .populate({
-                path: "cityId",                // Assuming cityId references the City model
-                select: "name"
-            })
-            .populate({
-                path: "categoryArr",           // Assuming categoryArr is an array of category references
-                select: "name"
-            })
             .exec();
 
         // Step 4: Log the result of the query
@@ -152,15 +146,29 @@ export const getDealershipOwnerByUserId = async (req: Request, res: Response, ne
             return res.status(404).json({ message: "Dealership Owners Not Found" });
         }
 
-        // Step 6: Format the response to include all dealership information
+        const cityIds = owners.flatMap(app => app.cityId); // Flatten cityId arrays
+        const stateIds = owners.map(app => app.stateId).filter(Boolean); // Get all stateIds
+        const categoryIds = owners.flatMap(app => app.categoryArr).filter(Boolean); // Flatten and get categoryArr
+
+        const cities = await City.find({ _id: { $in: cityIds } }).lean();
+        const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
+
+        const states = await State.find({ _id: { $in: stateIds } }).lean();
+        const stateMap = new Map(states.map(state => [state._id.toString(), state.name]));
+
+        const categories = await Category.find({ _id: { $in: categoryIds } }).lean();
+        const categoryMap = new Map(categories.map(category => [category._id.toString(), category.name]));
+
+        // Step 5: Structure the response
         const dealershipInfos = owners.map(owner => {
-            const formattedCities = owner.cityId.map((city: any) => ({
-                cityId: city._id,
-                cityName: city.name,
+            const populatedCities = owner.cityId.map((cityId: string) => ({
+                cityId,
+                cityName: cityMap.get(cityId) || "Unknown City"
             }));
-            const formattedCategories = owner.categoryArr.map((category: any) => ({
-                categoryId: category._id,
-                categoryName: category.name,
+
+            const populatedCategories = owner.categoryArr.map((categoryId: string) => ({
+                categoryId,
+                categoryName: categoryMap.get(categoryId) || "Unknown Category"
             }));
 
             return {
@@ -174,8 +182,8 @@ export const getDealershipOwnerByUserId = async (req: Request, res: Response, ne
                 image: owner.image,
                 stateId: owner.stateId._id,
                 stateName: owner.stateId?.name || "", // Use populated state name
-                cities: formattedCities,              // Use formatted cities if available
-                categories: formattedCategories,      // Use formatted categories
+                cities: populatedCities,              // Use formatted cities if available
+                categories: populatedCategories,      // Use formatted categories
                 createdAt: owner.createdAt,
                 updatedAt: owner.updatedAt,
             };
