@@ -29,12 +29,13 @@ const mongoose_1 = __importStar(require("mongoose"));
 const dealershipOwnerSchema = new mongoose_1.Schema({
     Organisation_name: { type: String, required: true },
     Type: { type: String, required: true },
-    Product: { type: String, required: true },
+    Product: { type: String },
     Brand: { type: String, required: true },
     productId: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: "Product",
     },
+    email: { type: String },
     userId: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: "User",
