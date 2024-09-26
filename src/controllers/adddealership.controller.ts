@@ -11,7 +11,7 @@ import mongoose from "mongoose";
 // Create a new dealership owner (linked to an existing user)
 export const createDealershipOwner = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { userId, image, cityId, productId, Product, stateId ,categoryId ,Brand,email} = req.body;
+        const { userId, image, cityId, productId, Product, stateId, categoryId, Brand, email } = req.body;
 
         // Check if the user exists
         const user = await User.findById(userId).exec();
@@ -47,7 +47,7 @@ export const getAllDealershipOwners = async (req: Request, res: Response, next: 
     try {
         // Find all dealership owners and populate the userId field
         const owners = await DealershipOwner.find()
-   // Populate userId with cityId and stateId
+            // Populate userId with cityId and stateId
             .exec();
 
         if (!owners.length) {
@@ -131,12 +131,16 @@ export const getDealershipOwnerByUserId = async (req: Request, res: Response, ne
         console.log("Querying for userId:", userId);
 
         // Step 3: Query the database to find all DealershipOwners by userId
-        const owners = await DealershipOwner.find({ userId: new mongoose.Types.ObjectId(userId) })  // Use find to get all records
-            .populate("userId", "name email") // Populate userId with name and email
-            .populate("stateId", "name") // Populate stateId with state name
+        const owners = await DealershipOwner.find({ userId: new mongoose.Types.ObjectId(userId) })
+            .populate("userId", "name email")  // Populate userId with name and email
+            .populate("stateId", "name")       // Populate stateId with state name
             .populate({
-                path: "cityId", // Assuming cityId references the City model
-                select: "name",
+                path: "cityId",                // Assuming cityId references the City model
+                select: "name"
+            })
+            .populate({
+                path: "categoryArr",           // Assuming categoryArr is an array of category references
+                select: "name"
             })
             .exec();
 
@@ -149,10 +153,14 @@ export const getDealershipOwnerByUserId = async (req: Request, res: Response, ne
         }
 
         // Step 6: Format the response to include all dealership information
-        const dealershipInfos = owners.map((owner) => {
+        const dealershipInfos = owners.map(owner => {
             const formattedCities = owner.cityId.map((city: any) => ({
                 cityId: city._id,
                 cityName: city.name,
+            }));
+            const formattedCategories = owner.categoryArr.map((category: any) => ({
+                categoryId: category._id,
+                categoryName: category.name,
             }));
 
             return {
@@ -164,9 +172,10 @@ export const getDealershipOwnerByUserId = async (req: Request, res: Response, ne
                 productId: owner.productId,
                 userId: owner.userId,
                 image: owner.image,
-                stateId: owner.stateId,
+                stateId: owner.stateId._id,
                 stateName: owner.stateId?.name || "", // Use populated state name
-                cities: formattedCities, // Use formatted cities if available
+                cities: formattedCities,              // Use formatted cities if available
+                categories: formattedCategories,      // Use formatted categories
                 createdAt: owner.createdAt,
                 updatedAt: owner.updatedAt,
             };
@@ -183,6 +192,7 @@ export const getDealershipOwnerByUserId = async (req: Request, res: Response, ne
         next(error);
     }
 };
+
 
 
 // Update a dealership owner by ID

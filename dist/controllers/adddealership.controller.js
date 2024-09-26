@@ -120,12 +120,16 @@ const getDealershipOwnerByUserId = (req, res, next) => __awaiter(void 0, void 0,
         // Step 2: Log the userId to ensure it's received correctly
         console.log("Querying for userId:", userId);
         // Step 3: Query the database to find all DealershipOwners by userId
-        const owners = yield adddealership_model_1.DealershipOwner.find({ userId: new mongoose_1.default.Types.ObjectId(userId) }) // Use find to get all records
+        const owners = yield adddealership_model_1.DealershipOwner.find({ userId: new mongoose_1.default.Types.ObjectId(userId) })
             .populate("userId", "name email") // Populate userId with name and email
             .populate("stateId", "name") // Populate stateId with state name
             .populate({
             path: "cityId",
-            select: "name",
+            select: "name"
+        })
+            .populate({
+            path: "categoryArr",
+            select: "name"
         })
             .exec();
         // Step 4: Log the result of the query
@@ -135,11 +139,15 @@ const getDealershipOwnerByUserId = (req, res, next) => __awaiter(void 0, void 0,
             return res.status(404).json({ message: "Dealership Owners Not Found" });
         }
         // Step 6: Format the response to include all dealership information
-        const dealershipInfos = owners.map((owner) => {
+        const dealershipInfos = owners.map(owner => {
             var _a;
             const formattedCities = owner.cityId.map((city) => ({
                 cityId: city._id,
                 cityName: city.name,
+            }));
+            const formattedCategories = owner.categoryArr.map((category) => ({
+                categoryId: category._id,
+                categoryName: category.name,
             }));
             return {
                 _id: owner._id,
@@ -150,9 +158,10 @@ const getDealershipOwnerByUserId = (req, res, next) => __awaiter(void 0, void 0,
                 productId: owner.productId,
                 userId: owner.userId,
                 image: owner.image,
-                stateId: owner.stateId,
+                stateId: owner.stateId._id,
                 stateName: ((_a = owner.stateId) === null || _a === void 0 ? void 0 : _a.name) || "",
                 cities: formattedCities,
+                categories: formattedCategories,
                 createdAt: owner.createdAt,
                 updatedAt: owner.updatedAt,
             };
