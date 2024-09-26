@@ -45,6 +45,7 @@ const dealershipApplicationSchema = new mongoose_1.Schema({
         ref: 'DealershipOwner',
         required: true,
     },
+    categoryArr: [{ type: String }],
     image: { type: String },
     countryId: { type: String },
     stateId: { type: String },

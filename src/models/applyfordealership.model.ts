@@ -8,6 +8,7 @@ export interface Idealer extends Document {
   Brand: string;
   productId?: Types.ObjectId; // Optional if not always provided
   userId: Types.ObjectId;
+  categoryArr:string[],
   image?: string;
   countryId?: string;
   email?: string;
@@ -38,6 +39,7 @@ const dealershipApplicationSchema = new Schema<Idealer>(
       ref: 'DealershipOwner',
       required: true,
     },
+    categoryArr: [{ type: String }],
     image: { type: String },
     countryId: { type: String },
     stateId: { type: String },

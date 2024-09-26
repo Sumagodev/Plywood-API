@@ -12,7 +12,7 @@ import mongoose from "mongoose";
 
 export const createApplication = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { dealershipOwnerId, productId, userId } = req.body;
+    const { dealershipOwnerId,userId, image, cityId, productId, Product, stateId ,categoryId ,Brand,email } = req.body;
 
     // Validate dealershipOwnerId
     if (!mongoose.Types.ObjectId.isValid(dealershipOwnerId)) {

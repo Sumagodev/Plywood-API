@@ -22,7 +22,7 @@ const applyfordealership_model_1 = require("../models/applyfordealership.model")
 const mongoose_1 = __importDefault(require("mongoose"));
 const createApplication = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { dealershipOwnerId, productId, userId } = req.body;
+        const { dealershipOwnerId, userId, image, cityId, productId, Product, stateId, categoryId, Brand, email } = req.body;
         // Validate dealershipOwnerId
         if (!mongoose_1.default.Types.ObjectId.isValid(dealershipOwnerId)) {
             return res.status(400).json({ message: "Invalid DealershipOwner ID" });
@@ -36,7 +36,7 @@ const createApplication = (req, res, next) => __awaiter(void 0, void 0, void 0, 
             return res.status(400).json({ message: "Invalid Product ID" });
         }
         if (productId) {
-            const productExists = yield product_model_1.Product.findById(productId).exec();
+            const productExists = yield Product.findById(productId).exec();
             if (!productExists) {
                 return res.status(404).json({ message: "Product not found" });
             }
