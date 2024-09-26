@@ -41,11 +41,7 @@ const dealershipOwnerSchema = new mongoose_1.Schema({
         ref: "User",
         required: true,
     },
-    categoryArr: [
-        {
-            categoryId: mongoose_1.default.Types.ObjectId,
-        }
-    ],
+    categoryArr: [{ type: String }],
     image: { type: String },
     countryId: { type: String },
     stateId: { type: String },

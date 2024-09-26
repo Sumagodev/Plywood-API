@@ -8,11 +8,7 @@ export interface Idealer extends Document {
   Brand: string;
   productId?: Types.ObjectId; // Optional if not always provided
   email: String;
-  categoryArr: [
-    {
-      categoryId: mongoose.Types.ObjectId,
-    }
-  ],
+  categoryArr:string[],
   userId: Types.ObjectId;
   image?: string;
   countryId?: string;
@@ -39,11 +35,7 @@ const dealershipOwnerSchema = new Schema<Idealer>(
       ref: "User",
       required: true,
     },
-    categoryArr: [
-      {
-        categoryId: mongoose.Types.ObjectId,
-      }
-    ],
+    categoryArr: [{ type: String }],
     image: { type: String },
     countryId: { type: String },
     stateId: { type: String },
