@@ -22,7 +22,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 // Create a new dealership owner (linked to an existing user)
 const createDealershipOwner = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { userId, image, cityId, productId, Product, stateId } = req.body;
+        const { userId, image, cityId, productId, Product, stateId, categoryId } = req.body;
         // Check if the user exists
         const user = yield user_model_1.User.findById(userId).exec();
         if (!user) {
