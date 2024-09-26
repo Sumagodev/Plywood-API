@@ -241,42 +241,42 @@ const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, v
         if (!applications || applications.length === 0) {
             return res.status(404).json({ message: "No applications found for the given userId" });
         }
-        // Step 4: Fetch city names, state names, and product names
+        // Step 4: Fetch city names, state names, and category names
         const cityIds = applications.flatMap(app => app.cityId); // Flatten cityId arrays
         const stateIds = applications.map(app => app.stateId).filter(Boolean); // Get all stateIds
-        const categoryIds = applications.map(app => app.categoryArr).filter(Boolean); // Get all stateIds
+        const categoryIds = applications.flatMap(app => app.categoryArr).filter(Boolean); // Flatten and get categoryArr
         const cities = yield City_model_1.City.find({ _id: { $in: cityIds } }).lean();
         const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
         const states = yield State_model_1.State.find({ _id: { $in: stateIds } }).lean();
         const stateMap = new Map(states.map(state => [state._id.toString(), state.name]));
-        const categoryies = yield category_model_1.Category.find({ _id: { $in: categoryIds } }).lean();
-        const categoryMap = new Map(categoryies.map(category => [category._id.toString(), category.name]));
+        const categories = yield category_model_1.Category.find({ _id: { $in: categoryIds } }).lean();
+        const categoryMap = new Map(categories.map(category => [category._id.toString(), category.name]));
         // Step 5: Structure the response
         const formattedApplications = applications.map(application => {
-            var _a, _b, _c;
+            var _a, _b, _c, _d;
             const populatedCities = application.cityId.map((cityId) => ({
                 cityId,
                 cityName: cityMap.get(cityId) || "Unknown City"
             }));
-            const populatedcategoryies = application.categoryArr.map((categoryId) => ({
+            const populatedCategories = application.categoryArr.map((categoryId) => ({
                 categoryId,
-                categoryName: categoryMap.get(categoryId) || "Unknown City"
+                categoryName: categoryMap.get(categoryId) || "Unknown Category"
             }));
             return {
                 _id: application._id,
                 Organisation_name: application.Organisation_name,
                 Type: application.Type,
                 Brand: application.Brand,
-                productName: application.productId || "",
-                userId: ((_a = application.userId) === null || _a === void 0 ? void 0 : _a._id) || "",
-                userName: ((_b = application.userId) === null || _b === void 0 ? void 0 : _b.name) || "",
-                email: ((_c = application.userId) === null || _c === void 0 ? void 0 : _c.email) || "",
+                productName: ((_a = application.productId) === null || _a === void 0 ? void 0 : _a.name) || "",
+                userId: ((_b = application.userId) === null || _b === void 0 ? void 0 : _b._id) || "",
+                userName: ((_c = application.userId) === null || _c === void 0 ? void 0 : _c.name) || "",
+                email: ((_d = application.userId) === null || _d === void 0 ? void 0 : _d.email) || "",
                 image: application.image,
                 countryId: application.countryId,
                 stateId: application.stateId,
-                categoryies: populatedcategoryies,
                 stateName: application.stateId ? stateMap.get(application.stateId.toString()) || "Unknown State" : "",
                 cities: populatedCities,
+                categories: populatedCategories,
                 createdAt: application.createdAt,
                 updatedAt: application.updatedAt,
             };

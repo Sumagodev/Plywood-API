@@ -263,10 +263,10 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
       return res.status(404).json({ message: "No applications found for the given userId" });
     }
 
-    // Step 4: Fetch city names, state names, and product names
+    // Step 4: Fetch city names, state names, and category names
     const cityIds = applications.flatMap(app => app.cityId); // Flatten cityId arrays
     const stateIds = applications.map(app => app.stateId).filter(Boolean); // Get all stateIds
-    const categoryIds = applications.map(app => app.categoryArr).filter(Boolean); // Get all stateIds
+    const categoryIds = applications.flatMap(app => app.categoryArr).filter(Boolean); // Flatten and get categoryArr
 
     const cities = await City.find({ _id: { $in: cityIds } }).lean();
     const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
@@ -274,8 +274,8 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
     const states = await State.find({ _id: { $in: stateIds } }).lean();
     const stateMap = new Map(states.map(state => [state._id.toString(), state.name]));
 
-    const categoryies = await Category.find({ _id: { $in: categoryIds } }).lean();
-    const categoryMap = new Map(categoryies.map(category => [category._id.toString(), category.name]));
+    const categories = await Category.find({ _id: { $in: categoryIds } }).lean();
+    const categoryMap = new Map(categories.map(category => [category._id.toString(), category.name]));
 
     // Step 5: Structure the response
     const formattedApplications = applications.map(application => {
@@ -283,25 +283,27 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
         cityId,
         cityName: cityMap.get(cityId) || "Unknown City"
       }));
-      const populatedcategoryies = application.categoryArr.map((categoryId: string) => ({
+
+      const populatedCategories = application.categoryArr.map((categoryId: string) => ({
         categoryId,
-        categoryName: categoryMap.get(categoryId) || "Unknown City"
+        categoryName: categoryMap.get(categoryId) || "Unknown Category"
       }));
+
       return {
         _id: application._id,
         Organisation_name: application.Organisation_name,
         Type: application.Type,
         Brand: application.Brand,
-        productName: application.productId || "", // Populated product name
+        productName: application.productId?.name || "", // Populated product name
         userId: application.userId?._id || "", // User ID reference
         userName: application.userId?.name || "", // Populated user name
         email: application.userId?.email || "", // Populated email from userId
         image: application.image,
         countryId: application.countryId,
         stateId: application.stateId,
-        categoryies:populatedcategoryies,
         stateName: application.stateId ? stateMap.get(application.stateId.toString()) || "Unknown State" : "", // Populated state name
         cities: populatedCities, // Array of cities with cityId and cityName
+        categories: populatedCategories, // Array of categories with categoryId and categoryName
         createdAt: application.createdAt,
         updatedAt: application.updatedAt,
       };
