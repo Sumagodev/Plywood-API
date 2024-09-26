@@ -181,7 +181,7 @@ export const getDealershipOwnerByUserId = async (req: Request, res: Response, ne
                 userId: owner.userId,
                 image: owner.image,
                 stateId: owner.stateId._id,
-                stateName: owner.stateId?.name || "", // Use populated state name
+                stateName: owner.stateId ? stateMap.get(owner.stateId.toString()) || "Unknown State" : "", // Populated state name
                 cities: populatedCities,              // Use formatted cities if available
                 categories: populatedCategories,      // Use formatted categories
                 createdAt: owner.createdAt,

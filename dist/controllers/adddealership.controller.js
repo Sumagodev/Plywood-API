@@ -142,7 +142,6 @@ const getDealershipOwnerByUserId = (req, res, next) => __awaiter(void 0, void 0,
         const categoryMap = new Map(categories.map(category => [category._id.toString(), category.name]));
         // Step 5: Structure the response
         const dealershipInfos = owners.map(owner => {
-            var _a;
             const populatedCities = owner.cityId.map((cityId) => ({
                 cityId,
                 cityName: cityMap.get(cityId) || "Unknown City"
@@ -161,7 +160,7 @@ const getDealershipOwnerByUserId = (req, res, next) => __awaiter(void 0, void 0,
                 userId: owner.userId,
                 image: owner.image,
                 stateId: owner.stateId._id,
-                stateName: ((_a = owner.stateId) === null || _a === void 0 ? void 0 : _a.name) || "",
+                stateName: owner.stateId ? stateMap.get(owner.stateId.toString()) || "Unknown State" : "",
                 cities: populatedCities,
                 categories: populatedCategories,
                 createdAt: owner.createdAt,
