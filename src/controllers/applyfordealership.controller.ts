@@ -9,10 +9,11 @@ import { Product } from "../models/product.model";
 import { DealershipOwner } from "../models/adddealership.model"
 import { DealershipApplication } from "../models/applyfordealership.model";
 import mongoose from "mongoose";
+import { Category } from "../models/category.model";
 
 export const createApplication = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { dealershipOwnerId,userId, image, cityId, productId, Product, stateId ,categoryId ,Brand,email } = req.body;
+    const { dealershipOwnerId, userId, image, cityId, productId, Product, stateId, categoryId, Brand, email } = req.body;
 
     // Validate dealershipOwnerId
     if (!mongoose.Types.ObjectId.isValid(dealershipOwnerId)) {
@@ -265,16 +266,16 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
     // Step 4: Fetch city names, state names, and product names
     const cityIds = applications.flatMap(app => app.cityId); // Flatten cityId arrays
     const stateIds = applications.map(app => app.stateId).filter(Boolean); // Get all stateIds
-    const productIds = applications.map(app => app.productId).filter(Boolean).map(product => product._id); // Get productIds
+    const categoryIds = applications.map(app => app.categoryArr).filter(Boolean); // Get all stateIds
 
     const cities = await City.find({ _id: { $in: cityIds } }).lean();
     const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
 
-    const products = await Product.find({ _id: { $in: productIds } }).lean(); // Fetch products
-    const productMap = new Map(products.map(product => [product._id.toString(), product.name])); // Create a map for product names
-
     const states = await State.find({ _id: { $in: stateIds } }).lean();
     const stateMap = new Map(states.map(state => [state._id.toString(), state.name]));
+
+    const categoryies = await Category.find({ _id: { $in: categoryIds } }).lean();
+    const categoryMap = new Map(categoryies.map(category => [category._id.toString(), category.name]));
 
     // Step 5: Structure the response
     const formattedApplications = applications.map(application => {
@@ -282,19 +283,23 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
         cityId,
         cityName: cityMap.get(cityId) || "Unknown City"
       }));
-
+      const populatedcategoryies = application.categoryArr.map((categoryId: string) => ({
+        categoryId,
+        categoryName: categoryMap.get(categoryId) || "Unknown City"
+      }));
       return {
         _id: application._id,
         Organisation_name: application.Organisation_name,
         Type: application.Type,
         Brand: application.Brand,
-        productName: application.productId ? productMap.get(application.productId.toString()) || "Unknown product" : "", // Populated product name
+        productName: application.productId || "", // Populated product name
         userId: application.userId?._id || "", // User ID reference
         userName: application.userId?.name || "", // Populated user name
         email: application.userId?.email || "", // Populated email from userId
         image: application.image,
         countryId: application.countryId,
         stateId: application.stateId,
+        categoryies:populatedcategoryies,
         stateName: application.stateId ? stateMap.get(application.stateId.toString()) || "Unknown State" : "", // Populated state name
         cities: populatedCities, // Array of cities with cityId and cityName
         createdAt: application.createdAt,
