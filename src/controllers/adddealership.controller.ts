@@ -181,9 +181,9 @@ export const getDealershipOwnerByUserId = async (req: Request, res: Response, ne
                 cityName: cityMap.get(cityId) || "Unknown City"
             }));
 
-            const populatedCategories = owner.categoryArr.map((categoryId: string) => ({
-                categoryId,
-                categoryName: categoryMap.get(categoryId) || "Unknown Category"
+            const populatedCategories = owner.categoryArr.map((_id: string) => ({
+                _id,
+                name: categoryMap.get(_id) || "Unknown Category"
             }));
 
             return {

@@ -159,9 +159,9 @@ const getDealershipOwnerByUserId = (req, res, next) => __awaiter(void 0, void 0,
                 cityId,
                 cityName: cityMap.get(cityId) || "Unknown City"
             }));
-            const populatedCategories = owner.categoryArr.map((categoryId) => ({
-                categoryId,
-                categoryName: categoryMap.get(categoryId) || "Unknown Category"
+            const populatedCategories = owner.categoryArr.map((_id) => ({
+                _id,
+                name: categoryMap.get(_id) || "Unknown Category"
             }));
             return {
                 _id: owner._id,
