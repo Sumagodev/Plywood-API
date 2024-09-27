@@ -10,7 +10,7 @@ import { DealershipOwner } from "../models/adddealership.model";
 import mongoose from "mongoose";
 import { Category } from "../models/category.model";
 
-// Create a new dealership owner (linked to an existing user)
+// Create a new dealership owner (linked to an existing user)xxxxx
 export const createDealershipOwner = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { userId, image, cityId, productId, Product, stateId, categoryId, Brand, email } = req.body;
@@ -98,6 +98,7 @@ export const getAllDealershipOwners = async (req: Request, res: Response, next: 
                 Brand: owner.Brand,
                 productId: owner.productId,
                 userId: owner.userId,
+                
                 image: owner.image,
                 Email:owner.email,
                 stateId: owner.stateId._id,

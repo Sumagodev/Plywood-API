@@ -20,7 +20,7 @@ const State_model_1 = require("../models/State.model");
 const adddealership_model_1 = require("../models/adddealership.model");
 const mongoose_1 = __importDefault(require("mongoose"));
 const category_model_1 = require("../models/category.model");
-// Create a new dealership owner (linked to an existing user)
+// Create a new dealership owner (linked to an existing user)xxxxx
 const createDealershipOwner = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { userId, image, cityId, productId, Product, stateId, categoryId, Brand, email } = req.body;
