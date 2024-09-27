@@ -279,16 +279,18 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
 
     // Step 5: Structure the response
     const formattedApplications = applications.map(application => {
-      const populatedCities = application.cityId.map((cityId: string) => ({
-        cityId,
-        cityName: cityMap.get(cityId) || "Unknown City"
+      const populatedCities = application.cityId.map((_id: string) => ({
+        _id,
+        name: cityMap.get(_id) || "Unknown City"
       }));
-
-      const populatedCategories = application.categoryArr.map((categoryId: string) => ({
-        categoryId,
-        categoryName: categoryMap.get(categoryId) || "Unknown Category"
+      const populatedState = {
+        _id: application.stateId,
+        name: stateMap.get(application.stateId) || "Unknown State"
+      };
+      const populatedCategories = application.categoryArr.map((_id: string) => ({
+        _id,
+        name: categoryMap.get(_id) || "Unknown Category"
       }));
-
       return {
         _id: application._id,
         Organisation_name: application.Organisation_name,
@@ -300,8 +302,7 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
         email: application.userId?.email || "", // Populated email from userId
         image: application.image,
         countryId: application.countryId,
-        stateId: application.stateId._id,
-        stateName: application.stateId ? stateMap.get(application.stateId.toString()) || "Unknown State" : "", // Populated state name
+        state: populatedState,
         cities: populatedCities, // Array of cities with cityId and cityName
         categories: populatedCategories, // Array of categories with categoryId and categoryName
         createdAt: application.createdAt,
@@ -323,7 +324,7 @@ export const getApplicationByUserId = async (req: Request, res: Response, next: 
   try {
     const applications = await DealershipApplication.find({ userId: req.params.userId })
       .populate('dealershipOwnerId')
-   
+
       .exec();
 
     if (!applications || applications.length === 0) {
@@ -345,33 +346,33 @@ export const getApplicationByUserId = async (req: Request, res: Response, next: 
 
     // Step 5: Structure the response
     const dealershipInfos = applications.map(owner => {
-        const populatedCities = owner.cityId.map((cityId: string) => ({
-            cityId,
-            cityName: cityMap.get(cityId) || "Unknown City"
-        }));
+      const populatedCities = owner.cityId.map((cityId: string) => ({
+        cityId,
+        cityName: cityMap.get(cityId) || "Unknown City"
+      }));
 
-        const populatedCategories = owner.categoryArr.map(( _id: string) => ({
-            _id,
-            Name: categoryMap.get(_id) || "Unknown Category"
-        }));
+      const populatedCategories = owner.categoryArr.map((_id: string) => ({
+        _id,
+        Name: categoryMap.get(_id) || "Unknown Category"
+      }));
 
-        return {
-            _id: owner._id,
-            Organisation_name: owner.Organisation_name,
-            Type: owner.Type,
-            Product: owner.Product,
-            Email:owner.email,
-            Brand: owner.Brand,
-            productId: owner.productId,
-            userId: owner.userId,
-            image: owner.image,
-            stateId: owner.stateId._id,
-            stateName: owner.stateId ? stateMap.get(owner.stateId.toString()) || "Unknown State" : "", // Populated state name
-            cities: populatedCities,              // Use formatted cities if available
-            categories: populatedCategories,      // Use formatted categories
-            createdAt: owner.createdAt,
-            updatedAt: owner.updatedAt,
-        };
+      return {
+        _id: owner._id,
+        Organisation_name: owner.Organisation_name,
+        Type: owner.Type,
+        Product: owner.Product,
+        Email: owner.email,
+        Brand: owner.Brand,
+        productId: owner.productId,
+        userId: owner.userId,
+        image: owner.image,
+        stateId: owner.stateId._id,
+        stateName: owner.stateId ? stateMap.get(owner.stateId.toString()) || "Unknown State" : "", // Populated state name
+        cities: populatedCities,              // Use formatted cities if available
+        categories: populatedCategories,      // Use formatted categories
+        createdAt: owner.createdAt,
+        updatedAt: owner.updatedAt,
+      };
     });
 
     // Step 7: Send the response with the array of dealership data
