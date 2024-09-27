@@ -279,18 +279,16 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
 
     // Step 5: Structure the response
     const formattedApplications = applications.map(application => {
-      const populatedCities = application.cityId.map((_id: string) => ({
-        _id,
-        name: cityMap.get(_id) || "Unknown City"
+      const populatedCities = application.cityId.map((cityId: string) => ({
+        cityId,
+        cityName: cityMap.get(cityId) || "Unknown City"
       }));
-      const populatedState = {
-        _id: application.stateId,
-        name: stateMap.get(application.stateId) || "Unknown State"
-      };
-      const populatedCategories = application.categoryArr.map((_id: string) => ({
-        _id,
-        name: categoryMap.get(_id) || "Unknown Category"
+
+      const populatedCategories = application.categoryArr.map((categoryId: string) => ({
+        categoryId,
+        categoryName: categoryMap.get(categoryId) || "Unknown Category"
       }));
+
       return {
         _id: application._id,
         Organisation_name: application.Organisation_name,
@@ -302,7 +300,8 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
         email: application.userId?.email || "", // Populated email from userId
         image: application.image,
         countryId: application.countryId,
-        state: populatedState,
+        stateId: application.stateId._id,
+        stateName: application.stateId ? stateMap.get(application.stateId.toString()) || "Unknown State" : "", // Populated state name
         cities: populatedCities, // Array of cities with cityId and cityName
         categories: populatedCategories, // Array of categories with categoryId and categoryName
         createdAt: application.createdAt,
@@ -346,11 +345,14 @@ export const getApplicationByUserId = async (req: Request, res: Response, next: 
 
     // Step 5: Structure the response
     const dealershipInfos = applications.map(owner => {
-      const populatedCities = owner.cityId.map((cityId: string) => ({
-        cityId,
-        cityName: cityMap.get(cityId) || "Unknown City"
+      const populatedCities = owner.cityId.map((_id: string) => ({
+        _id,
+        name: cityMap.get(_id) || "Unknown City"
       }));
-
+      const populatedState = {
+        _id: owner.stateId,
+        name: stateMap.get(owner.stateId) || "Unknown State"
+      };
       const populatedCategories = owner.categoryArr.map((_id: string) => ({
         _id,
         Name: categoryMap.get(_id) || "Unknown Category"
