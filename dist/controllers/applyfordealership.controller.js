@@ -295,7 +295,6 @@ const getApplicationByUserId = (req, res, next) => __awaiter(void 0, void 0, voi
     try {
         const applications = yield applyfordealership_model_1.DealershipApplication.find({ userId: req.params.userId })
             .populate('dealershipOwnerId')
-            .populate({ path: 'userId', select: '_id' })
             .exec();
         if (!applications || applications.length === 0) {
             return res.status(404).json({ message: "No applications found for this user" });

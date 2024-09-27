@@ -323,7 +323,7 @@ export const getApplicationByUserId = async (req: Request, res: Response, next: 
   try {
     const applications = await DealershipApplication.find({ userId: req.params.userId })
       .populate('dealershipOwnerId')
-      .populate({ path: 'userId', select: '_id' })
+   
       .exec();
 
     if (!applications || applications.length === 0) {
