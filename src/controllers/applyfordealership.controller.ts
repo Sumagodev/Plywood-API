@@ -360,6 +360,7 @@ export const getApplicationByUserId = async (req: Request, res: Response, next: 
             Organisation_name: owner.Organisation_name,
             Type: owner.Type,
             Product: owner.Product,
+            Email:owner.email,
             Brand: owner.Brand,
             productId: owner.productId,
             userId: owner.userId,

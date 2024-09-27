@@ -99,6 +99,7 @@ export const getAllDealershipOwners = async (req: Request, res: Response, next: 
                 productId: owner.productId,
                 userId: owner.userId,
                 image: owner.image,
+                Email:owner.email,
                 stateId: owner.stateId._id,
                 stateName: owner.stateId ? stateMap.get(owner.stateId.toString()) || "Unknown State" : "", // Populated state name
                 cities: populatedCities,              // Use formatted cities if available

@@ -92,6 +92,7 @@ const getAllDealershipOwners = (req, res, next) => __awaiter(void 0, void 0, voi
                 productId: owner.productId,
                 userId: owner.userId,
                 image: owner.image,
+                Email: owner.email,
                 stateId: owner.stateId._id,
                 stateName: owner.stateId ? stateMap.get(owner.stateId.toString()) || "Unknown State" : "",
                 cities: populatedCities,
