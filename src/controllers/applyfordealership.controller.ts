@@ -300,7 +300,7 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
         email: application.userId?.email || "", // Populated email from userId
         image: application.image,
         countryId: application.countryId,
-        stateId: application.stateId,
+        stateId: application.stateId._id,
         stateName: application.stateId ? stateMap.get(application.stateId.toString()) || "Unknown State" : "", // Populated state name
         cities: populatedCities, // Array of cities with cityId and cityName
         categories: populatedCategories, // Array of categories with categoryId and categoryName
@@ -315,5 +315,67 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
     // Log any errors for debugging purposes
     console.error("Error in getDealershipApplicationByUserId:", error);
     return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+export const getApplicationByUserId = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const applications = await DealershipApplication.find({ userId: req.params.userId })
+      .populate('dealershipOwnerId')
+      .populate('userId')
+      .exec();
+
+    if (!applications || applications.length === 0) {
+      return res.status(404).json({ message: "No applications found for this user" });
+    }
+
+    const cityIds = applications.flatMap(app => app.cityId); // Flatten cityId arrays
+    const stateIds = applications.map(app => app.stateId).filter(Boolean); // Get all stateIds
+    const categoryIds = applications.flatMap(app => app.categoryArr).filter(Boolean); // Flatten and get categoryArr
+
+    const cities = await City.find({ _id: { $in: cityIds } }).lean();
+    const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
+
+    const states = await State.find({ _id: { $in: stateIds } }).lean();
+    const stateMap = new Map(states.map(state => [state._id.toString(), state.name]));
+
+    const categories = await Category.find({ _id: { $in: categoryIds } }).lean();
+    const categoryMap = new Map(categories.map(category => [category._id.toString(), category.name]));
+
+    // Step 5: Structure the response
+    const dealershipInfos = applications.map(owner => {
+        const populatedCities = owner.cityId.map((cityId: string) => ({
+            cityId,
+            cityName: cityMap.get(cityId) || "Unknown City"
+        }));
+
+        const populatedCategories = owner.categoryArr.map((categoryId: string) => ({
+            categoryId,
+            categoryName: categoryMap.get(categoryId) || "Unknown Category"
+        }));
+
+        return {
+            _id: owner._id,
+            Organisation_name: owner.Organisation_name,
+            Type: owner.Type,
+            Product: owner.Product,
+            Brand: owner.Brand,
+            productId: owner.productId,
+            userId: owner.userId,
+            image: owner.image,
+            stateId: owner.stateId._id,
+            stateName: owner.stateId ? stateMap.get(owner.stateId.toString()) || "Unknown State" : "", // Populated state name
+            cities: populatedCities,              // Use formatted cities if available
+            categories: populatedCategories,      // Use formatted categories
+            createdAt: owner.createdAt,
+            updatedAt: owner.updatedAt,
+        };
+    });
+
+    // Step 7: Send the response with the array of dealership data
+    res.status(200).json({ data: dealershipInfos });
+  } catch (error) {
+    next(error);
   }
 };

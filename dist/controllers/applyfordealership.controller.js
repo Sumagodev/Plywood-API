@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getDealershipApplicationByUserId = exports.deleteApplication = exports.updateApplication = exports.getApplicationById = exports.getApplications = exports.createApplication = void 0;
+exports.getApplicationByUserId = exports.getDealershipApplicationByUserId = exports.deleteApplication = exports.updateApplication = exports.getApplicationById = exports.getApplications = exports.createApplication = void 0;
 const user_model_1 = require("../models/user.model");
 const City_model_1 = require("../models/City.model");
 const State_model_1 = require("../models/State.model");
@@ -273,7 +273,7 @@ const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, v
                 email: ((_d = application.userId) === null || _d === void 0 ? void 0 : _d.email) || "",
                 image: application.image,
                 countryId: application.countryId,
-                stateId: application.stateId,
+                stateId: application.stateId._id,
                 stateName: application.stateId ? stateMap.get(application.stateId.toString()) || "Unknown State" : "",
                 cities: populatedCities,
                 categories: populatedCategories,
@@ -291,3 +291,56 @@ const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, v
     }
 });
 exports.getDealershipApplicationByUserId = getDealershipApplicationByUserId;
+const getApplicationByUserId = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const applications = yield applyfordealership_model_1.DealershipApplication.find({ userId: req.params.userId })
+            .populate('dealershipOwnerId')
+            .populate('userId')
+            .exec();
+        if (!applications || applications.length === 0) {
+            return res.status(404).json({ message: "No applications found for this user" });
+        }
+        const cityIds = applications.flatMap(app => app.cityId); // Flatten cityId arrays
+        const stateIds = applications.map(app => app.stateId).filter(Boolean); // Get all stateIds
+        const categoryIds = applications.flatMap(app => app.categoryArr).filter(Boolean); // Flatten and get categoryArr
+        const cities = yield City_model_1.City.find({ _id: { $in: cityIds } }).lean();
+        const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
+        const states = yield State_model_1.State.find({ _id: { $in: stateIds } }).lean();
+        const stateMap = new Map(states.map(state => [state._id.toString(), state.name]));
+        const categories = yield category_model_1.Category.find({ _id: { $in: categoryIds } }).lean();
+        const categoryMap = new Map(categories.map(category => [category._id.toString(), category.name]));
+        // Step 5: Structure the response
+        const dealershipInfos = applications.map(owner => {
+            const populatedCities = owner.cityId.map((cityId) => ({
+                cityId,
+                cityName: cityMap.get(cityId) || "Unknown City"
+            }));
+            const populatedCategories = owner.categoryArr.map((categoryId) => ({
+                categoryId,
+                categoryName: categoryMap.get(categoryId) || "Unknown Category"
+            }));
+            return {
+                _id: owner._id,
+                Organisation_name: owner.Organisation_name,
+                Type: owner.Type,
+                Product: owner.Product,
+                Brand: owner.Brand,
+                productId: owner.productId,
+                userId: owner.userId,
+                image: owner.image,
+                stateId: owner.stateId._id,
+                stateName: owner.stateId ? stateMap.get(owner.stateId.toString()) || "Unknown State" : "",
+                cities: populatedCities,
+                categories: populatedCategories,
+                createdAt: owner.createdAt,
+                updatedAt: owner.updatedAt,
+            };
+        });
+        // Step 7: Send the response with the array of dealership data
+        res.status(200).json({ data: dealershipInfos });
+    }
+    catch (error) {
+        next(error);
+    }
+});
+exports.getApplicationByUserId = getApplicationByUserId;
