@@ -254,13 +254,17 @@ const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, v
         // Step 5: Structure the response
         const formattedApplications = applications.map(application => {
             var _a, _b, _c, _d;
-            const populatedCities = application.cityId.map((cityId) => ({
-                cityId,
-                cityName: cityMap.get(cityId) || "Unknown City"
+            const populatedCities = application.cityId.map((_id) => ({
+                _id,
+                name: cityMap.get(_id) || "Unknown City"
             }));
-            const populatedCategories = application.categoryArr.map((categoryId) => ({
-                categoryId,
-                categoryName: categoryMap.get(categoryId) || "Unknown Category"
+            const populatedState = application.stateId.map((_id) => ({
+                _id,
+                name: stateMap.get(_id) || "Unknown State"
+            }));
+            const populatedCategories = application.categoryArr.map((_id) => ({
+                _id,
+                name: categoryMap.get(_id) || "Unknown Category"
             }));
             return {
                 _id: application._id,
@@ -273,8 +277,7 @@ const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, v
                 email: ((_d = application.userId) === null || _d === void 0 ? void 0 : _d.email) || "",
                 image: application.image,
                 countryId: application.countryId,
-                stateId: application.stateId._id,
-                stateName: application.stateId ? stateMap.get(application.stateId.toString()) || "Unknown State" : "",
+                state: populatedState,
                 cities: populatedCities,
                 categories: populatedCategories,
                 createdAt: application.createdAt,
