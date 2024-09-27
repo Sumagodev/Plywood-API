@@ -350,9 +350,9 @@ export const getApplicationByUserId = async (req: Request, res: Response, next: 
             cityName: cityMap.get(cityId) || "Unknown City"
         }));
 
-        const populatedCategories = owner.categoryArr.map((categoryId: string) => ({
-            categoryId,
-            categoryName: categoryMap.get(categoryId) || "Unknown Category"
+        const populatedCategories = owner.categoryArr.map(( _id: string) => ({
+            _id,
+            Name: categoryMap.get(_id) || "Unknown Category"
         }));
 
         return {
