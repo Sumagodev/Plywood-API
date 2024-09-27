@@ -314,9 +314,9 @@ const getApplicationByUserId = (req, res, next) => __awaiter(void 0, void 0, voi
                 cityId,
                 cityName: cityMap.get(cityId) || "Unknown City"
             }));
-            const populatedCategories = owner.categoryArr.map((categoryId) => ({
-                categoryId,
-                categoryName: categoryMap.get(categoryId) || "Unknown Category"
+            const populatedCategories = owner.categoryArr.map((_id) => ({
+                _id,
+                Name: categoryMap.get(_id) || "Unknown Category"
             }));
             return {
                 _id: owner._id,

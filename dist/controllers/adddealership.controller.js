@@ -136,7 +136,7 @@ const getDealershipOwnerByUserId = (req, res, next) => __awaiter(void 0, void 0,
         // Step 3: Query the database to find all DealershipOwners by userId
         const owners = yield adddealership_model_1.DealershipOwner.find({ userId: new mongoose_1.default.Types.ObjectId(userId) })
             .populate("userId", "name email") // Populate userId with name and email
-            .populate("stateId", "name") // Populate stateId with state name
+            // Populate stateId with state name
             .exec();
         // Step 4: Log the result of the query
         console.log("Owners found:", owners);
@@ -155,9 +155,9 @@ const getDealershipOwnerByUserId = (req, res, next) => __awaiter(void 0, void 0,
         const categoryMap = new Map(categories.map(category => [category._id.toString(), category.name]));
         // Step 5: Structure the response
         const dealershipInfos = owners.map(owner => {
-            const populatedCities = owner.cityId.map((cityId) => ({
-                cityId,
-                cityName: cityMap.get(cityId) || "Unknown City"
+            const populatedCities = owner.cityId.map((_id) => ({
+                _id,
+                name: cityMap.get(_id) || "Unknown City"
             }));
             const populatedCategories = owner.categoryArr.map((_id) => ({
                 _id,
@@ -172,7 +172,7 @@ const getDealershipOwnerByUserId = (req, res, next) => __awaiter(void 0, void 0,
                 productId: owner.productId,
                 userId: owner.userId,
                 image: owner.image,
-                stateId: owner.stateId._id,
+                stateId: owner.stateId,
                 stateName: owner.stateId ? stateMap.get(owner.stateId.toString()) || "Unknown State" : "",
                 cities: populatedCities,
                 categories: populatedCategories,

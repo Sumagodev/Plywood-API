@@ -150,7 +150,7 @@ export const getDealershipOwnerByUserId = async (req: Request, res: Response, ne
         // Step 3: Query the database to find all DealershipOwners by userId
         const owners = await DealershipOwner.find({ userId: new mongoose.Types.ObjectId(userId) })
             .populate("userId", "name email")  // Populate userId with name and email
-            .populate("stateId", "name")       // Populate stateId with state name
+        // Populate stateId with state name
             .exec();
 
         // Step 4: Log the result of the query
@@ -176,9 +176,9 @@ export const getDealershipOwnerByUserId = async (req: Request, res: Response, ne
 
         // Step 5: Structure the response
         const dealershipInfos = owners.map(owner => {
-            const populatedCities = owner.cityId.map((cityId: string) => ({
-                cityId,
-                cityName: cityMap.get(cityId) || "Unknown City"
+            const populatedCities = owner.cityId.map((_id: string) => ({
+                _id,
+                name: cityMap.get(_id) || "Unknown City"
             }));
 
             const populatedCategories = owner.categoryArr.map((_id: string) => ({
@@ -195,7 +195,7 @@ export const getDealershipOwnerByUserId = async (req: Request, res: Response, ne
                 productId: owner.productId,
                 userId: owner.userId,
                 image: owner.image,
-                stateId: owner.stateId._id,
+                stateId: owner.stateId,
                 stateName: owner.stateId ? stateMap.get(owner.stateId.toString()) || "Unknown State" : "", // Populated state name
                 cities: populatedCities,              // Use formatted cities if available
                 categories: populatedCategories,      // Use formatted categories
