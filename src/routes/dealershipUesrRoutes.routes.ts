@@ -4,7 +4,7 @@ import {
     getApplications,
     getApplicationById,
     updateApplication,
-    deleteApplication,getDealershipApplicationByUserId
+    deleteApplication,getDealershipApplicationByUserId,getApplicationByUserId
     // getDealershipApplicationByOwnerId
 } from '../controllers/applyfordealership.controller';
 
@@ -20,6 +20,7 @@ router.put('/applications/:id', updateApplication);
 router.delete('/applications/:id', deleteApplication);
 // router.get("/getDealershipApplicationByOwnerId/:id", getDealershipApplicationByOwnerId);
 router.get("/getDealershipApplicationByUserId/:userId", getDealershipApplicationByUserId);
+router.get("/getApplicationByUserId/:userId", getApplicationByUserId);
 
 
 export default router;
