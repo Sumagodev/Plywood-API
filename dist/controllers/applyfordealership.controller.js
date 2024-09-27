@@ -258,6 +258,10 @@ const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, v
                 cityId,
                 cityName: cityMap.get(cityId) || "Unknown City"
             }));
+            const populatedState = {
+                _id: application.stateId,
+                name: stateMap.get(application.stateId) || "Unknown State"
+            };
             const populatedCategories = application.categoryArr.map((categoryId) => ({
                 categoryId,
                 categoryName: categoryMap.get(categoryId) || "Unknown Category"
@@ -273,8 +277,7 @@ const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, v
                 email: ((_d = application.userId) === null || _d === void 0 ? void 0 : _d.email) || "",
                 image: application.image,
                 countryId: application.countryId,
-                stateId: application.stateId._id,
-                stateName: application.stateId ? stateMap.get(application.stateId.toString()) || "Unknown State" : "",
+                state: populatedState,
                 cities: populatedCities,
                 categories: populatedCategories,
                 createdAt: application.createdAt,
@@ -332,8 +335,7 @@ const getApplicationByUserId = (req, res, next) => __awaiter(void 0, void 0, voi
                 productId: owner.productId,
                 userId: owner.userId,
                 image: owner.image,
-                stateId: owner.stateId._id,
-                stateName: owner.stateId ? stateMap.get(owner.stateId.toString()) || "Unknown State" : "",
+                state: populatedState,
                 cities: populatedCities,
                 categories: populatedCategories,
                 createdAt: owner.createdAt,

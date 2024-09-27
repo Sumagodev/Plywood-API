@@ -79,6 +79,10 @@ const getAllDealershipOwners = (req, res, next) => __awaiter(void 0, void 0, voi
                 cityId,
                 cityName: cityMap.get(cityId) || "Unknown City"
             }));
+            const populatedState = {
+                _id: owner.stateId,
+                name: stateMap.get(owner.stateId) || "Unknown State"
+            };
             const populatedCategories = owner.categoryArr.map((categoryId) => ({
                 categoryId,
                 categoryName: categoryMap.get(categoryId) || "Unknown Category"
@@ -93,8 +97,7 @@ const getAllDealershipOwners = (req, res, next) => __awaiter(void 0, void 0, voi
                 userId: owner.userId,
                 image: owner.image,
                 Email: owner.email,
-                stateId: owner.stateId._id,
-                stateName: owner.stateId ? stateMap.get(owner.stateId.toString()) || "Unknown State" : "",
+                state: populatedState,
                 cities: populatedCities,
                 categories: populatedCategories,
                 createdAt: owner.createdAt,
@@ -159,6 +162,10 @@ const getDealershipOwnerByUserId = (req, res, next) => __awaiter(void 0, void 0,
                 _id,
                 name: cityMap.get(_id) || "Unknown City"
             }));
+            const populatedState = {
+                _id: owner.stateId,
+                name: stateMap.get(owner.stateId) || "Unknown State"
+            };
             const populatedCategories = owner.categoryArr.map((_id) => ({
                 _id,
                 name: categoryMap.get(_id) || "Unknown Category"
@@ -172,8 +179,7 @@ const getDealershipOwnerByUserId = (req, res, next) => __awaiter(void 0, void 0,
                 productId: owner.productId,
                 userId: owner.userId,
                 image: owner.image,
-                stateId: owner.stateId,
-                stateName: owner.stateId ? stateMap.get(owner.stateId.toString()) || "Unknown State" : "",
+                state: populatedState,
                 cities: populatedCities,
                 categories: populatedCategories,
                 createdAt: owner.createdAt,

@@ -283,7 +283,10 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
         cityId,
         cityName: cityMap.get(cityId) || "Unknown City"
       }));
-
+      const populatedState = {
+        _id: application.stateId,
+        name: stateMap.get(application.stateId) || "Unknown State"
+      };
       const populatedCategories = application.categoryArr.map((categoryId: string) => ({
         categoryId,
         categoryName: categoryMap.get(categoryId) || "Unknown Category"
@@ -300,8 +303,7 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
         email: application.userId?.email || "", // Populated email from userId
         image: application.image,
         countryId: application.countryId,
-        stateId: application.stateId._id,
-        stateName: application.stateId ? stateMap.get(application.stateId.toString()) || "Unknown State" : "", // Populated state name
+        state: populatedState,
         cities: populatedCities, // Array of cities with cityId and cityName
         categories: populatedCategories, // Array of categories with categoryId and categoryName
         createdAt: application.createdAt,
@@ -368,8 +370,7 @@ export const getApplicationByUserId = async (req: Request, res: Response, next: 
         productId: owner.productId,
         userId: owner.userId,
         image: owner.image,
-        stateId: owner.stateId._id,
-        stateName: owner.stateId ? stateMap.get(owner.stateId.toString()) || "Unknown State" : "", // Populated state name
+        state: populatedState,
         cities: populatedCities,              // Use formatted cities if available
         categories: populatedCategories,      // Use formatted categories
         createdAt: owner.createdAt,
