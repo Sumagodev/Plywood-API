@@ -282,15 +282,15 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
       const populatedCities = application.cityId.map((_id: string) => ({
         _id,
         name: cityMap.get(_id) || "Unknown City"
-    }));
-      const populatedState = application.stateId.map((_id: string) => ({
-        _id,
-        name: stateMap.get(_id) || "Unknown State"
       }));
+      const populatedState = {
+        _id: application.stateId,
+        name: stateMap.get(application.stateId) || "Unknown State"
+      };
       const populatedCategories = application.categoryArr.map((_id: string) => ({
         _id,
         name: categoryMap.get(_id) || "Unknown Category"
-    }));
+      }));
       return {
         _id: application._id,
         Organisation_name: application.Organisation_name,

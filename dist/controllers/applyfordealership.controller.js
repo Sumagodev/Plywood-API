@@ -258,10 +258,10 @@ const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, v
                 _id,
                 name: cityMap.get(_id) || "Unknown City"
             }));
-            const populatedState = application.stateId.map((_id) => ({
-                _id,
-                name: stateMap.get(_id) || "Unknown State"
-            }));
+            const populatedState = {
+                _id: application.stateId,
+                name: stateMap.get(application.stateId) || "Unknown State"
+            };
             const populatedCategories = application.categoryArr.map((_id) => ({
                 _id,
                 name: categoryMap.get(_id) || "Unknown Category"
