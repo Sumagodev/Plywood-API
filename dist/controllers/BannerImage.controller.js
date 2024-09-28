@@ -28,8 +28,8 @@ const createBannerImage = (req, res, next) => __awaiter(void 0, void 0, void 0, 
         yield new BannerImages_model_1.BannerImage({
             image: storedImage,
             type: type,
-            userId: type === "profilebanner" ? userId : undefined,
-            productId: type === "productbanner" ? productId : undefined,
+            userId: userId,
+            productId: productId,
         }).save();
         res.status(200).json({ message: "Banner image added successfully.", success: true });
     }
@@ -104,8 +104,9 @@ const updateBannerImage = (req, res, next) => __awaiter(void 0, void 0, void 0, 
         }
         const updatedBannerImage = yield BannerImages_model_1.BannerImage.findByIdAndUpdate(id, {
             image: storedImage,
-            userId: type === "profilebanner" ? userId : undefined,
-            productId: type === "productbanner" ? productId : undefined,
+            type: type,
+            userId: userId,
+            productId: productId,
         }, { new: true } // Return the updated document
         );
         if (!updatedBannerImage) {

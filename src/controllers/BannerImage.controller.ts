@@ -27,8 +27,8 @@ export const createBannerImage = async (req: Request, res: Response, next: NextF
         await new BannerImage({
             image: storedImage,
             type: type,
-            userId: type === "profilebanner" ? userId : undefined,
-            productId: type === "productbanner" ? productId : undefined,
+            userId: userId ,
+            productId: productId ,
         }).save();
 
         res.status(200).json({ message: "Banner image added successfully.", success: true });
@@ -103,9 +103,9 @@ export const updateBannerImage = async (req: Request, res: Response, next: NextF
             id,
             {
                 image: storedImage,
-
-                userId: type === "profilebanner" ? userId : undefined,
-                productId: type === "productbanner" ? productId : undefined,
+                type:type,
+                userId:  userId ,
+                productId: productId ,
             },
             { new: true } // Return the updated document
         );
