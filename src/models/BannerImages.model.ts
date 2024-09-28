@@ -4,15 +4,16 @@ export interface IBannerImages {
   productId: string | Types.ObjectId;
   userId: string | Types.ObjectId;
   image: string;
-
+  type: string;
   isVerified: Boolean,
-  
+
   createdAt: Date;
   updateAt: Date;
 }
 
 const BannerImages = new Schema<IBannerImages>(
   {
+    type: String,
     productId: {
       type: Schema.Types.ObjectId,
       ref: "product",
@@ -23,8 +24,8 @@ const BannerImages = new Schema<IBannerImages>(
     },
     isVerified: { type: Boolean, default: false },
     image: String,
- 
-   
+
+
   },
   { timestamps: true }
 );
