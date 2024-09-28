@@ -357,7 +357,7 @@ export const getApplicationByUserId = async (req: Request, res: Response, next: 
       };
       const populatedCategories = owner.categoryArr.map((_id: string) => ({
         _id,
-        Name: categoryMap.get(_id) || "Unknown Category"
+        name: categoryMap.get(_id) || "Unknown Category"
       }));
 
       return {

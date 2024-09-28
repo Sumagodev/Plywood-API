@@ -323,7 +323,7 @@ const getApplicationByUserId = (req, res, next) => __awaiter(void 0, void 0, voi
             };
             const populatedCategories = owner.categoryArr.map((_id) => ({
                 _id,
-                Name: categoryMap.get(_id) || "Unknown Category"
+                name: categoryMap.get(_id) || "Unknown Category"
             }));
             return {
                 _id: owner._id,
