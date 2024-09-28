@@ -45,12 +45,13 @@ export const createDealershipOwner = async (req: Request, res: Response, next: N
 };
 
 
+
+// Assuming mongoose is already imported
+
 export const getAllDealershipOwners = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Find all dealership owners and populate the userId field
-        const owners = await DealershipOwner.find()
-            // Populate userId with cityId and stateId
-            .exec();
+        // Find all dealership owners
+        const owners = await DealershipOwner.find().exec();
 
         if (!owners.length) {
             return res.status(200).json({
@@ -59,16 +60,13 @@ export const getAllDealershipOwners = async (req: Request, res: Response, next: 
                 success: true
             });
         }
-     
-        // Step 5: Check if no owners are found
-        if (!owners || owners.length === 0) {
-            return res.status(404).json({ message: "Dealership Owners Not Found" });
-        }
 
-        const cityIds = owners.flatMap(app => app.cityId); // Flatten cityId arrays
-        const stateIds = owners.map(app => app.stateId).filter(Boolean); // Get all stateIds
-        const categoryIds = owners.flatMap(app => app.categoryArr).filter(Boolean); // Flatten and get categoryArr
+        // Extract city, state, and category IDs and convert them to ObjectId
+        const cityIds = owners.flatMap(owner => owner.cityId).map(id => new mongoose.Types.ObjectId(id));  // Add 'new'
+        const stateIds = owners.map(owner => owner.stateId).filter(Boolean).map(id => new mongoose.Types.ObjectId(id)); // Add 'new'
+        const categoryIds = owners.flatMap(owner => owner.categoryArr).filter(Boolean).map(id => new mongoose.Types.ObjectId(id)); // Add 'new'
 
+        // Fetch related data
         const cities = await City.find({ _id: { $in: cityIds } }).lean();
         const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
 
@@ -78,7 +76,7 @@ export const getAllDealershipOwners = async (req: Request, res: Response, next: 
         const categories = await Category.find({ _id: { $in: categoryIds } }).lean();
         const categoryMap = new Map(categories.map(category => [category._id.toString(), category.name]));
 
-        // Step 5: Structure the response
+        // Map over the owners to build the response
         const dealershipInfos = owners.map(owner => {
             const populatedCities = owner.cityId.map((cityId: string) => ({
                 cityId,
@@ -98,25 +96,23 @@ export const getAllDealershipOwners = async (req: Request, res: Response, next: 
                 Brand: owner.Brand,
                 productId: owner.productId,
                 userId: owner.userId,
-                
                 image: owner.image,
-                Email:owner.email,
-                stateId: owner.stateId,
-                stateName: owner.stateId ? stateMap.get(owner.stateId.toString()) || "Unknown State" : "", // Populated state name
-                cities: populatedCities,              // Use formatted cities if available
-                categories: populatedCategories,      // Use formatted categories
+                Email: owner.email,
+                stateId: owner.stateId._id,
+                stateName: stateMap.get(owner.stateId.toString()) || "Unknown State",
+                cities: populatedCities,
+                categories: populatedCategories,
                 createdAt: owner.createdAt,
                 updatedAt: owner.updatedAt,
             };
         });
 
-        // Step 7: Send the response with the array of dealership data
+        // Send the response
         res.status(200).json({ data: dealershipInfos });
     } catch (err) {
         next(err);
     }
 };
-
 
 // Get a single dealership owner by ID
 export const getDealershipOwnerById = async (req: Request, res: Response, next: NextFunction) => {
@@ -150,7 +146,7 @@ export const getDealershipOwnerByUserId = async (req: Request, res: Response, ne
         // Step 3: Query the database to find all DealershipOwners by userId
         const owners = await DealershipOwner.find({ userId: new mongoose.Types.ObjectId(userId) })
             .populate("userId", "name email")  // Populate userId with name and email
-        // Populate stateId with state name
+            // Populate stateId with state name
             .exec();
 
         // Step 4: Log the result of the query

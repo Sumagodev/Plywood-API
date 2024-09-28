@@ -47,12 +47,11 @@ const createDealershipOwner = (req, res, next) => __awaiter(void 0, void 0, void
     }
 });
 exports.createDealershipOwner = createDealershipOwner;
+// Assuming mongoose is already imported
 const getAllDealershipOwners = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Find all dealership owners and populate the userId field
-        const owners = yield adddealership_model_1.DealershipOwner.find()
-            // Populate userId with cityId and stateId
-            .exec();
+        // Find all dealership owners
+        const owners = yield adddealership_model_1.DealershipOwner.find().exec();
         if (!owners.length) {
             return res.status(200).json({
                 message: "No dealership owners found",
@@ -60,20 +59,18 @@ const getAllDealershipOwners = (req, res, next) => __awaiter(void 0, void 0, voi
                 success: true
             });
         }
-        // Step 5: Check if no owners are found
-        if (!owners || owners.length === 0) {
-            return res.status(404).json({ message: "Dealership Owners Not Found" });
-        }
-        const cityIds = owners.flatMap(app => app.cityId); // Flatten cityId arrays
-        const stateIds = owners.map(app => app.stateId).filter(Boolean); // Get all stateIds
-        const categoryIds = owners.flatMap(app => app.categoryArr).filter(Boolean); // Flatten and get categoryArr
+        // Extract city, state, and category IDs and convert them to ObjectId
+        const cityIds = owners.flatMap(owner => owner.cityId).map(id => new mongoose_1.default.Types.ObjectId(id)); // Add 'new'
+        const stateIds = owners.map(owner => owner.stateId).filter(Boolean).map(id => new mongoose_1.default.Types.ObjectId(id)); // Add 'new'
+        const categoryIds = owners.flatMap(owner => owner.categoryArr).filter(Boolean).map(id => new mongoose_1.default.Types.ObjectId(id)); // Add 'new'
+        // Fetch related data
         const cities = yield City_model_1.City.find({ _id: { $in: cityIds } }).lean();
         const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
         const states = yield State_model_1.State.find({ _id: { $in: stateIds } }).lean();
         const stateMap = new Map(states.map(state => [state._id.toString(), state.name]));
         const categories = yield category_model_1.Category.find({ _id: { $in: categoryIds } }).lean();
         const categoryMap = new Map(categories.map(category => [category._id.toString(), category.name]));
-        // Step 5: Structure the response
+        // Map over the owners to build the response
         const dealershipInfos = owners.map(owner => {
             const populatedCities = owner.cityId.map((cityId) => ({
                 cityId,
@@ -93,15 +90,15 @@ const getAllDealershipOwners = (req, res, next) => __awaiter(void 0, void 0, voi
                 userId: owner.userId,
                 image: owner.image,
                 Email: owner.email,
-                stateId: owner.stateId,
-                stateName: owner.stateId ? stateMap.get(owner.stateId.toString()) || "Unknown State" : "",
+                stateId: owner.stateId._id,
+                stateName: stateMap.get(owner.stateId.toString()) || "Unknown State",
                 cities: populatedCities,
                 categories: populatedCategories,
                 createdAt: owner.createdAt,
                 updatedAt: owner.updatedAt,
             };
         });
-        // Step 7: Send the response with the array of dealership data
+        // Send the response
         res.status(200).json({ data: dealershipInfos });
     }
     catch (err) {
