@@ -13,7 +13,10 @@ exports.getById = exports.deleteById = exports.updateById = exports.getAllFlashS
 const dateUtils_1 = require("../helpers/dateUtils");
 const FlashSale_model_1 = require("../models/FlashSale.model");
 const user_model_1 = require("../models/user.model");
+const Notifications_model_1 = require("../models/Notifications.model");
+const product_model_1 = require("../models/product.model");
 const addFlashSale = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     try {
         let today = new Date();
         // const FlashSaleCheck = await FlashSale.findOne({
@@ -48,6 +51,31 @@ const addFlashSale = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
             throw new Error("Unable to create FlashSale");
         }
         res.status(200).json({ message: "FlashSale Successfully Created", success: true });
+        let flashProduct = yield product_model_1.Product.findById(req.body.productId);
+        const newNotification = new Notifications_model_1.Notifications({
+            userId: req.params.userId,
+            type: 'flash_sale',
+            title: 'Flash sale created',
+            sourceId: ((_a = req === null || req === void 0 ? void 0 : req.body) === null || _a === void 0 ? void 0 : _a.productSlug) || '',
+            isRead: false,
+            viewCount: 1,
+            lastAccessTime: new Date(),
+            payload: {
+                reach: 'all',
+                accessTime: new Date(),
+                slug: ((_b = req === null || req === void 0 ? void 0 : req.body) === null || _b === void 0 ? void 0 : _b.productSlug) || '',
+                productName: flashProduct === null || flashProduct === void 0 ? void 0 : flashProduct.name,
+                flashSaleDetails: newEntry
+            }
+        });
+        // Save the new notification to the database
+        try {
+            yield newNotification.save();
+            console.log('New notification created with viewCount and lastAccessTime');
+        }
+        catch (error) {
+            console.error('Error saving new notification:', error);
+        }
     }
     catch (err) {
         next(err);
