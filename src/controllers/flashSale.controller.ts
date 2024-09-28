@@ -2,6 +2,10 @@ import { NextFunction, Request, Response } from "express";
 import { dateDifference } from "../helpers/dateUtils";
 import { FlashSale } from "../models/FlashSale.model";
 import { User } from "../models/user.model";
+import { startOfDay, endOfDay } from 'date-fns'; // Use date-fns for date comparison if needed
+import { Notifications } from "../models/Notifications.model";
+import { Product } from "../models/product.model";
+
 export const addFlashSale = async (req: Request, res: Response, next: NextFunction) => {
   try {
     let today = new Date();
@@ -51,6 +55,35 @@ export const addFlashSale = async (req: Request, res: Response, next: NextFuncti
     }
 
     res.status(200).json({ message: "FlashSale Successfully Created", success: true });
+
+
+     let flashProduct= await Product.findById(req.body.productId)
+          const newNotification = new Notifications({
+              userId: req.params.userId,            // ID of the user related to the notification
+              type: 'flash_sale',
+              title: 'Flash sale created',   // Title of the notification
+              sourceId: req?.body?.productSlug || '',              // ID of the user who accessed the profile
+              isRead: false,                        // Notification status
+              viewCount: 1,                         // Initialize viewCount to 1
+              lastAccessTime: new Date(),           // Set initial last access time
+              payload: {                            // Dynamic payload data
+                  reach:'all',
+                  accessTime: new Date(),
+                  slug: req?.body?.productSlug || '', 
+                  productName:flashProduct?.name,
+                  flashSaleDetails:newEntry
+              }
+          });
+  
+          // Save the new notification to the database
+          try {
+              await newNotification.save();
+              console.log('New notification created with viewCount and lastAccessTime');
+          } catch (error) {
+              console.error('Error saving new notification:', error);
+          }
+    
+
   } catch (err) {
     next(err);
   }
