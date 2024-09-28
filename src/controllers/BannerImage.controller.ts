@@ -97,6 +97,9 @@ export const updateBannerImage = async (req: Request, res: Response, next: NextF
     } catch (err) {
         next(err);
     }
+
+
+    
 };
 
 // Delete a banner image by ID
