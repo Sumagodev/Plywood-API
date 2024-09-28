@@ -13,7 +13,7 @@ import { Category } from "../models/category.model";
 
 export const createApplication = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { dealershipOwnerId, userId, image, cityId, productId, Product, stateId, categoryId, Brand, email } = req.body;
+    const { dealershipOwnerId, userId, image, cityId, productId, Product, stateId, categoryArr, Brand, email } = req.body;
 
     // Validate dealershipOwnerId
     if (!mongoose.Types.ObjectId.isValid(dealershipOwnerId)) {

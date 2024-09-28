@@ -59,7 +59,7 @@ export const getAllDealershipOwners = async (req: Request, res: Response, next: 
                 success: true
             });
         }
-
+     
         // Step 5: Check if no owners are found
         if (!owners || owners.length === 0) {
             return res.status(404).json({ message: "Dealership Owners Not Found" });
@@ -84,10 +84,7 @@ export const getAllDealershipOwners = async (req: Request, res: Response, next: 
                 cityId,
                 cityName: cityMap.get(cityId) || "Unknown City"
             }));
-            const populatedState = {
-                _id: owner.stateId,
-                name: stateMap.get(owner.stateId) || "Unknown State"
-            };
+
             const populatedCategories = owner.categoryArr.map((categoryId: string) => ({
                 categoryId,
                 categoryName: categoryMap.get(categoryId) || "Unknown Category"
@@ -101,9 +98,11 @@ export const getAllDealershipOwners = async (req: Request, res: Response, next: 
                 Brand: owner.Brand,
                 productId: owner.productId,
                 userId: owner.userId,
+                
                 image: owner.image,
-                Email: owner.email,
-                state: populatedState,
+                Email:owner.email,
+                stateId: owner.stateId,
+                stateName: owner.stateId ? stateMap.get(owner.stateId.toString()) || "Unknown State" : "", // Populated state name
                 cities: populatedCities,              // Use formatted cities if available
                 categories: populatedCategories,      // Use formatted categories
                 createdAt: owner.createdAt,
@@ -151,7 +150,7 @@ export const getDealershipOwnerByUserId = async (req: Request, res: Response, ne
         // Step 3: Query the database to find all DealershipOwners by userId
         const owners = await DealershipOwner.find({ userId: new mongoose.Types.ObjectId(userId) })
             .populate("userId", "name email")  // Populate userId with name and email
-            // Populate stateId with state name
+        // Populate stateId with state name
             .exec();
 
         // Step 4: Log the result of the query
@@ -181,10 +180,7 @@ export const getDealershipOwnerByUserId = async (req: Request, res: Response, ne
                 _id,
                 name: cityMap.get(_id) || "Unknown City"
             }));
-            const populatedState = {
-                _id: owner.stateId,
-                name: stateMap.get(owner.stateId) || "Unknown State"
-            };
+
             const populatedCategories = owner.categoryArr.map((_id: string) => ({
                 _id,
                 name: categoryMap.get(_id) || "Unknown Category"
@@ -199,7 +195,8 @@ export const getDealershipOwnerByUserId = async (req: Request, res: Response, ne
                 productId: owner.productId,
                 userId: owner.userId,
                 image: owner.image,
-                state: populatedState,
+                stateId: owner.stateId,
+                stateName: owner.stateId ? stateMap.get(owner.stateId.toString()) || "Unknown State" : "", // Populated state name
                 cities: populatedCities,              // Use formatted cities if available
                 categories: populatedCategories,      // Use formatted categories
                 createdAt: owner.createdAt,

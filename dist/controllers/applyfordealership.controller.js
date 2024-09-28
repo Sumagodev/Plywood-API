@@ -22,7 +22,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const category_model_1 = require("../models/category.model");
 const createApplication = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { dealershipOwnerId, userId, image, cityId, productId, Product, stateId, categoryId, Brand, email } = req.body;
+        const { dealershipOwnerId, userId, image, cityId, productId, Product, stateId, categoryArr, Brand, email } = req.body;
         // Validate dealershipOwnerId
         if (!mongoose_1.default.Types.ObjectId.isValid(dealershipOwnerId)) {
             return res.status(400).json({ message: "Invalid DealershipOwner ID" });
