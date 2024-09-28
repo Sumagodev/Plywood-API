@@ -72,13 +72,13 @@ const getAllDealershipOwners = (req, res, next) => __awaiter(void 0, void 0, voi
         const categoryMap = new Map(categories.map(category => [category._id.toString(), category.name]));
         // Map over the owners to build the response
         const dealershipInfos = owners.map(owner => {
-            const populatedCities = owner.cityId.map((cityId) => ({
-                cityId,
-                cityName: cityMap.get(cityId) || "Unknown City"
+            const populatedCities = owner.cityId.map((_id) => ({
+                _id,
+                name: cityMap.get(_id) || "Unknown City"
             }));
-            const populatedCategories = owner.categoryArr.map((categoryId) => ({
-                categoryId,
-                categoryName: categoryMap.get(categoryId) || "Unknown Category"
+            const populatedCategories = owner.categoryArr.map((_id) => ({
+                _id,
+                name: categoryMap.get(_id) || "Unknown Category"
             }));
             return {
                 _id: owner._id,

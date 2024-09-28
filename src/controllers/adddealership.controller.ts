@@ -78,14 +78,14 @@ export const getAllDealershipOwners = async (req: Request, res: Response, next: 
 
         // Map over the owners to build the response
         const dealershipInfos = owners.map(owner => {
-            const populatedCities = owner.cityId.map((cityId: string) => ({
-                cityId,
-                cityName: cityMap.get(cityId) || "Unknown City"
+            const populatedCities = owner.cityId.map((_id: string) => ({
+                _id,
+                name: cityMap.get(_id) || "Unknown City"
             }));
 
-            const populatedCategories = owner.categoryArr.map((categoryId: string) => ({
-                categoryId,
-                categoryName: categoryMap.get(categoryId) || "Unknown Category"
+            const populatedCategories = owner.categoryArr.map((_id: string) => ({
+                _id,
+                name: categoryMap.get(_id) || "Unknown Category"
             }));
 
             return {
@@ -263,7 +263,7 @@ export const deleteAllDealershipOwners = async (req: Request, res: Response) => 
         return res.status(500).json({
             success: false,
             message: "An error occurred while deleting dealership owner records.",
-         
+
         });
     }
 };
