@@ -38,7 +38,10 @@ export const createBannerImage = async (req: Request, res: Response, next: NextF
 // Get all banner images
 export const getAllBannerImages = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const bannerImages = await BannerImage.find();
+        const bannerImages = await BannerImage.find().populate({
+            path: 'productId', // This assumes `productId` is the field in BannerImage model that references the Product model
+            select: 'slug',    // Only return the `slug` field from the Product model
+        });;
         res.status(200).json({ success: true, bannerImages });
     } catch (err) {
         next(err);

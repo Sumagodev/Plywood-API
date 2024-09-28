@@ -40,7 +40,11 @@ exports.createBannerImage = createBannerImage;
 // Get all banner images
 const getAllBannerImages = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const bannerImages = yield BannerImages_model_1.BannerImage.find();
+        const bannerImages = yield BannerImages_model_1.BannerImage.find().populate({
+            path: 'productId',
+            select: 'slug', // Only return the `slug` field from the Product model
+        });
+        ;
         res.status(200).json({ success: true, bannerImages });
     }
     catch (err) {
