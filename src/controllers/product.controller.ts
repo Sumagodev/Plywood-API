@@ -9,7 +9,8 @@ import { User } from "../models/user.model";
 import { City } from "../models/City.model";
 import { State } from "../models/State.model";
 import { FlashSale } from "../models/FlashSale.model";
-
+import { Notifications } from "../models/Notifications.model";
+import { endOfDay, startOfDay } from "date-fns";
 
 export const getProduct = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -388,6 +389,85 @@ export const getProductById = async (req: Request, res: Response, next: NextFunc
       ProductObj.sellingprice = flashSaleObj?.salePrice;
     }
     res.status(200).json({ message: "Product Found", data: ProductObj, success: true });
+
+
+    let visitorUserId: string | undefined = req.query.visitorUserId as string | undefined;
+
+    if (visitorUserId && mongoose.Types.ObjectId.isValid(visitorUserId)) {
+      // Fetch the user who accessed the profile
+      let leadUser = await User.findById(visitorUserId).lean().exec();
+      
+      // Check if leadUser is found
+      if (!leadUser) throw new Error("Lead User Not Found");
+  
+      // Define the current day range (start and end of today)
+      const startOfToday = startOfDay(new Date());
+      const endOfToday = endOfDay(new Date());
+  
+      console.log('Product Creator ID:', ProductObj.createdById.toString());
+      console.log('Visitor User ID:', visitorUserId);
+  
+      let existingNotification = await Notifications.findOne({
+        userId: ProductObj.createdById.toString(), // Profile owner
+        sourceId: visitorUserId, // The user who accessed the profile
+        type: 'product_view',
+        createdAt: { // Created today
+            $gte: startOfToday, // Greater than or equal to the start of the day
+            $lte: endOfToday // Less than or equal to the end of the day
+        },
+        'payload.productId': ProductObj._id, // Check for the product ID in payload
+        'payload.accessedBy': visitorUserId // Also check the accessedBy in the payload
+    });
+  
+      console.log('Existing Notification:', existingNotification);
+  
+      if (existingNotification) {
+          // If a notification exists, increment the view count and update the last access time
+          await Notifications.updateOne(
+              { _id: existingNotification._id },
+              {
+                  $inc: { viewCount: 1 }, // Increment viewCount by 1
+                  $set: {
+                      lastAccessTime: new Date(),
+                      isRead: false,
+                  } // Update lastAccessTime to current time
+              }
+          );
+          console.log('Notification updated with incremented view count and updated last access time');
+      } else {
+          // If no notification exists, create a new one
+          const newNotification = new Notifications({
+              userId: ProductObj.createdById.toString(), // ID of the user related to the notification
+              type: 'product_view', // Type of notification
+              title: 'Your product was accessed', // Title of the notification
+              content: `Your product was accessed by user ${visitorUserId}`, // Message content
+              sourceId: visitorUserId, // ID of the user who accessed the profile
+              isRead: false, // Notification status
+              viewCount: 1, // Initialize viewCount to 1
+              lastAccessTime: new Date(), // Set initial last access time
+              payload: { // Dynamic payload data
+                  accessedBy: visitorUserId,
+                  accessTime: new Date(),
+                  organizationName: leadUser?.companyObj?.name || 'Unknown',
+                  productName: ProductObj?.name || 'Unknown',
+                  productId: ProductObj._id // Include product ID in the payload
+              }
+          });
+  
+          // Save the new notification to the database
+          try {
+              await newNotification.save();
+              console.log('New notification created:', newNotification);
+          } catch (error) {
+              console.error('Error saving new notification:', error);
+          }
+      }
+  } else {
+      console.error('Invalid Visitor User ID:', visitorUserId);
+  }
+
+
+
   } catch (err) {
     next(err);
   }
