@@ -13,7 +13,7 @@ import productRouter from "./routes/product.route";
 import countryRouter from "./routes/country.routes";
 import stateRouter from "./routes/state.routes";
 import stateDetailRouter from "./routes/stateDetail.routes";
-
+import BannerImage from "./routes/BannerImage.routes"
 import cityRouter from "./routes/city.routes";
 import subscriptionRouter from "./routes/subscription.routes";
 import leadRouter from "./routes/leads.routes";
@@ -39,8 +39,8 @@ import { CONFIG } from "./helpers/config";
 import { seedData } from "./seeder/seeder";
 import cors from "cors";
 import { errorHandler } from "./middlewares/errorHandler.middleware";
-import  dealershipOwnerRoutes  from './routes/dealershipOwnerRoutes.routes'
-import  dealershipUSerRoutes  from './routes/dealershipUesrRoutes.routes'
+import dealershipOwnerRoutes from './routes/dealershipOwnerRoutes.routes'
+import dealershipUSerRoutes from './routes/dealershipUesrRoutes.routes'
 
 mongoose.connect(CONFIG.MONGOURI, (err) => {
   if (err) {
@@ -80,7 +80,7 @@ app.use("/advertisement", advertisementRouter);
 app.use("/usersubscription", userSubscriptionRouter);
 app.use("/dealershipOwnerRoutes", dealershipOwnerRoutes);
 app.use("/dealershipUserRoutes", dealershipUSerRoutes);
-
+app.use("/BannerImage",BannerImage)
 app.use("/leads", leadRouter);
 app.use("/flashSales", flashSaleRouter);
 app.use("/productReview", productReviewRouter);

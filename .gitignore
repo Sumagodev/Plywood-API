@@ -142,3 +142,4 @@ typings/
 
 /publics
 src/helpers/fileSystem.ts
+dist/helpers/fileSystem.js
