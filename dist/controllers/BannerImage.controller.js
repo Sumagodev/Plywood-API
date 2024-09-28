@@ -27,6 +27,7 @@ const createBannerImage = (req, res, next) => __awaiter(void 0, void 0, void 0, 
         // Create the new banner record directly without productSlug
         yield new BannerImages_model_1.BannerImage({
             image: storedImage,
+            type: type,
             userId: type === "profilebanner" ? userId : undefined,
             productId: type === "productbanner" ? productId : undefined,
         }).save();

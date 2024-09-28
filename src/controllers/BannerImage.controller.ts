@@ -21,10 +21,12 @@ export const createBannerImage = async (req: Request, res: Response, next: NextF
             storedImage = await storeFileAndReturnNameBase64(image); // Save the image and return the file name
         }
 
+        
+
         // Create the new banner record directly without productSlug
         await new BannerImage({
             image: storedImage,
-
+            type: type,
             userId: type === "profilebanner" ? userId : undefined,
             productId: type === "productbanner" ? productId : undefined,
         }).save();
