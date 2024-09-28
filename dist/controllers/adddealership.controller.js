@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteDealershipOwner = exports.updateDealershipOwner = exports.getDealershipOwnerByUserId = exports.getDealershipOwnerById = exports.getAllDealershipOwners = exports.createDealershipOwner = void 0;
+exports.deleteAllDealershipOwners = exports.deleteDealershipOwner = exports.updateDealershipOwner = exports.getDealershipOwnerByUserId = exports.getDealershipOwnerById = exports.getAllDealershipOwners = exports.createDealershipOwner = void 0;
 const fileSystem_1 = require("../helpers/fileSystem");
 const user_model_1 = require("../models/user.model");
 const City_model_1 = require("../models/City.model");
@@ -219,3 +219,22 @@ const deleteDealershipOwner = (req, res, next) => __awaiter(void 0, void 0, void
     }
 });
 exports.deleteDealershipOwner = deleteDealershipOwner;
+const deleteAllDealershipOwners = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        // Use deleteMany to remove all documents in the DealershipOwner collection
+        const result = yield adddealership_model_1.DealershipOwner.deleteMany({});
+        return res.status(200).json({
+            success: true,
+            message: "All dealership owner records have been deleted.",
+            deletedCount: result.deletedCount, // Number of documents deleted
+        });
+    }
+    catch (error) {
+        console.error("Error deleting dealership owner records:", error);
+        return res.status(500).json({
+            success: false,
+            message: "An error occurred while deleting dealership owner records.",
+        });
+    }
+});
+exports.deleteAllDealershipOwners = deleteAllDealershipOwners;

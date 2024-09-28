@@ -4,7 +4,7 @@ import {
     getAllDealershipOwners,
     getDealershipOwnerById,
     updateDealershipOwner,
-    deleteDealershipOwner,getDealershipOwnerByUserId
+    deleteDealershipOwner,getDealershipOwnerByUserId,deleteAllDealershipOwners
 } from "../controllers/adddealership.controller"; // Import your controller functions
 
 const router = Router();
@@ -25,6 +25,6 @@ router.put("/dealership-owners/:id", updateDealershipOwner);
 router.delete("/dealership-owners/:id", deleteDealershipOwner);
 
 //
-router.get("/getDealershipOwnerByUserId/:userId", getDealershipOwnerByUserId);
+router.get("/deleteAllDealershipOwners", deleteAllDealershipOwners);
 
 export default router;

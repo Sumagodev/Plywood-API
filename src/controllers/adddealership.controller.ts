@@ -248,3 +248,22 @@ export const deleteDealershipOwner = async (req: Request, res: Response, next: N
         next(error);
     }
 };
+export const deleteAllDealershipOwners = async (req: Request, res: Response) => {
+    try {
+        // Use deleteMany to remove all documents in the DealershipOwner collection
+        const result = await DealershipOwner.deleteMany({});
+
+        return res.status(200).json({
+            success: true,
+            message: "All dealership owner records have been deleted.",
+            deletedCount: result.deletedCount, // Number of documents deleted
+        });
+    } catch (error) {
+        console.error("Error deleting dealership owner records:", error);
+        return res.status(500).json({
+            success: false,
+            message: "An error occurred while deleting dealership owner records.",
+         
+        });
+    }
+};
