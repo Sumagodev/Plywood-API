@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteBannerImage = exports.updateBannerImage = exports.getBannerImageById = exports.getAllBannerImages = exports.createBannerImage = void 0;
+exports.deleteBannerImage = exports.updateBannerImage = exports.getBannerImagesByUserId = exports.getBannerImageById = exports.getAllBannerImages = exports.createBannerImage = void 0;
 const fileSystem_1 = require("../helpers/fileSystem");
 const BannerImages_model_1 = require("../models/BannerImages.model");
 const createBannerImage = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -72,6 +72,24 @@ const getBannerImageById = (req, res, next) => __awaiter(void 0, void 0, void 0,
     }
 });
 exports.getBannerImageById = getBannerImageById;
+const getBannerImagesByUserId = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const bannerImages = yield BannerImages_model_1.BannerImage.find({ userId: req.params.userId })
+            .populate({
+            path: 'productId',
+            select: 'slug', // Only return the `slug` field from the Product model
+        });
+        // Check if any banners were found
+        if (!bannerImages.length) {
+            return res.status(404).json({ message: "No banner images found for the given user.", success: false });
+        }
+        res.status(200).json({ success: true, bannerImages });
+    }
+    catch (err) {
+        next(err);
+    }
+});
+exports.getBannerImagesByUserId = getBannerImagesByUserId;
 // Update a banner image by ID
 const updateBannerImage = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {

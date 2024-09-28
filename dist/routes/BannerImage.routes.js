@@ -9,7 +9,7 @@ const router = express_1.default.Router();
 // Routes for banner images
 router.post("/postbanner", BannerImage_controller_1.createBannerImage); // Create a banner image
 router.get("/getbanner", BannerImage_controller_1.getAllBannerImages); // Get all banner images
-router.get("/getbannerby/:id", BannerImage_controller_1.getBannerImageById); // Get a banner image by ID
+router.get("/getBannerImagesByUserId/:id", BannerImage_controller_1.getBannerImagesByUserId); // Get a banner image by ID
 router.put("/updatebanner/:id", BannerImage_controller_1.updateBannerImage); // Update a banner image by ID
 router.delete("/deletebanner/:id", BannerImage_controller_1.deleteBannerImage); // Delete a banner image by ID
 exports.default = router;

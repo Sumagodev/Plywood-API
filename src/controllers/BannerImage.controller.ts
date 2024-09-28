@@ -21,7 +21,7 @@ export const createBannerImage = async (req: Request, res: Response, next: NextF
             storedImage = await storeFileAndReturnNameBase64(image); // Save the image and return the file name
         }
 
-        
+
 
         // Create the new banner record directly without productSlug
         await new BannerImage({
@@ -66,6 +66,24 @@ export const getBannerImageById = async (req: Request, res: Response, next: Next
         next(err);
     }
 };
+export const getBannerImagesByUserId = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const bannerImages = await BannerImage.find({ userId: req.params.userId })
+            .populate({
+                path: 'productId', // This assumes `productId` is the field in BannerImage model that references the Product model
+                select: 'slug',    // Only return the `slug` field from the Product model
+            });
+
+        // Check if any banners were found
+        if (!bannerImages.length) {
+            return res.status(404).json({ message: "No banner images found for the given user.", success: false });
+        }
+
+        res.status(200).json({ success: true, bannerImages });
+    } catch (err) {
+        next(err);
+    }
+};
 
 // Update a banner image by ID
 export const updateBannerImage = async (req: Request, res: Response, next: NextFunction) => {
@@ -99,7 +117,7 @@ export const updateBannerImage = async (req: Request, res: Response, next: NextF
     }
 
 
-    
+
 };
 
 // Delete a banner image by ID
