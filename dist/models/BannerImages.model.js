@@ -17,4 +17,4 @@ const BannerImages = new mongoose_1.Schema({
     startDate: Date,
     endDate: Date,
 }, { timestamps: true });
-exports.BannerImage = (0, mongoose_1.model)("advertisement", BannerImages);
+exports.BannerImage = (0, mongoose_1.model)("bannerImages", BannerImages);

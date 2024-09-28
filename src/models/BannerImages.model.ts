@@ -33,4 +33,4 @@ const BannerImages = new Schema<IBannerImages>(
   { timestamps: true }
 );
 
-export const BannerImage = model<IBannerImages>("advertisement", BannerImages);
+export const BannerImage = model<IBannerImages>("bannerImages", BannerImages);
