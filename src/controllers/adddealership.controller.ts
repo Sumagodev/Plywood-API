@@ -98,7 +98,7 @@ export const getAllDealershipOwners = async (req: Request, res: Response, next: 
                 userId: owner.userId,
                 image: owner.image,
                 Email: owner.email,
-                stateId: owner.stateId._id,
+                stateId: owner.stateId,
                 stateName: stateMap.get(owner.stateId.toString()) || "Unknown State",
                 cities: populatedCities,
                 categories: populatedCategories,
