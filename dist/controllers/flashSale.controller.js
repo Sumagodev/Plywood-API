@@ -16,7 +16,7 @@ const user_model_1 = require("../models/user.model");
 const Notifications_model_1 = require("../models/Notifications.model");
 const product_model_1 = require("../models/product.model");
 const addFlashSale = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a;
     try {
         let today = new Date();
         // const FlashSaleCheck = await FlashSale.findOne({
@@ -63,9 +63,9 @@ const addFlashSale = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
             payload: {
                 reach: 'all',
                 accessTime: new Date(),
-                slug: ((_b = req === null || req === void 0 ? void 0 : req.body) === null || _b === void 0 ? void 0 : _b.productSlug) || '',
+                slug: flashProduct === null || flashProduct === void 0 ? void 0 : flashProduct.slug,
                 productName: flashProduct === null || flashProduct === void 0 ? void 0 : flashProduct.name,
-                flashSaleDetails: newEntry
+                flashSaleDetails: req.body
             }
         });
         // Save the new notification to the database

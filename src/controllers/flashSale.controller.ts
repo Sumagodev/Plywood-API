@@ -69,9 +69,9 @@ export const addFlashSale = async (req: Request, res: Response, next: NextFuncti
               payload: {                            // Dynamic payload data
                   reach:'all',
                   accessTime: new Date(),
-                  slug: req?.body?.productSlug || '', 
+                  slug: flashProduct?.slug, 
                   productName:flashProduct?.name,
-                  flashSaleDetails:newEntry
+                  flashSaleDetails:req.body
               }
           });
   
