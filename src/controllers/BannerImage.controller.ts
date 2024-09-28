@@ -43,6 +43,9 @@ export const getAllBannerImages = async (req: Request, res: Response, next: Next
         const bannerImages = await BannerImage.find().populate({
             path: 'productId', // This assumes `productId` is the field in BannerImage model that references the Product model
             select: 'slug',    // Only return the `slug` field from the Product model
+        }).populate({
+            path: 'userId',       // Populate the userId field
+            select: 'username email', // Select fields from User (modify as per your schema)
         });;
         res.status(200).json({ success: true, bannerImages });
     } catch (err) {

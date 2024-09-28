@@ -44,6 +44,9 @@ const getAllBannerImages = (req, res, next) => __awaiter(void 0, void 0, void 0,
         const bannerImages = yield BannerImages_model_1.BannerImage.find().populate({
             path: 'productId',
             select: 'slug', // Only return the `slug` field from the Product model
+        }).populate({
+            path: 'userId',
+            select: 'username email', // Select fields from User (modify as per your schema)
         });
         ;
         res.status(200).json({ success: true, bannerImages });
