@@ -23,6 +23,8 @@ const user_model_1 = require("../models/user.model");
 const City_model_1 = require("../models/City.model");
 const State_model_1 = require("../models/State.model");
 const FlashSale_model_1 = require("../models/FlashSale.model");
+const Notifications_model_1 = require("../models/Notifications.model");
+const date_fns_1 = require("date-fns");
 const getProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let query = {};
@@ -323,7 +325,7 @@ const getById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
 });
 exports.getById = getById;
 const getProductById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _b;
+    var _b, _c;
     try {
         const today = new Date();
         let ProductObj = yield product_model_1.Product.findOne({ slug: req.params.id }).lean().exec();
@@ -346,6 +348,73 @@ const getProductById = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             ProductObj.sellingprice = flashSaleObj === null || flashSaleObj === void 0 ? void 0 : flashSaleObj.salePrice;
         }
         res.status(200).json({ message: "Product Found", data: ProductObj, success: true });
+        let visitorUserId = req.query.visitorUserId;
+        if (visitorUserId && mongoose_1.default.Types.ObjectId.isValid(visitorUserId)) {
+            // Fetch the user who accessed the profile
+            let leadUser = yield user_model_1.User.findById(visitorUserId).lean().exec();
+            // Check if leadUser is found
+            if (!leadUser)
+                throw new Error("Lead User Not Found");
+            // Define the current day range (start and end of today)
+            const startOfToday = (0, date_fns_1.startOfDay)(new Date());
+            const endOfToday = (0, date_fns_1.endOfDay)(new Date());
+            console.log('Product Creator ID:', ProductObj.createdById.toString());
+            console.log('Visitor User ID:', visitorUserId);
+            let existingNotification = yield Notifications_model_1.Notifications.findOne({
+                userId: ProductObj.createdById.toString(),
+                sourceId: visitorUserId,
+                type: 'product_view',
+                createdAt: {
+                    $gte: startOfToday,
+                    $lte: endOfToday // Less than or equal to the end of the day
+                },
+                'payload.productId': ProductObj._id,
+                'payload.accessedBy': visitorUserId // Also check the accessedBy in the payload
+            });
+            console.log('Existing Notification:', existingNotification);
+            if (existingNotification) {
+                // If a notification exists, increment the view count and update the last access time
+                yield Notifications_model_1.Notifications.updateOne({ _id: existingNotification._id }, {
+                    $inc: { viewCount: 1 },
+                    $set: {
+                        lastAccessTime: new Date(),
+                        isRead: false,
+                    } // Update lastAccessTime to current time
+                });
+                console.log('Notification updated with incremented view count and updated last access time');
+            }
+            else {
+                // If no notification exists, create a new one
+                const newNotification = new Notifications_model_1.Notifications({
+                    userId: ProductObj.createdById.toString(),
+                    type: 'product_view',
+                    title: 'Your product was accessed',
+                    content: `Your product was accessed by user ${visitorUserId}`,
+                    sourceId: visitorUserId,
+                    isRead: false,
+                    viewCount: 1,
+                    lastAccessTime: new Date(),
+                    payload: {
+                        accessedBy: visitorUserId,
+                        accessTime: new Date(),
+                        organizationName: ((_c = leadUser === null || leadUser === void 0 ? void 0 : leadUser.companyObj) === null || _c === void 0 ? void 0 : _c.name) || 'Unknown',
+                        productName: (ProductObj === null || ProductObj === void 0 ? void 0 : ProductObj.name) || 'Unknown',
+                        productId: ProductObj._id // Include product ID in the payload
+                    }
+                });
+                // Save the new notification to the database
+                try {
+                    yield newNotification.save();
+                    console.log('New notification created:', newNotification);
+                }
+                catch (error) {
+                    console.error('Error saving new notification:', error);
+                }
+            }
+        }
+        else {
+            console.error('Invalid Visitor User ID:', visitorUserId);
+        }
     }
     catch (err) {
         next(err);
@@ -409,145 +478,6 @@ const getAllProductsBySupplierId = (req, res, next) => __awaiter(void 0, void 0,
     }
 });
 exports.getAllProductsBySupplierId = getAllProductsBySupplierId;
-// export const searchProductWithQuery: RequestHandler = async (req, res, next) => {
-//   try {
-//     let query: any = {};
-//     if (req.query.role && !req.query.role == null) {
-//       query = { ...query, "createdByObj.role": { $ne: req.query.role } };
-//     }
-//     if (req.query.name) {
-//       query = {
-//         ...query, $or: [
-//           { name: new RegExp(`${req.query.name}`, "i") },
-//           { "createdByObj.name": new RegExp(`${req.query.name}`, "i") },
-//           { "shortDescription": new RegExp(`${req.query.name}`, "i") },
-//           { "longDescription": new RegExp(`${req.query.name}`, "i") },
-//         ]
-//       };
-//       // { "brandId": new RegExp(`${req.query.name}`, "i") },
-//       let brandArr = await Brand.find({ name: new RegExp(`${req.query.name}`, "i") }).exec()
-//       if (brandArr && brandArr.length > 0) {
-//         query = {
-//           ...query, $or: [
-//             { name: new RegExp(`${req.query.name}`, "i") },
-//             { "createdByObj.name": new RegExp(`${req.query.name}`, "i") },
-//             { "shortDescription": new RegExp(`${req.query.name}`, "i") },
-//             { "longDescription": new RegExp(`${req.query.name}`, "i") },
-//             { "brand": { $in: [...brandArr.map(el => `${el._id}`)] } },
-//           ]
-//         }
-//       }
-//     }
-//     console.log(JSON.stringify(query, null, 2), "query")
-//     const arr = await Product.find(query).select({ name: 1, _id: 1, slug: 1 })
-//       .lean()
-//       .exec();
-//     res.status(200).json({ message: "Arr", data: arr, success: true });
-//   } catch (error) {
-//     next(error);
-//   }
-// };
-// export const searchProductWithQuery: RequestHandler = async (req, res, next) => {
-//   try {
-//     let query: any = {};
-//     // Role filter
-//     if (req.query.role && req.query.role !== "null") {
-//       query = { ...query, "createdByObj.role": { $ne: req.query.role } };
-//     }
-//     // Name, creator's name, short description, long description, and brand name filter
-//     if (req.query.name) {
-//       const regex = new RegExp(`${req.query.name}`, "i");
-//       let brandArr = await Brand.find({ name: regex }).exec();
-//       let brandIds = brandArr.length > 0 ? brandArr.map(el => `${el._id}`) : [];
-//       query = {
-//         ...query,
-//         $or: [
-//           { name: regex },
-//           { "createdByObj.name": regex },
-//           { "shortDescription": regex },
-//           { "longDescription": regex },
-//           ...(brandIds.length > 0 ? [{ "brand": { $in: brandIds } }] : [])
-//         ]
-//       };
-//     }
-//     // Category filter
-//     if (req.query.categoryId) {
-//       query = { ...query, "categoryId": req.query.categoryId };
-//     }
-//     // Price filter
-//     if (req.query.minPrice || req.query.maxPrice) {
-//       const priceQuery: any = {};
-//       if (req.query.minPrice) priceQuery.$gte = parseFloat(req.query.minPrice as string);
-//       if (req.query.maxPrice) priceQuery.$lte = parseFloat(req.query.maxPrice as string);
-//       query = { ...query, "price": priceQuery };
-//     }
-//     // Selling Price filter
-//     if (req.query.minSellingPrice || req.query.maxSellingPrice) {
-//       const sellingPriceQuery: any = {};
-//       if (req.query.minSellingPrice) sellingPriceQuery.$gte = parseFloat(req.query.minSellingPrice as string);
-//       if (req.query.maxSellingPrice) sellingPriceQuery.$lte = parseFloat(req.query.maxSellingPrice as string);
-//       query = { ...query, "sellingprice": sellingPriceQuery };
-//     }
-//     // Specification filters
-//     if (req.query.thickness) {
-//       query = { ...query, "specification.thickness": new RegExp(`${req.query.thickness}`, "i") };
-//     }
-//     if (req.query.application) {
-//       query = { ...query, "specification.application": new RegExp(`${req.query.application}`, "i") };
-//     }
-//     if (req.query.grade) {
-//       query = { ...query, "specification.grade": new RegExp(`${req.query.grade}`, "i") };
-//     }
-//     if (req.query.color) {
-//       query = { ...query, "specification.color": new RegExp(`${req.query.color}`, "i") };
-//     }
-//     if (req.query.size) {
-//       query = { ...query, "specification.size": new RegExp(`${req.query.size}`, "i") };
-//     }
-//     if (req.query.wood) {
-//       query = { ...query, "specification.wood": new RegExp(`${req.query.wood}`, "i") };
-//     }
-//     if (req.query.glue) {
-//       query = { ...query, "specification.glue": new RegExp(`${req.query.glue}`, "i") };
-//     }
-//     if (req.query.warranty) {
-//       query = { ...query, "specification.warranty": new RegExp(`${req.query.warranty}`, "i") };
-//     }
-//     // Status filter
-//     if (req.query.status) {
-//       query = { ...query, status: req.query.status === "true" };
-//     }
-//     // Approval status filter
-//     if (req.query.approved) {
-//       query = { ...query, approved: req.query.approved };
-//     }
-//     // User filters
-//     if (req.query.userName || req.query.userEmail || req.query.userPhone) {
-//       const userQuery: any = {};
-//       if (req.query.userName) {
-//         userQuery.name = new RegExp(`${req.query.userName}`, "i");
-//       }
-//       if (req.query.userEmail) {
-//         userQuery.email = new RegExp(`${req.query.userEmail}`, "i");
-//       }
-//       if (req.query.userPhone) {
-//         userQuery.phone = new RegExp(`${req.query.userPhone}`, "i");
-//       }
-//       const users = await User.find(userQuery).select('_id').exec();
-//       const userIds = users.map(user => user._id);
-//       query = { ...query, createdById: { $in: userIds } };
-//     }
-//     console.log(JSON.stringify(query, null, 2), "query");
-//     const arr = await Product.find(query)
-//       .populate('createdById', 'name email phone')
-//       .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1 })
-//       .lean()
-//       .exec();
-//     res.status(200).json({ message: "Arr", data: arr, success: true });
-//   } catch (error) {
-//     next(error);
-//   }
-// };
 const searchProductWithQuery = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let query = {};
@@ -687,6 +617,102 @@ const searchProductWithQuery = (req, res, next) => __awaiter(void 0, void 0, voi
     }
 });
 exports.searchProductWithQuery = searchProductWithQuery;
+// export const searchProductWithQuery: RequestHandler = async (req, res, next) => {
+//   try {
+//     let query: any = {};
+//     // Role filter
+//     if (req.query.role && req.query.role !== "null") {
+//       query = { ...query, "createdByObj.role": { $ne: req.query.role } };
+//     }
+//     // Name, creator's name, short description, long description, and brand name filter
+//     if (req.query.name) {
+//       const regex = new RegExp(`${req.query.name}`, "i");  // Corrected interpolation
+//       let brandArr = await Brand.find({ name: regex }).exec();
+//       let brandIds = brandArr.length > 0 ? brandArr.map(el => el._id) : [];
+//       query = {
+//         ...query,
+//         $or: [
+//           { name: regex },
+//           { "createdByObj.name": regex },
+//           { "shortDescription": regex },
+//           { "longDescription": regex },
+//           ...(brandIds.length > 0 ? [{ "brand": { $in: brandIds } }] : [])
+//         ]
+//       };
+//     }
+//     // Review search logic (new feature)
+//     if (req.query.reviewQuery) {
+//       const reviewRegex = new RegExp(`${req.query.reviewQuery}`, "i");
+//       query = {
+//         ...query,
+//         reviews: { $elemMatch: { content: reviewRegex } }  // Assuming review has a `content` field
+//       };
+//     }
+//     // Category filter
+//     if (req.query.categoryId) {
+//       const categoryId = new mongoose.Types.ObjectId(req.query.categoryId as string);
+//       query = { ...query, categoryId: categoryId };
+//     }
+//     // Price filter (corrected)
+//     if (req.query.minPrice || req.query.maxPrice) {
+//       const priceQuery: any = {};
+//       if (req.query.minPrice) priceQuery.$gte = parseFloat((req.query.minPrice as string).replace(/,/g, ''));
+//       if (req.query.maxPrice) priceQuery.$lte = parseFloat((req.query.maxPrice as string).replace(/,/g, ''));
+//       query = {
+//         ...query,
+//         $expr: {
+//           $and: [
+//             { $gte: [{ $toDouble: { $replaceAll: { input: "$price", find: ",", replacement: "" } } }, priceQuery.$gte || 0] },
+//             { $lte: [{ $toDouble: { $replaceAll: { input: "$price", find: ",", replacement: "" } } }, priceQuery.$lte || Infinity] }
+//           ]
+//         }
+//       };
+//     }
+//     // Selling Price filter (corrected)
+//     if (req.query.minSellingPrice || req.query.maxSellingPrice) {
+//       const sellingPriceQuery: any = {};
+//       if (req.query.minSellingPrice) sellingPriceQuery.$gte = parseFloat((req.query.minSellingPrice as string).replace(/,/g, ''));
+//       if (req.query.maxSellingPrice) sellingPriceQuery.$lte = parseFloat((req.query.maxSellingPrice as string).replace(/,/g, ''));
+//       query = {
+//         ...query,
+//         $expr: {
+//           $and: [
+//             { $gte: [{ $toDouble: { $replaceAll: { input: "$sellingprice", find: ",", replacement: "" } } }, sellingPriceQuery.$gte || 0] },
+//             { $lte: [{ $toDouble: { $replaceAll: { input: "$sellingprice", find: ",", replacement: "" } } }, sellingPriceQuery.$lte || Infinity] }
+//           ]
+//         }
+//       };
+//     }
+//     // Other filters (unchanged)...
+//     // Pagination logic (new feature)
+//     const page = parseInt(req.query.page as string) || 1;
+//     const limit = parseInt(req.query.limit as string) || 10;
+//     const skip = (page - 1) * limit;
+//     // Execute the query with pagination
+//     const arr = await Product.find(query)
+//       .populate('createdById', 'name email phone mainImage approved')
+//       .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainImage: 1, approved: 1 })
+//       .skip(skip)
+//       .limit(limit)
+//       .lean()
+//       .exec();
+//     // Total count of products for pagination
+//     const totalProducts = await Product.countDocuments(query);
+//     const totalPages = Math.ceil(totalProducts / limit);
+//     res.status(200).json({
+//       message: "Search successful",
+//       data: arr,
+//       success: true,
+//       pagination: {
+//         totalProducts,
+//         totalPages,
+//         currentPage: page
+//       }
+//     });
+//   } catch (error) {
+//     next(error);
+//   }
+// };
 const updateAppById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const ProductObj = yield product_model_1.Product.findById(req.params.id).lean().exec();

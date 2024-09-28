@@ -16,6 +16,8 @@ exports.checkStatusPhonePaymentOrder = exports.createPhonePaymentOrder = void 0;
 const uuid_1 = require("uuid");
 const axios_1 = __importDefault(require("axios"));
 const crypto_1 = __importDefault(require("crypto"));
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
 const createPhonePaymentOrder = (options) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c;
     try {

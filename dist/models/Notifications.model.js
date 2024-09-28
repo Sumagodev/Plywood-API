@@ -4,15 +4,27 @@ exports.Notifications = void 0;
 const mongoose_1 = require("mongoose");
 const notifications = new mongoose_1.Schema({
     userId: {
-        type: mongoose_1.Schema.Types.ObjectId
+        type: mongoose_1.Schema.Types.ObjectId,
     },
     title: String,
     content: String,
+    type: String,
     isRead: { type: Boolean, default: false },
+    viewCount: { type: Number, default: 1 },
+    lastAccessTime: { type: Date, default: Date.now },
+    payload: {
+        type: Object,
+        default: {} // Keep payload for dynamic data
+    },
     createdAt: {
         type: Date,
         default: Date.now,
-        expires: 15 * 60 * 60 * 5, // The document will be automatically deleted after 5 minutes of its creation time
     },
+    updatedAt: {
+        type: Date,
+        default: Date.now,
+    },
+}, {
+    timestamps: true, // Automatically handle createdAt and updatedAt
 });
 exports.Notifications = (0, mongoose_1.model)("notifications", notifications);
