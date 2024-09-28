@@ -1,11 +1,19 @@
 import express from "express";
 import {
-  createBannerImage
+    createBannerImage,
+    getAllBannerImages,
+    getBannerImageById,
+    updateBannerImage,
+    deleteBannerImage,
 } from "../controllers/BannerImage.controller";
 
 const router = express.Router();
 
-router.post("/", createBannerImage);
-
+// Routes for banner images
+router.post("/postbanner", createBannerImage);              // Create a banner image
+router.get("/getbanner", getAllBannerImages);              // Get all banner images
+router.get("/getbannerby/:id", getBannerImageById);          // Get a banner image by ID
+router.put("/updatebanner/:id", updateBannerImage);           // Update a banner image by ID
+router.delete("/deletebanner/:id", deleteBannerImage);        // Delete a banner image by ID
 
 export default router;
