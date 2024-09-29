@@ -87,7 +87,19 @@ export const addLead = async (req: Request, res: Response, next: NextFunction) =
       };
 
      
-      let visitorUserId=req.body.createdById;
+      
+      
+  
+      
+      if (obj?.tokens && obj?.tokens?.length > 0) {
+        await fcmMulticastNotify(obj);
+      }
+    }
+
+
+
+    res.status(200).json({ message: "Lead Successfully Created", success: true });
+    let visitorUserId=req.body.createdById;
       let leadUser = await User.findById(visitorUserId).lean().exec();
       if (!leadUser) throw new Error("Lead User Not Found");
 
@@ -118,17 +130,6 @@ export const addLead = async (req: Request, res: Response, next: NextFunction) =
           } catch (error) {
               console.error('Error saving new notification:', error);
           }
-      
-  
-      
-      if (obj?.tokens && obj?.tokens?.length > 0) {
-        await fcmMulticastNotify(obj);
-      }
-    }
-
-
-
-    res.status(200).json({ message: "Lead Successfully Created", success: true });
   } catch (err) {
     next(err);
   }
