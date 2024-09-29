@@ -17,7 +17,9 @@ const user_model_1 = require("../models/user.model");
 const City_model_1 = require("../models/City.model");
 const State_model_1 = require("../models/State.model");
 const product_model_1 = require("../models/product.model");
+const Notifications_model_1 = require("../models/Notifications.model");
 const addAdvertisementSubscription = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         console.log(req.body);
         // const AdvertisementSubscriptionNameCheck = await AdvertisementSubscription.findOne({
@@ -58,6 +60,35 @@ const addAdvertisementSubscription = (req, res, next) => __awaiter(void 0, void 
             throw new Error("Unable to create Advertisement Subscription");
         }
         res.status(200).json({ message: "Advertisement Subscription Successfully Created", success: true });
+        let visitorUserId = req.body.userId;
+        let leadUser = yield user_model_1.User.findById(req.body.userId).lean().exec();
+        if (!leadUser)
+            throw new Error("Lead User Not Found");
+        const productObj = yield product_model_1.Product.findById(req.body.productId).exec();
+        const newNotification = new Notifications_model_1.Notifications({
+            userId: req.body.userId,
+            type: 'new_arrival',
+            title: 'New Arrival Are Here',
+            content: `Check out the latest Product ${productObj === null || productObj === void 0 ? void 0 : productObj.name} to our collection!`,
+            isRead: false,
+            // Message content
+            payload: {
+                accessedBy: visitorUserId,
+                accessTime: new Date(),
+                organizationName: ((_a = leadUser === null || leadUser === void 0 ? void 0 : leadUser.companyObj) === null || _a === void 0 ? void 0 : _a.name) || 'Unknown',
+                phone: leadUser === null || leadUser === void 0 ? void 0 : leadUser.phone,
+                productObj: productObj,
+                name: leadUser === null || leadUser === void 0 ? void 0 : leadUser.name,
+                leadUserObj: leadUser,
+            }
+        });
+        try {
+            yield newNotification.save();
+            console.log('New notification created with viewCount and lastAccessTime');
+        }
+        catch (error) {
+            console.error('Error saving new notification:', error);
+        }
     }
     catch (err) {
         next(err);

@@ -60,6 +60,7 @@ const addFlashSale = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
             isRead: false,
             viewCount: 1,
             lastAccessTime: new Date(),
+            reach: 'all',
             payload: {
                 reach: 'all',
                 accessTime: new Date(),

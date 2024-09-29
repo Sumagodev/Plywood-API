@@ -438,7 +438,7 @@ const getUserById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
                     $set: {
                         lastAccessTime: new Date(),
                         isRead: false,
-                    } // Update lastAccessTime to current time
+                    }
                 });
                 console.log('Notification updated with incremented view count and updated last access time');
             }

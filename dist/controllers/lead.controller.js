@@ -110,6 +110,7 @@ const addLead = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
             type: 'contact',
             title: 'Someone tried to contact you',
             content: `Someone tried to contact you  => user ${visitorUserId}`,
+            isRead: false,
             payload: {
                 accessedBy: visitorUserId,
                 accessTime: new Date(),
@@ -127,9 +128,6 @@ const addLead = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
         catch (error) {
             console.error('Error saving new notification:', error);
         }
-        console.log('After lead created console ++++++++++++++++++++++++++++++++++++++++++');
-        console.log('After lead created console ++++++++++++++++++++++++++++++++++++++++++');
-        console.log('After lead created console ++++++++++++++++++++++++++++++++++++++++++');
     }
     catch (err) {
         next(err);

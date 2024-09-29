@@ -20,8 +20,10 @@ const State_model_1 = require("../models/State.model");
 const adddealership_model_1 = require("../models/adddealership.model");
 const mongoose_1 = __importDefault(require("mongoose"));
 const category_model_1 = require("../models/category.model");
+const Notifications_model_1 = require("../models/Notifications.model");
 // Create a new dealership owner (linked to an existing user)xxxxx
 const createDealershipOwner = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     try {
         const { userId, image, cityId, productId, Product, stateId, categoryId, Brand, email } = req.body;
         // Check if the user exists
@@ -41,6 +43,36 @@ const createDealershipOwner = (req, res, next) => __awaiter(void 0, void 0, void
         const newOwner = new adddealership_model_1.DealershipOwner(Object.assign(Object.assign({}, req.body), { productId: productId || Product }));
         const savedOwner = yield newOwner.save();
         res.status(201).json({ message: "Dealership Owner Created Successfully", data: savedOwner });
+        let leadProduct = yield Product.findById(productId);
+        const newNotification = new Notifications_model_1.Notifications({
+            userId: req.params.userId,
+            type: 'dealershipOpportunity',
+            title: 'Dealership Opportunity Created',
+            content: `Exclusive Dealership Opportunity Available For ${leadProduct === null || leadProduct === void 0 ? void 0 : leadProduct.brandName}! `,
+            sourceId: ((_a = req === null || req === void 0 ? void 0 : req.body) === null || _a === void 0 ? void 0 : _a.productSlug) || '',
+            isRead: false,
+            viewCount: 1,
+            reach: 'all',
+            lastAccessTime: new Date(),
+            payload: {
+                reach: 'all',
+                accessTime: new Date(),
+                organizationName: ((_b = user === null || user === void 0 ? void 0 : user.companyObj) === null || _b === void 0 ? void 0 : _b.name) || 'Unknown',
+                phone: user === null || user === void 0 ? void 0 : user.phone,
+                name: user === null || user === void 0 ? void 0 : user.name,
+                organizationObj: user,
+                opportunity: savedOwner,
+                leadProduct: leadProduct
+            }
+        });
+        // Save the new notification to the database
+        try {
+            yield newNotification.save();
+            console.log('New notification created with viewCount and lastAccessTime');
+        }
+        catch (error) {
+            console.error('Error saving new notification:', error);
+        }
     }
     catch (error) {
         next(error);
