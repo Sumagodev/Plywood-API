@@ -39,6 +39,10 @@ const createDealershipOwner = (req, res, next) => __awaiter(void 0, void 0, void
         if (cityId && !Array.isArray(cityId)) {
             return res.status(400).json({ message: "cityId must be an array" });
         }
+        const objectIdArray = cityId.map((id) => new mongoose_1.default.Types.ObjectId(id));
+        // Query to find all cities with cityIds in the array
+        const cities = yield City_model_1.City.find({ _id: { $in: objectIdArray } });
+        const stateObj = yield State_model_1.State.findById(stateId);
         // Create a new dealership owner entry
         const newOwner = new adddealership_model_1.DealershipOwner(Object.assign(Object.assign({}, req.body), { productId: productId || Product }));
         const savedOwner = yield newOwner.save();
@@ -59,7 +63,9 @@ const createDealershipOwner = (req, res, next) => __awaiter(void 0, void 0, void
                 name: user === null || user === void 0 ? void 0 : user.name,
                 organizationObj: user,
                 opportunity: savedOwner,
-                brand: Brand
+                brand: Brand,
+                cities: cities,
+                stateObj: stateObj,
             }
         });
         // Save the new notification to the database

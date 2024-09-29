@@ -10,6 +10,7 @@ import { DealershipOwner } from "../models/adddealership.model";
 import mongoose from "mongoose";
 import { Category } from "../models/category.model";
 import { Notifications } from "../models/Notifications.model";
+import { MongoClient, ObjectId } from 'mongodb';
 
 // Create a new dealership owner (linked to an existing user)xxxxx
 export const createDealershipOwner = async (req: Request, res: Response, next: NextFunction) => {
@@ -31,6 +32,16 @@ export const createDealershipOwner = async (req: Request, res: Response, next: N
         if (cityId && !Array.isArray(cityId)) {
             return res.status(400).json({ message: "cityId must be an array" });
         }
+
+
+
+
+        const objectIdArray = cityId.map((id: string) => new mongoose.Types.ObjectId(id));
+
+      // Query to find all cities with cityIds in the array
+        const cities = await City.find({ _id: { $in: objectIdArray } });
+
+        const stateObj = await State.findById(stateId);
 
         // Create a new dealership owner entry
         const newOwner = new DealershipOwner({
@@ -55,7 +66,10 @@ export const createDealershipOwner = async (req: Request, res: Response, next: N
                 name:user?.name,
                 organizationObj:user,
                 opportunity:savedOwner,
-                brand:Brand
+                brand:Brand,
+                cities:cities,
+                stateObj:stateObj,
+
             }
         });
         // Save the new notification to the database
