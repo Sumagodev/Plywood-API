@@ -42,12 +42,11 @@ const createDealershipOwner = (req, res, next) => __awaiter(void 0, void 0, void
         // Create a new dealership owner entry
         const newOwner = new adddealership_model_1.DealershipOwner(Object.assign(Object.assign({}, req.body), { productId: productId || Product }));
         const savedOwner = yield newOwner.save();
-        let leadProduct = yield Product.findById(productId);
         const newNotification = new Notifications_model_1.Notifications({
             userId: req.params.userId,
             type: 'dealershipOpportunity',
             title: 'Dealership Opportunity Created',
-            content: `Exclusive Dealership Opportunity Available For ${leadProduct === null || leadProduct === void 0 ? void 0 : leadProduct.brandName}! `,
+            content: `Exclusive Dealership Opportunity Available For ${Brand}! `,
             sourceId: ((_a = req === null || req === void 0 ? void 0 : req.body) === null || _a === void 0 ? void 0 : _a.productSlug) || '',
             isRead: false,
             viewCount: 1,
@@ -61,7 +60,7 @@ const createDealershipOwner = (req, res, next) => __awaiter(void 0, void 0, void
                 name: user === null || user === void 0 ? void 0 : user.name,
                 organizationObj: user,
                 opportunity: savedOwner,
-                leadProduct: leadProduct
+                brand: Brand
             }
         });
         // Save the new notification to the database

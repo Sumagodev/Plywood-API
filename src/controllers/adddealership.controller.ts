@@ -38,12 +38,11 @@ export const createDealershipOwner = async (req: Request, res: Response, next: N
             productId: productId || Product, // Use productId if provided, otherwise fall back to Product
         });
         const savedOwner = await newOwner.save();
-        let leadProduct= await Product.findById(productId);
         const newNotification = new Notifications({
             userId: req.params.userId,         
             type: 'dealershipOpportunity',
             title: 'Dealership Opportunity Created',  
-            content: `Exclusive Dealership Opportunity Available For ${leadProduct?.brandName}! `,
+            content: `Exclusive Dealership Opportunity Available For ${Brand}! `,
             sourceId: req?.body?.productSlug || '',             
             isRead: false,                      
             viewCount: 1,
@@ -57,7 +56,7 @@ export const createDealershipOwner = async (req: Request, res: Response, next: N
                 name:user?.name,
                 organizationObj:user,
                 opportunity:savedOwner,
-                leadProduct:leadProduct
+                brand:Brand
             }
         });
         // Save the new notification to the database
