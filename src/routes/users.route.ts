@@ -25,7 +25,7 @@ import {
   updateUserById,
   uploadDocuments,
   verifyUserById,
-  webLogin,getTopVendors
+  webLogin,
 } from "../controllers/user.contoller";
 import { authorizeJwt } from "../middlewares/auth.middleware";
 import { upload } from "../middlewares/multer.middleware";
@@ -47,8 +47,6 @@ router.patch("/updateUserById/:id", authorizeJwt, updateUserById);
 router.get("/searchVendor", searchVendor);
 router.get("/getAllUsers", getAllUsers);
 router.get("/getAllUsersForWebsite", getAllUsersForWebsite);
-router.get("/getTopVendors", getTopVendors);
-
 router.get("/getAllUsersWithAniversaryDate", getAllUsersWithAniversaryDate);
 router.get("/getAllUsersWithSubsciption", authorizeJwt, getAllUsersWithSubsciption);
 router.get("/checkForValidSubscription/:id", checkForValidSubscription);

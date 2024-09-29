@@ -1024,6 +1024,7 @@ export const checkForValidSubscriptionAndReturnBoolean = async (req: Request, re
     next(error);
   }
 };
+
 export const getAllUsersForWebsite = async (req: Request, res: Response, next: NextFunction) => {
   try {
     console.log(req.query, "query");
@@ -1044,7 +1045,6 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
         {
           companyName: regex,
         },
-       
       ];
       query = { ...query, ...{ $or: rangeQuery } };
     }
@@ -1059,7 +1059,6 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
         {
           companyName: regex,
         },
-        
       ];
       query = { ...query, ...{ $or: rangeQuery } };
     }
@@ -1103,7 +1102,6 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
     //   let locationArr = `${req.query.city}`.split(",");
     //   query = { ...query, "state": { $in: [...locationArr] } };
     // }
-    
     if (req.query.rating) {
       let ratingValue: number = +req.query.rating;
       query = { ...query, "rating": { $gte: ratingValue } };
@@ -1151,24 +1149,6 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
         },
       },
       {
-        "$lookup": {
-          "from": "states",
-          "localField": "stateId",
-          "foreignField": "_id",
-          "as": "stateInfo",
-        },
-      },
-      {
-        "$addFields": {
-          "productsCount": {
-            "$size": "$productsArr",
-          },
-          "stateName": {
-            "$arrayElemAt": ["$stateInfo.name", 0],
-          },
-        },
-      },
-      {
         "$unwind": {
           "path": "$productsArr",
           "preserveNullAndEmptyArrays": true,
@@ -1185,12 +1165,6 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
           "_id": "$_id",
           "name": {
             "$first": "$name",
-          },
-          "phone": {
-            "$first": "$phone",
-          },
-          "address": {
-            "$first": "$address",
           },
           "companyName": {
             "$first": "$companyObj.name",
@@ -1238,9 +1212,6 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
             "$first": {
               "role": "$productsArr.createdByObj.role",
             },
-          },
-          "stateName": {
-            "$first": "$stateName",
           },
         },
       },
@@ -1292,295 +1263,6 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
     const totalPages = Math.ceil(totalUsers / limitValue);
     // console.log(JSON.stringify(users, null, 2))
     res.json({ message: "ALL Users", data: users, total: totalPages });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// export const getAllUsersForWebsite = async (req: Request, res: Response, next: NextFunction) => {
-//   try {
-//     console.log(req.query, "query");
-
-//     let query: any = {};
-
-//     // Optional search query
-//     if (req.query.searchQuery) {
-//       let regex = new RegExp(`${req.query.searchQuery}`, "i");
-//       query = { ...query, $or: [{ name: regex }, { companyName: regex }] };
-//     }
-
-//     // Optional filters
-//     if (req.query.q) {
-//       let regex = new RegExp(`${req.query.q}`, "i");
-//       query = { ...query, $or: [{ name: regex }, { companyName: regex }] };
-//     }
-
-//     if (req.query.role) {
-//       query = { ...query, "role": req.query.role };
-//     }
-
-//     if (req.query.category) {
-//       query = { ...query, "categoryIdArr.categoryId": req.query.category };
-//     }
-
-//     if (req.query.rating) {
-//       let ratingValue: number = +req.query.rating;
-//       query = { ...query, "rating": { $gte: ratingValue } };
-//     }
-
-//     if (req.query.locations) {
-//       let locationArr = `${req.query.locations}`.split(",");
-//       query = { ...query, "cityId": { $in: [...locationArr] } };
-//     }
-
-//     if (req.query.state) {
-//       let locationArr = `${req.query.state}`.split(",");
-//       query = { ...query, "stateId": { $in: [...locationArr] } };
-//     }
-
-//     // Pagination
-//     let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
-//     let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 10;
-
-//     const pipeline: any = [
-//       {
-//         "$match": {
-//           ...query,
-//         },
-//       },
-//       {
-//         "$lookup": {
-//           "from": "products",
-//           "localField": "_id",
-//           "foreignField": "createdById",
-//           "pipeline": [
-//             {
-//               "$match": {
-//                 "approved": "APPROVED",
-//               },
-//             },
-//           ],
-//           "as": "productsArr",
-//         },
-//       },
-//       {
-//         "$addFields": {
-//           "productsCount": {
-//             "$size": "$productsArr",
-//           },
-//         },
-//       },
-//       // Removed unwinding stages to keep products array intact
-//       {
-//         "$skip": (pageValue - 1) * limitValue,
-//       },
-//       {
-//         "$limit": limitValue,
-//       },
-//     ];
-
-//     // Execute the aggregation pipeline
-//     const profiles = await User.aggregate(pipeline);
-
-//     // Step 1: Extract cityIds and stateIds from the profiles
-//     const cityIds = profiles
-//       .map((profile: any) => profile.cityId)
-//       .filter((id: any) => id); // Ensure no null or undefined values
-//     const stateIds = profiles
-//       .map((profile: any) => profile.stateId)
-//       .filter((id: any) => id); // Ensure no null or undefined values
-
-//     // Step 2: Fetch city and state details
-//     const cityDetails = await City.find({ _id: { $in: cityIds } }).select("name _id");
-//     const stateDetails = await State.find({ _id: { $in: stateIds } }).select("name _id");
-
-//     // Step 3: Merge city and state details into the profiles
-//     const finalProfiles = profiles.map((profile: any) => {
-//       const city = cityDetails.find((c: any) => c._id.toString() === (profile.cityId || '').toString());
-//       const state = stateDetails.find((s: any) => s._id.toString() === (profile.stateId || '').toString());
-
-//       return {
-//         ...profile,
-//         cityName: city ? city.name : null,
-//         stateName: state ? state.name : null,
-//       };
-//     });
-
-//     // Get total profiles count for pagination
-//     const totalPipeline = [
-//       { "$match": { ...query } },
-//       { "$count": "count" },
-//     ];
-
-//     const totalProfiles: any = await User.aggregate(totalPipeline);
-//     const total = totalProfiles.length > 0 ? totalProfiles[0].count : 0;
-//     const totalPages = Math.ceil(total / limitValue);
-
-//     res.json({ message: "getALLuserforwebsite", data: finalProfiles, total: totalPages });
-//   } catch (error) {
-//     next(error);
-//   }
-// }
-
-
-
-export const getTopVendors = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    console.log(req.query, "query");
-
-    let query: any = {};
-
-    // Optional search query
-    if (req.query.searchQuery) {
-      let regex = new RegExp(`${req.query.searchQuery}`, "i");
-      query = { ...query, $or: [{ name: regex }, { companyName: regex }] };
-    }
-
-    // Optional filters
-    if (req.query.q) {
-      let regex = new RegExp(`${req.query.q}`, "i");
-      query = { ...query, $or: [{ name: regex }, { companyName: regex }] };
-    }
-
-    if (req.query.role) {
-      query = { ...query, "role": req.query.role };
-    }
-
-    if (req.query.category) {
-      query = { ...query, "categoryIdArr.categoryId": req.query.category };
-    }
-
-    if (req.query.rating) {
-      let ratingValue: number = +req.query.rating;
-      query = { ...query, "rating": { $gte: ratingValue } };
-    }
-
-    if (req.query.locations) {
-      let locationArr = `${req.query.locations}`.split(",");
-      query = { ...query, "cityId": { $in: [...locationArr] } };
-    }
-
-    if (req.query.state) {
-      let locationArr = `${req.query.state}`.split(",");
-      query = { ...query, "stateId": { $in: [...locationArr] } };
-    }
-
-    // Pagination
-    let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
-    let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 10;
-
-    const pipeline: any = [
-      {
-        "$match": {
-          ...query,
-        },
-      },
-      {
-        "$sort": {
-          "rating": -1, // Sort by rating in descending order
-        },
-      },
-      {
-        "$lookup": {
-          "from": "products",
-          "localField": "_id",
-          "foreignField": "createdById",
-          "pipeline": [
-            {
-              "$match": {
-                "approved": "APPROVED",
-              },
-            },
-          ],
-          "as": "productsArr",
-        },
-      },
-      {
-        "$addFields": {
-          "productsCount": {
-            "$size": "$productsArr",
-          },
-        },
-      },
-      {
-        "$unwind": {
-          "path": "$productsArr",
-          "preserveNullAndEmptyArrays": true,
-        },
-      },
-      {
-        "$unwind": {
-          "path": "$productsArr.categoryArr",
-          "preserveNullAndEmptyArrays": true,
-        },
-      },
-      {
-        "$group": {
-          "_id": "$_id",
-          "name": { "$first": "$name" },
-          "companyName": { "$first": "$companyObj.name" },
-          "bannerImage": { "$first": "$bannerImage" },
-          "profileImage": { "$first": "$profileImage" },
-          "productsCount": { "$first": "$productsCount" },
-          "rating": { "$first": "$rating" },
-          "categoryIdArr": { "$addToSet": { "categoryId": { "$toString": "$productsArr.categoryArr.categoryId" } } },
-          "countryId": { "$first": "$countryId" },
-          "stateId": { "$first": "$stateId" },
-          "cityId": { "$first": "$cityId" },
-          "phone": { "$first": "$phone" },
-        },
-      },
-      {
-        "$sort": {
-          "rating": -1, // Ensure the sorting by rating
-        },
-      },
-      {
-        "$skip": (pageValue - 1) * limitValue,
-      },
-      {
-        "$limit": limitValue,
-      },
-    ];
-
-    // Execute the aggregation pipeline
-    const profiles = await User.aggregate(pipeline);
-
-    // Step 1: Extract cityIds and stateIds from the profiles
-    const cityIds = profiles
-      .map((profile: any) => profile.cityId)
-      .filter((id: any) => id); // Ensure no null or undefined values
-    const stateIds = profiles
-      .map((profile: any) => profile.stateId)
-      .filter((id: any) => id); // Ensure no null or undefined values
-
-    // Step 2: Fetch city and state details
-    const cityDetails = await City.find({ _id: { $in: cityIds } }).select("name _id");
-    const stateDetails = await State.find({ _id: { $in: stateIds } }).select("name _id");
-
-    // Step 3: Merge city and state details into the profiles
-    const finalProfiles = profiles.map((profile: any) => {
-      const city = cityDetails.find((c: any) => c._id.toString() === (profile.cityId || '').toString());
-      const state = stateDetails.find((s: any) => s._id.toString() === (profile.stateId || '').toString());
-
-      return {
-        ...profile,
-        cityName: city ? city.name : null,
-        stateName: state ? state.name : null,
-      };
-    });
-
-    // Get total profiles count for pagination
-    const totalPipeline = [
-      { "$match": { ...query } },
-      { "$count": "count" },
-    ];
-
-    const totalProfiles: any = await User.aggregate(totalPipeline);
-    const total = totalProfiles.length > 0 ? totalProfiles[0].count : 0;
-    const totalPages = Math.ceil(total / limitValue);
-
-    res.json({ message: "Top Profiles", data: finalProfiles, total: totalPages });
   } catch (error) {
     next(error);
   }

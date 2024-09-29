@@ -14,8 +14,7 @@ const dateUtils_1 = require("../helpers/dateUtils");
 const fileSystem_1 = require("../helpers/fileSystem");
 const AdvertisementSubscription_model_1 = require("../models/AdvertisementSubscription.model");
 const user_model_1 = require("../models/user.model");
-const City_model_1 = require("../models/City.model");
-const State_model_1 = require("../models/State.model");
+const City_model_1 = require("../models/City.model"); // Adjust the path to your City model
 const product_model_1 = require("../models/product.model");
 const addAdvertisementSubscription = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -92,28 +91,6 @@ const getAdvertisementSubscription = (req, res, next) => __awaiter(void 0, void 
     }
 });
 exports.getAdvertisementSubscription = getAdvertisementSubscription;
-// export const getAdvertisementSubscriptionForHomepage = async (req: Request, res: Response, next: NextFunction) => {
-//     try {
-//         let AdvertisementSubscriptionArr: any = [];
-//         let query: any = {}
-//         let today = new Date();
-//         today.setHours(23, 59, 59, 59);
-//         console.log(req.query, "req.query.q")
-//         if (req.query.q) {
-//             query.name = new RegExp(`${req.query.q}`, "i");
-//         }
-//         AdvertisementSubscriptionArr = await Advertisement.find().lean().exec();
-//         // for (let AdvertisementSubscription of AdvertisementSubscriptionArr) {
-//         //   if (AdvertisementSubscription.AdvertisementSubscriptionId) {
-//         //     console.log(AdvertisementSubscription.AdvertisementSubscriptionId, "AdvertisementSubscriptionIdAdvertisementSubscriptionId")
-//         //     AdvertisementSubscription.AdvertisementSubscriptionObj = await AdvertisementSubscription.findById(AdvertisementSubscription.AdvertisementSubscriptionId).exec();
-//         //   }
-//         // }
-//         res.status(200).json({ message: "get Advertisement Subscription", data: AdvertisementSubscriptionArr, success: true });
-//     } catch (err) {
-//         next(err);
-//     }
-// };
 const getAdvertisementSubscriptionForHomepage = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let AdvertisementSubscriptionArr = [];
@@ -144,27 +121,19 @@ const getAdvertisementSubscriptionForHomepage = (req, res, next) => __awaiter(vo
         ]);
         // Map city IDs from users
         const cityIds = users.map(user => user.cityId);
-        const staeIds = users.map(user => user.stateId);
         const cities = yield City_model_1.City.find({ _id: { $in: cityIds } }).lean().exec();
-        const states = yield State_model_1.State.find({ _id: { $in: staeIds } }).lean().exec();
-        // Create mappings for cities, products, and users
+        // Create mappings for cities and products
         const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
-        const stateMap = new Map(states.map(state => [state._id.toString(), state.name]));
         const productMap = new Map(products.map(product => [product._id.toString(), product]));
         const userMap = new Map(users.map(user => [user._id.toString(), user]));
         // Map advertisements to include city name, product details, and user details
         AdvertisementSubscriptionArr = advertisements.map(ad => {
-            var _a, _b;
+            var _a;
             const userCityId = ((_a = userMap.get(ad.userId.toString())) === null || _a === void 0 ? void 0 : _a.cityId.toString()) || '';
-            const userStaeid = ((_b = userMap.get(ad.userId.toString())) === null || _b === void 0 ? void 0 : _b.stateId.toString()) || '';
             const cityName = cityMap.get(userCityId) || 'Unknown City';
-            const stateName = stateMap.get(userStaeid) || 'Unknown state';
             const product = productMap.get(ad.productId.toString()) || null;
             const user = userMap.get(ad.userId.toString()) || null;
-            return Object.assign(Object.assign({ productname: product ? product.name : "N/A", verifeied: product ? product.createdByObj.isVerified : "false", phone: user ? user.phone : "false", cityName,
-                stateName }, ad), { 
-                // Full user object
-                price: product ? product.price : 'N/A' });
+            return Object.assign(Object.assign({}, ad), { cityName, price: product ? product.price : 'N/A', product: product, user: user });
         });
         res.status(200).json({
             message: "Get Advertisement Subscription",

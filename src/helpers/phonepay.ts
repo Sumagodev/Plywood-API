@@ -1,9 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 import crypto from 'crypto';
-import dotenv from 'dotenv';
-dotenv.config();
-
 
 export const createPhonePaymentOrder = async (options: any) => {
   try {

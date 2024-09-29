@@ -12,8 +12,6 @@ import brandRouter from "./routes/brand.routes";
 import productRouter from "./routes/product.route";
 import countryRouter from "./routes/country.routes";
 import stateRouter from "./routes/state.routes";
-import stateDetailRouter from "./routes/stateDetail.routes";
-import BannerImage from "./routes/BannerImage.routes"
 import cityRouter from "./routes/city.routes";
 import subscriptionRouter from "./routes/subscription.routes";
 import leadRouter from "./routes/leads.routes";
@@ -31,7 +29,6 @@ import usertopupRouter from "./routes/usertopup.routes";
 import newsLetterRouter from "./routes/newsletter.routes";
 import websiteDataRouter from "./routes/websiteData.routes";
 import seoRouter from "./routes/seo.routes";
-import quickenqury from './routes/quickenquiry.routes'
 import homepageBannerRouter from "./routes/homepageBanner.routes";
 import { setUserAndUserObj } from "./middlewares/auth.middleware";
 import mongoose from "mongoose";
@@ -39,8 +36,6 @@ import { CONFIG } from "./helpers/config";
 import { seedData } from "./seeder/seeder";
 import cors from "cors";
 import { errorHandler } from "./middlewares/errorHandler.middleware";
-import dealershipOwnerRoutes from './routes/dealershipOwnerRoutes.routes'
-import dealershipUSerRoutes from './routes/dealershipUesrRoutes.routes'
 
 mongoose.connect(CONFIG.MONGOURI, (err) => {
   if (err) {
@@ -73,20 +68,14 @@ app.use("/blogVideo", blogVideoRouter);
 app.use("/product", productRouter);
 app.use("/country", countryRouter);
 app.use("/state", stateRouter);
-app.use("/stateDetail", stateDetailRouter);
 app.use("/city", cityRouter);
 app.use("/subscription", subscriptionRouter);
 app.use("/advertisement", advertisementRouter);
 app.use("/usersubscription", userSubscriptionRouter);
-app.use("/dealershipOwnerRoutes", dealershipOwnerRoutes);
-app.use("/dealershipUserRoutes", dealershipUSerRoutes);
-app.use("/BannerImage",BannerImage)
 app.use("/leads", leadRouter);
 app.use("/flashSales", flashSaleRouter);
 app.use("/productReview", productReviewRouter);
 app.use("/userRequirement", userRequirementRouter);
-app.use("/quickenqury", quickenqury);
-
 app.use("/userTicket", userTicketRouter);
 app.use("/userTicketMessage", userTicketMessageRouter);
 app.use("/topup", topupRouter);

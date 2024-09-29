@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllSalesReport = exports.ChangeAllManufacturerRoles = exports.getSalesUsers = exports.markedAsReadNotificatins = exports.getUserNotifications = exports.registerUserFcmToken = exports.getAllUsersWithAniversaryDate = exports.getTopVendors = exports.getAllUsersForWebsite = exports.checkForValidSubscriptionAndReturnBoolean = exports.checkForValidSubscription = exports.sentOtp = exports.refreshToken = exports.getAllUsersWithSubsciption = exports.searchVendor = exports.getAllUsers = exports.uploadDocuments = exports.blockUserById = exports.verifyUserById = exports.approveUserById = exports.getUserById = exports.deleteUserById = exports.registerUser = exports.updateUserById = exports.addUser = exports.appLogin = exports.webLogin = void 0;
+exports.getAllSalesReport = exports.ChangeAllManufacturerRoles = exports.getSalesUsers = exports.markedAsReadNotificatins = exports.getUserNotifications = exports.registerUserFcmToken = exports.getAllUsersWithAniversaryDate = exports.getAllUsersForWebsite = exports.checkForValidSubscriptionAndReturnBoolean = exports.checkForValidSubscription = exports.sentOtp = exports.refreshToken = exports.getAllUsersWithSubsciption = exports.searchVendor = exports.getAllUsers = exports.uploadDocuments = exports.blockUserById = exports.verifyUserById = exports.approveUserById = exports.getUserById = exports.deleteUserById = exports.registerUser = exports.updateUserById = exports.addUser = exports.appLogin = exports.webLogin = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const bcrypt_1 = require("../helpers/bcrypt");
 const config_1 = require("../helpers/config");
@@ -1083,57 +1083,6 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                 },
             },
             {
-                "$addFields": {
-                    "stateIdObj": {
-                        "$toObjectId": "$stateId"  
-                    }
-                }
-            },
-            {
-                "$lookup": {
-                    "from": "states", 
-                    "localField": "stateIdObj",
-                    "foreignField": "_id",
-                    "as": "stateInfo", 
-                },
-            },
-            {
-                "$addFields": {
-                    "stateName": {
-                        "$arrayElemAt": ["$stateInfo.name", 0], // Get the first state name from the matched results
-                    },
-                },
-            },
-            {
-                "$addFields": {
-                    "cityIdObj": {
-                        "$toObjectId": "$cityId"  
-                    }
-                }
-            },
-            {
-                "$lookup": {
-                    "from": "cities", 
-                    "localField": "cityIdObj",
-                    "foreignField": "_id",
-                    "as": "cityInfo", 
-                },
-            },
-            {
-                "$addFields": {
-                    "cityName": {
-                        "$arrayElemAt": ["$cityInfo.name", 0], // Get the first state name from the matched results
-                    },
-                },
-            },
-            {
-                "$addFields": {
-                    "productsCount": {
-                        "$size": "$productsArr",
-                    },
-                },
-            },
-            {
                 "$unwind": {
                     "path": "$productsArr",
                     "preserveNullAndEmptyArrays": true,
@@ -1150,12 +1099,6 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                     "_id": "$_id",
                     "name": {
                         "$first": "$name",
-                    },
-                    "phone": {
-                        "$first": "$phone",
-                    },
-                    "address": {
-                        "$first": "$address",
                     },
                     "companyName": {
                         "$first": "$companyObj.name",
@@ -1203,12 +1146,6 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                         "$first": {
                             "role": "$productsArr.createdByObj.role",
                         },
-                    },
-                    "stateName": {
-                        "$first": "$stateName",
-                    },
-                    "cityName": {
-                        "$first": "$cityName",
                     },
                 },
             },
@@ -1260,251 +1197,6 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
     }
 });
 exports.getAllUsersForWebsite = getAllUsersForWebsite;
-// export const getAllUsersForWebsite = async (req: Request, res: Response, next: NextFunction) => {
-//   try {
-//     console.log(req.query, "query");
-//     let query: any = {};
-//     // Optional search query
-//     if (req.query.searchQuery) {
-//       let regex = new RegExp(`${req.query.searchQuery}`, "i");
-//       query = { ...query, $or: [{ name: regex }, { companyName: regex }] };
-//     }
-//     // Optional filters
-//     if (req.query.q) {
-//       let regex = new RegExp(`${req.query.q}`, "i");
-//       query = { ...query, $or: [{ name: regex }, { companyName: regex }] };
-//     }
-//     if (req.query.role) {
-//       query = { ...query, "role": req.query.role };
-//     }
-//     if (req.query.category) {
-//       query = { ...query, "categoryIdArr.categoryId": req.query.category };
-//     }
-//     if (req.query.rating) {
-//       let ratingValue: number = +req.query.rating;
-//       query = { ...query, "rating": { $gte: ratingValue } };
-//     }
-//     if (req.query.locations) {
-//       let locationArr = `${req.query.locations}`.split(",");
-//       query = { ...query, "cityId": { $in: [...locationArr] } };
-//     }
-//     if (req.query.state) {
-//       let locationArr = `${req.query.state}`.split(",");
-//       query = { ...query, "stateId": { $in: [...locationArr] } };
-//     }
-//     // Pagination
-//     let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
-//     let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 10;
-//     const pipeline: any = [
-//       {
-//         "$match": {
-//           ...query,
-//         },
-//       },
-//       {
-//         "$lookup": {
-//           "from": "products",
-//           "localField": "_id",
-//           "foreignField": "createdById",
-//           "pipeline": [
-//             {
-//               "$match": {
-//                 "approved": "APPROVED",
-//               },
-//             },
-//           ],
-//           "as": "productsArr",
-//         },
-//       },
-//       {
-//         "$addFields": {
-//           "productsCount": {
-//             "$size": "$productsArr",
-//           },
-//         },
-//       },
-//       // Removed unwinding stages to keep products array intact
-//       {
-//         "$skip": (pageValue - 1) * limitValue,
-//       },
-//       {
-//         "$limit": limitValue,
-//       },
-//     ];
-//     // Execute the aggregation pipeline
-//     const profiles = await User.aggregate(pipeline);
-//     // Step 1: Extract cityIds and stateIds from the profiles
-//     const cityIds = profiles
-//       .map((profile: any) => profile.cityId)
-//       .filter((id: any) => id); // Ensure no null or undefined values
-//     const stateIds = profiles
-//       .map((profile: any) => profile.stateId)
-//       .filter((id: any) => id); // Ensure no null or undefined values
-//     // Step 2: Fetch city and state details
-//     const cityDetails = await City.find({ _id: { $in: cityIds } }).select("name _id");
-//     const stateDetails = await State.find({ _id: { $in: stateIds } }).select("name _id");
-//     // Step 3: Merge city and state details into the profiles
-//     const finalProfiles = profiles.map((profile: any) => {
-//       const city = cityDetails.find((c: any) => c._id.toString() === (profile.cityId || '').toString());
-//       const state = stateDetails.find((s: any) => s._id.toString() === (profile.stateId || '').toString());
-//       return {
-//         ...profile,
-//         cityName: city ? city.name : null,
-//         stateName: state ? state.name : null,
-//       };
-//     });
-//     // Get total profiles count for pagination
-//     const totalPipeline = [
-//       { "$match": { ...query } },
-//       { "$count": "count" },
-//     ];
-//     const totalProfiles: any = await User.aggregate(totalPipeline);
-//     const total = totalProfiles.length > 0 ? totalProfiles[0].count : 0;
-//     const totalPages = Math.ceil(total / limitValue);
-//     res.json({ message: "getALLuserforwebsite", data: finalProfiles, total: totalPages });
-//   } catch (error) {
-//     next(error);
-//   }
-// }
-const getTopVendors = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        console.log(req.query, "query");
-        let query = {};
-        // Optional search query
-        if (req.query.searchQuery) {
-            let regex = new RegExp(`${req.query.searchQuery}`, "i");
-            query = Object.assign(Object.assign({}, query), { $or: [{ name: regex }, { companyName: regex }] });
-        }
-        // Optional filters
-        if (req.query.q) {
-            let regex = new RegExp(`${req.query.q}`, "i");
-            query = Object.assign(Object.assign({}, query), { $or: [{ name: regex }, { companyName: regex }] });
-        }
-        if (req.query.role) {
-            query = Object.assign(Object.assign({}, query), { "role": req.query.role });
-        }
-        if (req.query.category) {
-            query = Object.assign(Object.assign({}, query), { "categoryIdArr.categoryId": req.query.category });
-        }
-        if (req.query.rating) {
-            let ratingValue = +req.query.rating;
-            query = Object.assign(Object.assign({}, query), { "rating": { $gte: ratingValue } });
-        }
-        if (req.query.locations) {
-            let locationArr = `${req.query.locations}`.split(",");
-            query = Object.assign(Object.assign({}, query), { "cityId": { $in: [...locationArr] } });
-        }
-        if (req.query.state) {
-            let locationArr = `${req.query.state}`.split(",");
-            query = Object.assign(Object.assign({}, query), { "stateId": { $in: [...locationArr] } });
-        }
-        // Pagination
-        let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
-        let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 10;
-        const pipeline = [
-            {
-                "$match": Object.assign({}, query),
-            },
-            {
-                "$sort": {
-                    "rating": -1, // Sort by rating in descending order
-                },
-            },
-            {
-                "$lookup": {
-                    "from": "products",
-                    "localField": "_id",
-                    "foreignField": "createdById",
-                    "pipeline": [
-                        {
-                            "$match": {
-                                "approved": "APPROVED",
-                            },
-                        },
-                    ],
-                    "as": "productsArr",
-                },
-            },
-            {
-                "$addFields": {
-                    "productsCount": {
-                        "$size": "$productsArr",
-                    },
-                },
-            },
-            {
-                "$unwind": {
-                    "path": "$productsArr",
-                    "preserveNullAndEmptyArrays": true,
-                },
-            },
-            {
-                "$unwind": {
-                    "path": "$productsArr.categoryArr",
-                    "preserveNullAndEmptyArrays": true,
-                },
-            },
-            {
-                "$group": {
-                    "_id": "$_id",
-                    "name": { "$first": "$name" },
-                    "companyName": { "$first": "$companyObj.name" },
-                    "bannerImage": { "$first": "$bannerImage" },
-                    "profileImage": { "$first": "$profileImage" },
-                    "productsCount": { "$first": "$productsCount" },
-                    "rating": { "$first": "$rating" },
-                    "categoryIdArr": { "$addToSet": { "categoryId": { "$toString": "$productsArr.categoryArr.categoryId" } } },
-                    "countryId": { "$first": "$countryId" },
-                    "stateId": { "$first": "$stateId" },
-                    "cityId": { "$first": "$cityId" },
-                    "phone": { "$first": "$phone" },
-                },
-            },
-            {
-                "$sort": {
-                    "rating": -1, // Ensure the sorting by rating
-                },
-            },
-            {
-                "$skip": (pageValue - 1) * limitValue,
-            },
-            {
-                "$limit": limitValue,
-            },
-        ];
-        // Execute the aggregation pipeline
-        const profiles = yield user_model_1.User.aggregate(pipeline);
-        // Step 1: Extract cityIds and stateIds from the profiles
-        const cityIds = profiles
-            .map((profile) => profile.cityId)
-            .filter((id) => id); // Ensure no null or undefined values
-        const stateIds = profiles
-            .map((profile) => profile.stateId)
-            .filter((id) => id); // Ensure no null or undefined values
-        // Step 2: Fetch city and state details
-        const cityDetails = yield City_model_1.City.find({ _id: { $in: cityIds } }).select("name _id");
-        const stateDetails = yield State_model_1.State.find({ _id: { $in: stateIds } }).select("name _id");
-        // Step 3: Merge city and state details into the profiles
-        const finalProfiles = profiles.map((profile) => {
-            const city = cityDetails.find((c) => c._id.toString() === (profile.cityId || '').toString());
-            const state = stateDetails.find((s) => s._id.toString() === (profile.stateId || '').toString());
-            return Object.assign(Object.assign({}, profile), { cityName: city ? city.name : null, stateName: state ? state.name : null });
-        });
-        // Get total profiles count for pagination
-        const totalPipeline = [
-            { "$match": Object.assign({}, query) },
-            { "$count": "count" },
-        ];
-        const totalProfiles = yield user_model_1.User.aggregate(totalPipeline);
-        const total = totalProfiles.length > 0 ? totalProfiles[0].count : 0;
-        const totalPages = Math.ceil(total / limitValue);
-        res.json({ message: "Top Profiles", data: finalProfiles, total: totalPages });
-    }
-    catch (error) {
-        next(error);
-    }
-});
-exports.getTopVendors = getTopVendors;
 const getAllUsersWithAniversaryDate = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _x, _y;
     try {

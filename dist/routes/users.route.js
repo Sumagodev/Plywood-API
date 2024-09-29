@@ -17,7 +17,6 @@ router.patch("/updateUserById/:id", auth_middleware_1.authorizeJwt, user_contoll
 router.get("/searchVendor", user_contoller_1.searchVendor);
 router.get("/getAllUsers", user_contoller_1.getAllUsers);
 router.get("/getAllUsersForWebsite", user_contoller_1.getAllUsersForWebsite);
-router.get("/getTopVendors", user_contoller_1.getTopVendors);
 router.get("/getAllUsersWithAniversaryDate", user_contoller_1.getAllUsersWithAniversaryDate);
 router.get("/getAllUsersWithSubsciption", auth_middleware_1.authorizeJwt, user_contoller_1.getAllUsersWithSubsciption);
 router.get("/checkForValidSubscription/:id", user_contoller_1.checkForValidSubscription);

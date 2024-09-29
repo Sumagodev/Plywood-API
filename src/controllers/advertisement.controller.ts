@@ -3,8 +3,7 @@ import { dateDifference } from "../helpers/dateUtils";
 import { storeFileAndReturnNameBase64 } from "../helpers/fileSystem";
 import { Advertisement } from "../models/AdvertisementSubscription.model";
 import { User } from "../models/user.model";
-import { City } from "../models/City.model";
-import { State } from "../models/State.model";
+import { City } from "../models/City.model"; // Adjust the path to your City model
 import { Product } from "../models/product.model";
 export const addAdvertisementSubscription = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -100,31 +99,6 @@ export const getAdvertisementSubscription = async (req: Request, res: Response, 
 
 
 
-// export const getAdvertisementSubscriptionForHomepage = async (req: Request, res: Response, next: NextFunction) => {
-//     try {
-//         let AdvertisementSubscriptionArr: any = [];
-//         let query: any = {}
-//         let today = new Date();
-//         today.setHours(23, 59, 59, 59);
-//         console.log(req.query, "req.query.q")
-//         if (req.query.q) {
-//             query.name = new RegExp(`${req.query.q}`, "i");
-//         }
-
-//         AdvertisementSubscriptionArr = await Advertisement.find().lean().exec();
-//         // for (let AdvertisementSubscription of AdvertisementSubscriptionArr) {
-//         //   if (AdvertisementSubscription.AdvertisementSubscriptionId) {
-//         //     console.log(AdvertisementSubscription.AdvertisementSubscriptionId, "AdvertisementSubscriptionIdAdvertisementSubscriptionId")
-//         //     AdvertisementSubscription.AdvertisementSubscriptionObj = await AdvertisementSubscription.findById(AdvertisementSubscription.AdvertisementSubscriptionId).exec();
-//         //   }
-//         // }
-
-//         res.status(200).json({ message: "get Advertisement Subscription", data: AdvertisementSubscriptionArr, success: true });
-//     } catch (err) {
-//         next(err);
-//     }
-// };
-
 
 export const getAdvertisementSubscriptionForHomepage = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -163,35 +137,26 @@ export const getAdvertisementSubscriptionForHomepage = async (req: Request, res:
 
         // Map city IDs from users
         const cityIds = users.map(user => user.cityId);
-        const staeIds = users.map(user => user.stateId);
         const cities = await City.find({ _id: { $in: cityIds } }).lean().exec();
-        const states = await State.find({ _id: { $in: staeIds } }).lean().exec();
-        // Create mappings for cities, products, and users
+
+        // Create mappings for cities and products
         const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
-        const stateMap = new Map(states.map(state => [state._id.toString(), state.name]));
         const productMap = new Map(products.map(product => [product._id.toString(), product]));
         const userMap = new Map(users.map(user => [user._id.toString(), user]));
 
         // Map advertisements to include city name, product details, and user details
         AdvertisementSubscriptionArr = advertisements.map(ad => {
             const userCityId = userMap.get(ad.userId.toString())?.cityId.toString() || '';
-            const userStaeid = userMap.get(ad.userId.toString())?.stateId.toString()|| '';
             const cityName = cityMap.get(userCityId) || 'Unknown City';
-            const stateName = stateMap.get(userStaeid) || 'Unknown state';
             const product = productMap.get(ad.productId.toString()) || null;
             const user = userMap.get(ad.userId.toString()) || null;
 
             return {
-                productname: product ? product.name : "N/A",
-                verifeied: product ? product.createdByObj.isVerified : "false",
-                phone: user ? user.phone : "false",
-                cityName,
-                stateName,
                 ...ad,
-
-                // Full user object
+                cityName,
                 price: product ? product.price : 'N/A',
-
+                product: product,
+                user: user
             };
         });
 
@@ -204,6 +169,8 @@ export const getAdvertisementSubscriptionForHomepage = async (req: Request, res:
         next(err);
     }
 };
+
+
 export const updateById = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const AdvertisementSubscriptionObj = await Advertisement.findById(req.params.id).lean().exec();
