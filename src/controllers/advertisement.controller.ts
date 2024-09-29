@@ -6,6 +6,7 @@ import { User } from "../models/user.model";
 import { City } from "../models/City.model";
 import { State } from "../models/State.model";
 import { Product } from "../models/product.model";
+import { Notifications } from "../models/Notifications.model";
 export const addAdvertisementSubscription = async (req: Request, res: Response, next: NextFunction) => {
     try {
         console.log(req.body);
@@ -57,6 +58,38 @@ export const addAdvertisementSubscription = async (req: Request, res: Response, 
             throw new Error("Unable to create Advertisement Subscription");
         }
         res.status(200).json({ message: "Advertisement Subscription Successfully Created", success: true });
+
+    let visitorUserId=req.body.userId;
+    let leadUser = await User.findById(req.body.userId).lean().exec();
+    if (!leadUser) throw new Error("Lead User Not Found");
+    const productObj = await Product.findById(req.body.productId).exec();
+    
+    const newNotification = new Notifications({
+      userId: req.body.userId,            // ID of the user related to the notification
+      type: 'new_arrival',                 // Type of notification
+      title: 'New Arrival Are Here',   // Title of the notification
+      content: `Check out the latest Product ${productObj?.name} to our collection!`, 
+      isRead:false,
+      // Message content
+      payload: {                            // Dynamic payload data
+          accessedBy: visitorUserId,
+          accessTime: new Date(),
+          organizationName: leadUser?.companyObj?.name || 'Unknown' ,
+          phone: leadUser?.phone,
+          productObj:productObj,
+          name:leadUser?.name,
+          leadUserObj:leadUser,
+      }
+  });
+
+  try {
+    await newNotification.save();
+    console.log('New notification created with viewCount and lastAccessTime');
+} catch (error) {
+    console.error('Error saving new notification:', error);
+}
+
+
     } catch (err) {
         next(err);
     }

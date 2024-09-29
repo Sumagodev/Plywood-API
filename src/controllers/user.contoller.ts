@@ -463,7 +463,7 @@ if (visitorUserId && mongoose.Types.ObjectId.isValid(visitorUserId)) {
                 $set: { 
                     lastAccessTime: new Date(),
                     isRead: false,
-                } // Update lastAccessTime to current time
+                } 
             }
         );
         console.log('Notification updated with incremented view count and updated last access time');

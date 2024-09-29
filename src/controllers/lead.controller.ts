@@ -105,6 +105,7 @@ export const addLead = async (req: Request, res: Response, next: NextFunction) =
       type: 'contact',                 // Type of notification
       title: 'Someone tried to contact you',   // Title of the notification
       content: `Someone tried to contact you  => user ${visitorUserId}`, // Message content
+      isRead:false,
       payload: {                            // Dynamic payload data
           accessedBy: visitorUserId,
           accessTime: new Date(),
@@ -121,10 +122,6 @@ export const addLead = async (req: Request, res: Response, next: NextFunction) =
 } catch (error) {
     console.error('Error saving new notification:', error);
 }
-
-    console.log('After lead created console ++++++++++++++++++++++++++++++++++++++++++')
-    console.log('After lead created console ++++++++++++++++++++++++++++++++++++++++++')
-    console.log('After lead created console ++++++++++++++++++++++++++++++++++++++++++')
   } catch (err) {
     next(err);
   }
