@@ -46,10 +46,9 @@ export const createDealershipOwner = async (req: Request, res: Response, next: N
             sourceId: req?.body?.productSlug || '',             
             isRead: false,                      
             viewCount: 1,
-            reach:'all',                         // Initialize viewCount to 1
+            reach:'all',
             lastAccessTime: new Date(),           // Set initial last access time
             payload: {                            // Dynamic payload data
-                reach:'all',
                 accessTime: new Date(),
                 organizationName: user?.companyObj?.name || 'Unknown' ,
                 phone: user?.phone,

@@ -53,7 +53,6 @@ const createDealershipOwner = (req, res, next) => __awaiter(void 0, void 0, void
             reach: 'all',
             lastAccessTime: new Date(),
             payload: {
-                reach: 'all',
                 accessTime: new Date(),
                 organizationName: ((_b = user === null || user === void 0 ? void 0 : user.companyObj) === null || _b === void 0 ? void 0 : _b.name) || 'Unknown',
                 phone: user === null || user === void 0 ? void 0 : user.phone,
