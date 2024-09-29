@@ -8,9 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getById = exports.deleteById = exports.updateById = exports.getLeadsBycreatedById = exports.getLeadForAdmin = exports.getLeadsForAdmin = exports.getLead = exports.addLead = void 0;
 const leads_model_1 = require("../models/leads.model");
@@ -25,8 +22,6 @@ const country_model_1 = require("../models/country.model");
 const State_model_1 = require("../models/State.model");
 const City_model_1 = require("../models/City.model");
 const sipCrm_service_1 = require("../service/sipCrm.service");
-const mongoose_1 = __importDefault(require("mongoose"));
-const date_fns_1 = require("date-fns"); // Use date-fns for date comparison if needed
 const addLead = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d, _e;
     try {
@@ -94,80 +89,47 @@ const addLead = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
                     content: `${constant_1.notification_text.lead_notification_text_obj.content} ${productName ? "on " + productName : ""}`,
                 },
             };
-            let visitorUserId = req.query.visitorUserId;
-            visitorUserId = userObj === null || userObj === void 0 ? void 0 : userObj._id.toString();
-            if (Array.isArray(visitorUserId)) {
-                visitorUserId = visitorUserId[0]; // Use the first element if an array
-            }
-            if (visitorUserId && mongoose_1.default.Types.ObjectId.isValid(visitorUserId)) {
-                // Fetch the user who accessed the profile
-                let leadUser = yield user_model_1.User.findById(visitorUserId).lean().exec();
-                if (!leadUser)
-                    throw new Error("Lead User Not Found");
-                // Define the current day range (start and end of today)
-                const startOfToday = (0, date_fns_1.startOfDay)(new Date());
-                const endOfToday = (0, date_fns_1.endOfDay)(new Date());
-                console.log('Profile Owner ID:', req.params.userId);
-                console.log('Visitor User ID:', visitorUserId);
-                console.log('Start of Today:', startOfToday);
-                console.log('End of Today:', endOfToday);
-                // Check if a notification already exists for the same user and day
-                let existingNotification = yield Notifications_model_1.Notifications.findOne({
-                    userId: req.params.userId,
-                    type: 'contact',
-                    createdAt: {
-                        $gte: startOfToday,
-                        $lte: endOfToday // Less than or equal to the end of the day
-                    },
-                    'payload.accessedBy': visitorUserId // Check for the accessedBy field
-                });
-                console.log('Existing Notification:', existingNotification);
-                if (existingNotification) {
-                    // If a notification exists, increment the view count and update the last access time
-                    yield Notifications_model_1.Notifications.updateOne({ _id: existingNotification._id }, {
-                        $inc: { viewCount: 1 },
-                        $set: {
-                            lastAccessTime: new Date(),
-                            isRead: false,
-                        } // Update lastAccessTime to current time
-                    });
-                    console.log('Notification updated with incremented view count and updated last access time');
-                }
-                else {
-                    // If no notification exists, create a new one
-                    const newNotification = new Notifications_model_1.Notifications({
-                        userId: req.params.userId,
-                        type: 'contact',
-                        title: 'Someone tried to contact you',
-                        content: `Someone tried to contact you  => user ${visitorUserId}`,
-                        sourceId: visitorUserId,
-                        isRead: false,
-                        viewCount: 1,
-                        lastAccessTime: new Date(),
-                        payload: {
-                            accessedBy: visitorUserId,
-                            accessTime: new Date(),
-                            organizationName: ((_d = leadUser === null || leadUser === void 0 ? void 0 : leadUser.companyObj) === null || _d === void 0 ? void 0 : _d.name) || 'Unknown' // Safely access company name
-                        }
-                    });
-                    // Save the new notification to the database
-                    try {
-                        yield newNotification.save();
-                        console.log('New notification created with viewCount and lastAccessTime');
-                    }
-                    catch (error) {
-                        console.error('Error saving new notification:', error);
-                    }
-                }
-            }
-            else {
-                console.error('Invalid Visitor User ID:', visitorUserId);
-            }
-            if ((obj === null || obj === void 0 ? void 0 : obj.tokens) && ((_e = obj === null || obj === void 0 ? void 0 : obj.tokens) === null || _e === void 0 ? void 0 : _e.length) > 0) {
+            let saveNotificationObj = {
+                userId: req.body.createdById,
+                title: obj.data.title,
+                content: obj.data.content,
+            };
+            yield new Notifications_model_1.Notifications(saveNotificationObj).save();
+            if ((obj === null || obj === void 0 ? void 0 : obj.tokens) && ((_d = obj === null || obj === void 0 ? void 0 : obj.tokens) === null || _d === void 0 ? void 0 : _d.length) > 0) {
+                console.log(saveNotificationObj, "NOTIFICATION OBJ");
                 yield (0, fcmNotify_1.fcmMulticastNotify)(obj);
             }
         }
         res.status(200).json({ message: "Lead Successfully Created", success: true });
+        let visitorUserId = req.body.userId;
+        let leadUser = yield user_model_1.User.findById(req.body.createdById).lean().exec();
+        if (!leadUser)
+            throw new Error("Lead User Not Found");
+        const newNotification = new Notifications_model_1.Notifications({
+            userId: req.body.userId,
+            type: 'contact',
+            title: 'Someone tried to contact you',
+            content: `Someone tried to contact you  => user ${visitorUserId}`,
+            payload: {
+                accessedBy: visitorUserId,
+                accessTime: new Date(),
+                organizationName: ((_e = leadUser === null || leadUser === void 0 ? void 0 : leadUser.companyObj) === null || _e === void 0 ? void 0 : _e.name) || 'Unknown',
+                phone: leadUser === null || leadUser === void 0 ? void 0 : leadUser.phone,
+                productObj: productObj,
+                name: leadUser === null || leadUser === void 0 ? void 0 : leadUser.name,
+                leadUserObj: leadUser,
+            }
+        });
+        try {
+            yield newNotification.save();
+            console.log('New notification created with viewCount and lastAccessTime');
+        }
+        catch (error) {
+            console.error('Error saving new notification:', error);
+        }
+        console.log('After lead created console ++++++++++++++++++++++++++++++++++++++++++');
+        console.log('After lead created console ++++++++++++++++++++++++++++++++++++++++++');
+        console.log('After lead created console ++++++++++++++++++++++++++++++++++++++++++');
     }
     catch (err) {
         next(err);
