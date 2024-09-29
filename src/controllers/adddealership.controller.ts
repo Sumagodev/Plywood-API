@@ -9,6 +9,7 @@ import { Product } from "../models/product.model";
 import { DealershipOwner } from "../models/adddealership.model";
 import mongoose from "mongoose";
 import { Category } from "../models/category.model";
+import { Notifications } from "../models/Notifications.model";
 
 // Create a new dealership owner (linked to an existing user)xxxxx
 export const createDealershipOwner = async (req: Request, res: Response, next: NextFunction) => {
@@ -39,6 +40,38 @@ export const createDealershipOwner = async (req: Request, res: Response, next: N
         const savedOwner = await newOwner.save();
 
         res.status(201).json({ message: "Dealership Owner Created Successfully", data: savedOwner });
+
+          let leadProduct= await Product.findById(productId);
+          const newNotification = new Notifications({
+              userId: req.params.userId,         
+              type: 'dealershipOpportunity',
+              title: 'Dealership Opportunity Created',  
+              content: `Exclusive Dealership Opportunity Available For ${leadProduct?.brandName}! `,
+              sourceId: req?.body?.productSlug || '',             
+              isRead: false,                      
+              viewCount: 1,
+              reach:'all',                         // Initialize viewCount to 1
+              lastAccessTime: new Date(),           // Set initial last access time
+              payload: {                            // Dynamic payload data
+                  reach:'all',
+                  accessTime: new Date(),
+                  organizationName: user?.companyObj?.name || 'Unknown' ,
+                  phone: user?.phone,
+                  name:user?.name,
+                  organizationObj:user,
+                  opportunity:savedOwner,
+                  leadProduct:leadProduct
+              }
+          });
+          // Save the new notification to the database
+          try {
+              await newNotification.save();
+              console.log('New notification created with viewCount and lastAccessTime');
+          } catch (error) {
+              console.error('Error saving new notification:', error);
+          }
+
+
     } catch (error) {
         next(error);
     }

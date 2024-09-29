@@ -65,7 +65,8 @@ export const addFlashSale = async (req: Request, res: Response, next: NextFuncti
               sourceId: req?.body?.productSlug || '',              // ID of the user who accessed the profile
               isRead: false,                        // Notification status
               viewCount: 1,                         // Initialize viewCount to 1
-              lastAccessTime: new Date(),           // Set initial last access time
+              lastAccessTime: new Date(),
+              reach:'all',           // Set initial last access time
               payload: {                            // Dynamic payload data
                   reach:'all',
                   accessTime: new Date(),
