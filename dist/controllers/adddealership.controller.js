@@ -42,7 +42,6 @@ const createDealershipOwner = (req, res, next) => __awaiter(void 0, void 0, void
         // Create a new dealership owner entry
         const newOwner = new adddealership_model_1.DealershipOwner(Object.assign(Object.assign({}, req.body), { productId: productId || Product }));
         const savedOwner = yield newOwner.save();
-        res.status(201).json({ message: "Dealership Owner Created Successfully", data: savedOwner });
         let leadProduct = yield Product.findById(productId);
         const newNotification = new Notifications_model_1.Notifications({
             userId: req.params.userId,
@@ -73,6 +72,7 @@ const createDealershipOwner = (req, res, next) => __awaiter(void 0, void 0, void
         catch (error) {
             console.error('Error saving new notification:', error);
         }
+        res.status(201).json({ message: "Dealership Owner Created Successfully", data: savedOwner });
     }
     catch (error) {
         next(error);
