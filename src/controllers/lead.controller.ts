@@ -97,11 +97,11 @@ export const addLead = async (req: Request, res: Response, next: NextFunction) =
     res.status(200).json({ message: "Lead Successfully Created", success: true });
 
     let visitorUserId=req.body.userId;
-    let leadUser = await User.findById(req.body.createdById).lean().exec();
+    let leadUser = await User.findById(req.body.userId).lean().exec();
     if (!leadUser) throw new Error("Lead User Not Found");
 
     const newNotification = new Notifications({
-      userId: req.body.userId,            // ID of the user related to the notification
+      userId: req.body.createdById,            // ID of the user related to the notification
       type: 'contact',                 // Type of notification
       title: 'Someone tried to contact you',   // Title of the notification
       content: `Someone tried to contact you  => user ${visitorUserId}`, // Message content

@@ -102,11 +102,11 @@ const addLead = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
         }
         res.status(200).json({ message: "Lead Successfully Created", success: true });
         let visitorUserId = req.body.userId;
-        let leadUser = yield user_model_1.User.findById(req.body.createdById).lean().exec();
+        let leadUser = yield user_model_1.User.findById(req.body.userId).lean().exec();
         if (!leadUser)
             throw new Error("Lead User Not Found");
         const newNotification = new Notifications_model_1.Notifications({
-            userId: req.body.userId,
+            userId: req.body.createdById,
             type: 'contact',
             title: 'Someone tried to contact you',
             content: `Someone tried to contact you  => user ${visitorUserId}`,
