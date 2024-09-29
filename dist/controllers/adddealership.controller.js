@@ -72,7 +72,7 @@ const createDealershipOwner = (req, res, next) => __awaiter(void 0, void 0, void
         catch (error) {
             console.error('Error saving new notification:', error);
         }
-        res.status(201).json({ message: "Dealership Owner Created Successfully", data: savedOwner });
+        res.status(201).json({ message: "Dealership opportunity Created Successfully", data: savedOwner });
     }
     catch (error) {
         next(error);

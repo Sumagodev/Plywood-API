@@ -67,7 +67,7 @@ export const createDealershipOwner = async (req: Request, res: Response, next: N
         } catch (error) {
             console.error('Error saving new notification:', error);
         }
-        res.status(201).json({ message: "Dealership Owner Created Successfully", data: savedOwner });
+        res.status(201).json({ message: "Dealership opportunity Created Successfully", data: savedOwner });
 
           
 
