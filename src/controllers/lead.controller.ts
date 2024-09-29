@@ -11,9 +11,6 @@ import { Country } from "../models/country.model";
 import { State } from "../models/State.model";
 import { City } from "../models/City.model";
 import { postSpiCrmLead } from "../service/sipCrm.service";
-import mongoose from "mongoose";
-import { startOfDay, endOfDay } from 'date-fns'; // Use date-fns for date comparison if needed
-
 export const addLead = async (req: Request, res: Response, next: NextFunction) => {
   try {
     console.log("ADDING LEAD", req.body);
@@ -85,51 +82,23 @@ export const addLead = async (req: Request, res: Response, next: NextFunction) =
           content: `${notification_text.lead_notification_text_obj.content} ${productName ? "on " + productName : ""}`,
         },
       };
-
-     
-      
-      
-  
-      
+      let saveNotificationObj = {
+        userId: req.body.createdById,
+        title: obj.data.title,
+        content: obj.data.content,
+      };
+      await new Notifications(saveNotificationObj).save();
       if (obj?.tokens && obj?.tokens?.length > 0) {
+        console.log(saveNotificationObj, "NOTIFICATION OBJ");
         await fcmMulticastNotify(obj);
       }
     }
 
-
-
     res.status(200).json({ message: "Lead Successfully Created", success: true });
-    let visitorUserId=req.body.createdById;
-      let leadUser = await User.findById(visitorUserId).lean().exec();
-      if (!leadUser) throw new Error("Lead User Not Found");
 
-          const newNotification = new Notifications({
-              userId: req.body.userId,            // ID of the user related to the notification
-              type: 'contact',                 // Type of notification
-              title: 'Someone tried to contact you',   // Title of the notification
-              content: `Someone tried to contact you  => user ${visitorUserId}`, // Message content
-              sourceId: visitorUserId,              // ID of the user who accessed the profile
-              isRead: false,                        // Notification status
-              viewCount: 1,                         // Initialize viewCount to 1
-              lastAccessTime: new Date(),           // Set initial last access time
-              payload: {                            // Dynamic payload data
-                  accessedBy: visitorUserId,
-                  accessTime: new Date(),
-                  organizationName: leadUser?.companyObj?.name || 'Unknown' ,
-                  phone: leadUser?.phone,
-                  productObj:productObj,
-                  name:leadUser?.name,
-                  leadUserObj:leadUser
-              }
-          });
-  
-          // Save the new notification to the database
-          try {
-              await newNotification.save();
-              console.log('New notification created with viewCount and lastAccessTime');
-          } catch (error) {
-              console.error('Error saving new notification:', error);
-          }
+    console.log('After lead created console ++++++++++++++++++++++++++++++++++++++++++')
+    console.log('After lead created console ++++++++++++++++++++++++++++++++++++++++++')
+    console.log('After lead created console ++++++++++++++++++++++++++++++++++++++++++')
   } catch (err) {
     next(err);
   }
