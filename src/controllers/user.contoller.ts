@@ -1774,17 +1774,13 @@ export const registerUserFcmToken: RequestHandler = async (req, res, next) => {
 export const getUserNotifications = async (req: Request, res: Response, next: NextFunction) => {
   try {
     let ProductArr: any = [];
-
     let query: any = {};
-
     if (req.query.userId) {
       query.userId = req.query.userId;
     }
-
     if (req.query.isRead != undefined && req.query.isRead) {
       query.isRead = req.query.isRead;
     }
-
     let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
     let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
 
@@ -1793,11 +1789,8 @@ export const getUserNotifications = async (req: Request, res: Response, next: Ne
       .limit(limitValue)
       .sort({ createdAt: -1 })
       .exec();
-
     let totalElements = await Notifications.find(query).count().exec();
-
     console.log(totalElements, ProductArr?.length);
-
     res.status(200).json({ message: "getProduct", data: ProductArr, totalElements: totalElements, success: true });
   } catch (err) {
     next(err);

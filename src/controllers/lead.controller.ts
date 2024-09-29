@@ -85,57 +85,14 @@ export const addLead = async (req: Request, res: Response, next: NextFunction) =
           content: `${notification_text.lead_notification_text_obj.content} ${productName ? "on " + productName : ""}`,
         },
       };
-      let visitorUserId: string | undefined = req.query.visitorUserId as string | undefined;
 
-      visitorUserId=userObj?._id.toString();
-    if (Array.isArray(visitorUserId)) {
-      visitorUserId = visitorUserId[0]; // Use the first element if an array
-  }
-  
-  if (visitorUserId && mongoose.Types.ObjectId.isValid(visitorUserId)) {
-      // Fetch the user who accessed the profile
+     
+      let visitorUserId=req.body.createdById;
       let leadUser = await User.findById(visitorUserId).lean().exec();
       if (!leadUser) throw new Error("Lead User Not Found");
-  
-      // Define the current day range (start and end of today)
-      const startOfToday = startOfDay(new Date());
-      const endOfToday = endOfDay(new Date());
-  
-      console.log('Profile Owner ID:', req.params.userId);
-      console.log('Visitor User ID:', visitorUserId);
-      console.log('Start of Today:', startOfToday);
-      console.log('End of Today:', endOfToday);
-  
-      // Check if a notification already exists for the same user and day
-      let existingNotification = await Notifications.findOne({
-          userId: req.params.userId,                  // Profile owner
-          type: 'contact',
-          createdAt: {                                // Created today
-              $gte: startOfToday,                     // Greater than or equal to the start of the day
-              $lte: endOfToday                        // Less than or equal to the end of the day
-          },
-          'payload.accessedBy': visitorUserId // Check for the accessedBy field
-      });
-  
-      console.log('Existing Notification:', existingNotification);
-  
-      if (existingNotification) {
-          // If a notification exists, increment the view count and update the last access time
-          await Notifications.updateOne(
-              { _id: existingNotification._id },
-              {
-                  $inc: { viewCount: 1 },            // Increment viewCount by 1
-                  $set: { 
-                      lastAccessTime: new Date(),
-                      isRead: false,
-                  } // Update lastAccessTime to current time
-              }
-          );
-          console.log('Notification updated with incremented view count and updated last access time');
-      } else {
-          // If no notification exists, create a new one
+
           const newNotification = new Notifications({
-              userId: req.params.userId,            // ID of the user related to the notification
+              userId: req.body.userId,            // ID of the user related to the notification
               type: 'contact',                 // Type of notification
               title: 'Someone tried to contact you',   // Title of the notification
               content: `Someone tried to contact you  => user ${visitorUserId}`, // Message content
@@ -146,7 +103,11 @@ export const addLead = async (req: Request, res: Response, next: NextFunction) =
               payload: {                            // Dynamic payload data
                   accessedBy: visitorUserId,
                   accessTime: new Date(),
-                  organizationName: leadUser?.companyObj?.name || 'Unknown' // Safely access company name
+                  organizationName: leadUser?.companyObj?.name || 'Unknown' ,
+                  phone: leadUser?.phone,
+                  productObj:productObj,
+                  name:leadUser?.name,
+                  leadUserObj:leadUser
               }
           });
   
@@ -157,10 +118,8 @@ export const addLead = async (req: Request, res: Response, next: NextFunction) =
           } catch (error) {
               console.error('Error saving new notification:', error);
           }
-      }
-  } else {
-      console.error('Invalid Visitor User ID:', visitorUserId);
-  }
+      
+  
       
       if (obj?.tokens && obj?.tokens?.length > 0) {
         await fcmMulticastNotify(obj);
