@@ -6,13 +6,6 @@ export const addFlashSale = async (req: Request, res: Response, next: NextFuncti
   try {
     let today = new Date();
 
-    // const FlashSaleCheck = await FlashSale.findOne({
-    //     productId: req.body.productId, userId: req.body.userId, $or: [
-    //         { startDate: { $lte: req.body.startDate }, endDate: { $gte: req.body.startDate } },
-    //         { startDate: { $lte: req.body.endDate }, endDate: { $gte: req.body.endDate } },
-    //         { startDate: { $gt: req.body.startDate }, endDate: { $lt: req.body.endDate } }
-    //     ]
-    // }).exec();
 
     const FlashSaleCheck = await FlashSale.findOne({
       productId: req.body.productId,

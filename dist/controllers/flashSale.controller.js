@@ -16,13 +16,6 @@ const user_model_1 = require("../models/user.model");
 const addFlashSale = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let today = new Date();
-        // const FlashSaleCheck = await FlashSale.findOne({
-        //     productId: req.body.productId, userId: req.body.userId, $or: [
-        //         { startDate: { $lte: req.body.startDate }, endDate: { $gte: req.body.startDate } },
-        //         { startDate: { $lte: req.body.endDate }, endDate: { $gte: req.body.endDate } },
-        //         { startDate: { $gt: req.body.startDate }, endDate: { $lt: req.body.endDate } }
-        //     ]
-        // }).exec();
         const FlashSaleCheck = yield FlashSale_model_1.FlashSale.findOne({
             productId: req.body.productId,
             $or: [

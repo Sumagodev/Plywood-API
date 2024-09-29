@@ -9,6 +9,8 @@ export interface ISubscription {
   includesValidity: Boolean;
   numberOfAdvertisement: Number,
   advertisementDays: Number,
+  numberOfBannerImages: Number,
+  bannerimagesDays: Number,
   price: Number,
   numberOfSales: Number,
   noOfMonth: Number,
@@ -37,7 +39,8 @@ const subscription = new Schema<ISubscription>(
     includesValidity: Boolean,
     numberOfAdvertisement: { type: Number, default: 0 },
     advertisementDays: { type: Number, default: 0 },
-
+    numberOfBannerImages: { type: Number, default: 0 },
+    bannerimagesDays: { type: Number, default: 0 },
     numberOfSales: { type: Number, default: 0 },
     saleDays: { type: Number, default: 0 },
 

@@ -58,4 +58,3 @@ const topup = new Schema<ITopup>(
 );
 
 export const Topup = model<ITopup>("topup", topup);
-
