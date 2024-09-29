@@ -4,6 +4,7 @@ export interface INotifications {
     userId: Schema.Types.ObjectId;
     type: string;
     title: string;
+    reach: string;
     targetId: string;
     sourceId: string;
     content: string;
@@ -21,6 +22,7 @@ const notifications = new Schema<INotifications>(
       type: Schema.Types.ObjectId,
     },
     title: String,
+    reach: String,
     content: String,
     type: String,
     isRead: { type: Boolean, default: false },
