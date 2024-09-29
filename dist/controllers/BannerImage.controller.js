@@ -15,6 +15,11 @@ const BannerImages_model_1 = require("../models/BannerImages.model");
 const createBannerImage = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { type, productId, userId, image } = req.body;
+        const BannerImageCheck = yield BannerImages_model_1.BannerImage.findOne({
+            productId: req.body.productId, userId: req.body.userId
+        }).exec();
+        if (BannerImageCheck)
+            throw new Error("Entry Already exist, cannot create new BannerImage please change product or dates to create one ");
         // Check if the type is valid (either "profilebanner" or "productbanner")
         if (!type || (type !== "profilebanner" && type !== "productbanner")) {
             return res.status(400).json({ message: "Invalid banner type provided.", success: false });

@@ -9,6 +9,11 @@ import { Product } from "../models/product.model";
 export const createBannerImage = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { type, productId, userId, image } = req.body;
+        const BannerImageCheck = await BannerImage.findOne({
+            productId: req.body.productId, userId: req.body.userId
+        }).exec();
+        if (BannerImageCheck) throw new Error("Entry Already exist, cannot create new BannerImage please change product or dates to create one ");
+
 
         // Check if the type is valid (either "profilebanner" or "productbanner")
         if (!type || (type !== "profilebanner" && type !== "productbanner")) {
@@ -27,8 +32,8 @@ export const createBannerImage = async (req: Request, res: Response, next: NextF
         await new BannerImage({
             image: storedImage,
             type: type,
-            userId: userId ,
-            productId: productId ,
+            userId: userId,
+            productId: productId,
         }).save();
 
         res.status(200).json({ message: "Banner image added successfully.", success: true });
@@ -103,9 +108,9 @@ export const updateBannerImage = async (req: Request, res: Response, next: NextF
             id,
             {
                 image: storedImage,
-                type:type,
-                userId:  userId ,
-                productId: productId ,
+                type: type,
+                userId: userId,
+                productId: productId,
             },
             { new: true } // Return the updated document
         );
