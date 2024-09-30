@@ -11,6 +11,8 @@ const topup = new mongoose_1.Schema({
     includesAdvertisements: Boolean,
     numberOfAdvertisement: { type: Number, default: 0 },
     advertisementDays: { type: Number, default: 0 },
+    numberOfBannerImages: { type: Number, default: 0 },
+    bannerimagesDays: { type: Number, default: 0 },
     numberOfSales: { type: Number, default: 0 },
     saleDays: { type: Number, default: 0 },
     messageArr: Array
