@@ -113,7 +113,7 @@ const getProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
 });
 exports.getProduct = getProduct;
 const addProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _a, _b, _c;
     try {
         console.log(req.user, "useruseruseruser");
         // const ProductNameCheck = await Product.findOne({
@@ -167,6 +167,27 @@ const addProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
             throw new Error("Unable to create Product");
         }
         res.status(200).json({ message: "Product Successfully Created", success: true });
+        const newNotification = new Notifications_model_1.Notifications({
+            userId: (_b = req === null || req === void 0 ? void 0 : req.user) === null || _b === void 0 ? void 0 : _b.userId,
+            type: 'product_under_review',
+            title: 'Profile Under Review',
+            content: ` Hi , ${(_c = userDataObj === null || userDataObj === void 0 ? void 0 : userDataObj.companyObj) === null || _c === void 0 ? void 0 : _c.name} Your Product is Now Under Review!  Our team is currently checking the details.`,
+            sourceId: '',
+            isRead: false,
+            viewCount: 1,
+            lastAccessTime: new Date(),
+            payload: {
+                productDetails: newEntry,
+                userObj: userDataObj
+            }
+        });
+        // Save the new notification to the database
+        try {
+            yield newNotification.save();
+        }
+        catch (error) {
+            console.error('Error saving new notification:', error);
+        }
     }
     catch (err) {
         next(err);
@@ -325,7 +346,7 @@ const getById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
 });
 exports.getById = getById;
 const getProductById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _b, _c;
+    var _d, _e;
     try {
         const today = new Date();
         let ProductObj = yield product_model_1.Product.findOne({ slug: req.params.id }).lean().exec();
@@ -336,7 +357,7 @@ const getProductById = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             ProductObj.brandObj = yield brand_model_1.Brand.findById(ProductObj.brand).lean().exec();
         }
         if (ProductObj === null || ProductObj === void 0 ? void 0 : ProductObj.createdByObj._id) {
-            ProductObj.createdByObj.userObj = yield user_model_1.User.findById((_b = ProductObj === null || ProductObj === void 0 ? void 0 : ProductObj.createdByObj) === null || _b === void 0 ? void 0 : _b._id).lean().exec();
+            ProductObj.createdByObj.userObj = yield user_model_1.User.findById((_d = ProductObj === null || ProductObj === void 0 ? void 0 : ProductObj.createdByObj) === null || _d === void 0 ? void 0 : _d._id).lean().exec();
         }
         console.log(ProductObj._id, "CHECK THIS");
         const flashSaleObj = yield FlashSale_model_1.FlashSale.findOne({ productId: ProductObj._id, startDate: { $gte: today } })
@@ -397,7 +418,7 @@ const getProductById = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                     payload: {
                         accessedBy: visitorUserId,
                         accessTime: new Date(),
-                        organizationName: ((_c = leadUser === null || leadUser === void 0 ? void 0 : leadUser.companyObj) === null || _c === void 0 ? void 0 : _c.name) || 'Unknown',
+                        organizationName: ((_e = leadUser === null || leadUser === void 0 ? void 0 : leadUser.companyObj) === null || _e === void 0 ? void 0 : _e.name) || 'Unknown',
                         productName: (ProductObj === null || ProductObj === void 0 ? void 0 : ProductObj.name) || 'Unknown',
                         productId: ProductObj._id // Include product ID in the payload
                     }

@@ -146,6 +146,26 @@ const addUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
         }
         const user = yield new user_model_1.User(Object.assign(Object.assign({}, req.body), { role: req.body.role })).save();
         res.status(201).json({ message: "User Created", data: user._id, success: true });
+        const newNotification = new Notifications_model_1.Notifications({
+            userId: user._id,
+            type: 'profile_completion',
+            title: 'Profile Completed',
+            content: `Thanks for joining us! To get started and make the most of our features, please complete your profile setup.`,
+            sourceId: '',
+            isRead: false,
+            viewCount: 1,
+            lastAccessTime: new Date(),
+            payload: {
+                userId: user._id
+            }
+        });
+        // Save the new notification to the database
+        try {
+            yield newNotification.save();
+        }
+        catch (error) {
+            console.error('Error saving new notification:', error);
+        }
     }
     catch (error) {
         next(error);

@@ -7,6 +7,7 @@ const notifications = new mongoose_1.Schema({
         type: mongoose_1.Schema.Types.ObjectId,
     },
     title: String,
+    reach: String,
     content: String,
     type: String,
     isRead: { type: Boolean, default: false },
