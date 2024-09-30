@@ -193,7 +193,7 @@ export const addProduct = async (req: Request, res: Response, next: NextFunction
         }
       }
     }
-    const newEntry = new Product(req.body).save();
+    const newEntry = await new Product(req.body).save();
 
     if (!newEntry) {
       throw new Error("Unable to create Product");
@@ -211,7 +211,9 @@ export const addProduct = async (req: Request, res: Response, next: NextFunction
       lastAccessTime: new Date(),           // Set initial last access time
       payload: {                            // Dynamic payload data
          productDetails:newEntry,
-         userObj:userDataObj
+         userObj:userDataObj,
+         productObj:newEntry,
+         slug:req?.body?.slug
       }
   });
   // Save the new notification to the database
