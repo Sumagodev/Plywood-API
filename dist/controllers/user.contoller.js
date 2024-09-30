@@ -365,41 +365,9 @@ const registerUser = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         // Save the new notification to the database
         try {
             yield newNotification.save();
-            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
-            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
-            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
-            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
-            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
-            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
-            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
-            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
-            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
-            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
-            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
-            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
-            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
-            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
-            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
         }
         catch (error) {
             console.error("Error saving new notification:", error);
-            console.error("Error saving new notification:");
-            console.error("Error saving new notification:");
-            console.error("Error saving new notification:");
-            console.error("Error saving new notification:");
-            console.error("Error saving new notification:");
-            console.error("Error saving new notification:");
-            console.error("Error saving new notification:");
-            console.error("Error saving new notification:");
-            console.error("Error saving new notification:");
-            console.error("Error saving new notification:");
-            console.error("Error saving new notification:");
-            console.error("Error saving new notification:");
-            console.error("Error saving new notification:");
-            console.error("Error saving new notification:");
-            console.error("Error saving new notification:");
-            console.error("Error saving new notification:");
-            console.error("Error saving new notification:");
         }
     }
     catch (error) {

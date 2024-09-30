@@ -14,7 +14,6 @@ const country_model_1 = require("../models/country.model");
 const productReview_model_1 = require("../models/productReview.model");
 const user_model_1 = require("../models/user.model");
 const UserFcmTokens_model_1 = require("../models/UserFcmTokens.model");
-const Notifications_model_1 = require("../models/Notifications.model");
 const fcmNotify_1 = require("../helpers/fcmNotify");
 const constant_1 = require("../helpers/constant");
 // export const addProductReview = async (req: Request, res: Response, next: NextFunction) => {
@@ -93,15 +92,34 @@ const addProductReview = (req, res, next) => __awaiter(void 0, void 0, void 0, f
             tokens: fcmTokensArr.map((el) => el.fcmToken),
             data: { title: constant_1.notification_text.review_text_obj.title, content: constant_1.notification_text.review_text_obj.content }
         };
-        let saveNotificationObj = {
-            userId: req.body.userId,
-            title: obj.data.title,
-            content: obj.data.content
-        };
-        yield new Notifications_model_1.Notifications(saveNotificationObj).save();
-        console.log(saveNotificationObj, "NOTIFICATION OBJ");
+        // let saveNotificationObj = {
+        //     userId: req.body.userId,
+        //     title: obj.data.title,
+        //     content: obj.data.content
+        // }
+        // await new Notifications(saveNotificationObj).save()
+        // console.log(saveNotificationObj, "NOTIFICATION OBJ")
         yield (0, fcmNotify_1.fcmMulticastNotify)(obj);
         res.status(200).json({ message: "Review Successfully Created", success: true });
+        //   const newNotification = new Notifications({
+        //     userId: user._id,         
+        //     type: 'profile_completion',
+        //     title: 'Profile Completed',  
+        //     content: `Thanks for joining us! To get started and make the most of our features, please complete your profile setup.`,
+        //     sourceId:'',             
+        //     isRead: false,                      
+        //     viewCount: 1,
+        //     lastAccessTime: new Date(),           // Set initial last access time
+        //     payload: {                            // Dynamic payload data
+        //        userId:user._id
+        //     }
+        // });
+        // // Save the new notification to the database
+        // try {
+        //     await newNotification.save();
+        // } catch (error) {
+        //     console.error('Error saving new notification:', error);
+        // }
     }
     catch (err) {
         next(err);

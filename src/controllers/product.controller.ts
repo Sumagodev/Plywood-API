@@ -213,7 +213,7 @@ export const addProduct = async (req: Request, res: Response, next: NextFunction
          productDetails:newEntry,
          userObj:userDataObj,
          productObj:newEntry,
-         slug:req?.body?.slug
+         slug:req?.body?.slug,
       }
   });
   // Save the new notification to the database
