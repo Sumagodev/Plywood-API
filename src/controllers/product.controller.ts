@@ -199,6 +199,35 @@ export const addProduct = async (req: Request, res: Response, next: NextFunction
       throw new Error("Unable to create Product");
     }
     res.status(200).json({ message: "Product Successfully Created", success: true });
+
+
+  
+    const newNotification = new Notifications({
+      userId: req?.user?.userId,         
+      type: 'product_under_review',
+      title: 'Profile Under Review',  
+      content: ` Hi , ${userDataObj?.companyObj?.name} Your Product is Now Under Review!  Our team is currently checking the details.`,
+      sourceId:'',             
+      isRead: false,                      
+      viewCount: 1,
+      lastAccessTime: new Date(),           // Set initial last access time
+      payload: {                            // Dynamic payload data
+         productDetails:newEntry,
+         userObj:userDataObj
+      }
+  });
+  // Save the new notification to the database
+  try {
+      await newNotification.save();
+  } catch (error) {
+      console.error('Error saving new notification:', error);
+  }
+
+
+
+
+
+
   } catch (err) {
     next(err);
   }
