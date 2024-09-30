@@ -46,7 +46,7 @@ const addFlashSale = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         }
         yield user_model_1.User.findByIdAndUpdate(userObj === null || userObj === void 0 ? void 0 : userObj._id, { $inc: { numberOfSales: -1, saleDays: -dateDiff } }).exec();
         console.log(req.body, "body");
-        const newEntry = new FlashSale_model_1.FlashSale(req.body).save();
+        const newEntry = yield new FlashSale_model_1.FlashSale(req.body).save();
         if (!newEntry) {
             throw new Error("Unable to create FlashSale");
         }
