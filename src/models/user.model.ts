@@ -19,6 +19,8 @@ export interface IUser {
   saleDays: Number,
   numberOfAdvertisement: Number,
   advertisementDays: Number,
+  numberOfBannerImages: Number,
+  bannerimagesDays: Number,
   address: String;
   countryId: String;
   stateId: String;
@@ -158,6 +160,8 @@ const userSchema = new Schema<IUser>(
     rating: { type: Number, default: 0 },
     numberOfSales: { type: Number, default: 0 },
     saleDays: { type: Number, default: 0 },
+    numberOfBannerImages: { type: Number, default: 0 },
+    bannerimagesDays: { type: Number, default: 0 },
     numberOfAdvertisement: { type: Number, default: 0 },
     advertisementDays: { type: Number, default: 0 },
   },

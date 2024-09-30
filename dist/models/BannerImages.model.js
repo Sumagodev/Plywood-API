@@ -14,5 +14,7 @@ const BannerImages = new mongoose_1.Schema({
     },
     isVerified: { type: Boolean, default: false },
     image: String,
+    endDate: { type: Date, default: new Date() },
+    startDate: { type: Date, default: new Date() },
 }, { timestamps: true });
 exports.BannerImage = (0, mongoose_1.model)("bannerImages", BannerImages);
