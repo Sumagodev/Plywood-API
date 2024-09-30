@@ -219,8 +219,28 @@ export const addProduct = async (req: Request, res: Response, next: NextFunction
   // Save the new notification to the database
   try {
       await newNotification.save();
+      console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+      console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+      console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+      console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+      console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+      console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+      console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+      console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+      console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+      console.log('saved++++++++++++++++++++++++++++++++++++++++++++',newNotification);
   } catch (error) {
+    
       console.error('Error saving new notification:', error);
+      console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+      console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+      console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+      console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+      console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+      console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+      console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+      console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+      console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
   }
 
 

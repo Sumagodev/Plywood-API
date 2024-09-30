@@ -184,9 +184,28 @@ const addProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
         // Save the new notification to the database
         try {
             yield newNotification.save();
+            console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+            console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+            console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+            console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+            console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+            console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+            console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+            console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+            console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+            console.log('saved++++++++++++++++++++++++++++++++++++++++++++', newNotification);
         }
         catch (error) {
             console.error('Error saving new notification:', error);
+            console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+            console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+            console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+            console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+            console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+            console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+            console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+            console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
+            console.log('saved++++++++++++++++++++++++++++++++++++++++++++');
         }
     }
     catch (err) {
