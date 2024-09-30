@@ -6,6 +6,8 @@ export interface ISubscription {
   role: string;
   includesFlashSales: Boolean;
   includesAdvertisements: Boolean;
+  includesBannerImages: Boolean,
+
   includesValidity: Boolean;
   numberOfAdvertisement: Number,
   advertisementDays: Number,
@@ -34,6 +36,8 @@ const subscription = new Schema<ISubscription>(
     price: Number,
     includesFlashSales: Boolean,
     includesAdvertisements: Boolean,
+    includesBannerImages: Boolean,
+
     includesValidity: Boolean,
     numberOfAdvertisement: { type: Number, default: 0 },
     advertisementDays: { type: Number, default: 0 },
