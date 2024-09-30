@@ -5,6 +5,8 @@ export interface IUserTopup {
   includesAdvertisements: Boolean;
   numberOfAdvertisement: Number;
   advertisementDays: Number;
+  numberOfBannerImages: Number,
+  bannerimagesDays: Number,
   name: string;
   orderId: string;
   description: Boolean;
@@ -34,6 +36,8 @@ const userTopup = new Schema<IUserTopup>(
     includesAdvertisements: Boolean,
     numberOfAdvertisement: { type: Number, default: 0 },
     advertisementDays: { type: Number, default: 0 },
+    numberOfBannerImages: { type: Number, default: 0 },
+    bannerimagesDays: { type: Number, default: 0 },
     saleDays: { type: Number, default: 0 },
     endDate: Date,
     isExpired: {

@@ -6,9 +6,11 @@ export interface IBannerImages {
   image: string;
   type: string;
   isVerified: Boolean,
-
+  endDate: Date;
+  startDate: Date;
   createdAt: Date;
   updateAt: Date;
+
 }
 
 const BannerImages = new Schema<IBannerImages>(
@@ -25,7 +27,8 @@ const BannerImages = new Schema<IBannerImages>(
     isVerified: { type: Boolean, default: false },
     image: String,
 
-
+    endDate: { type: Date, default: new Date() },
+    startDate: { type: Date, default: new Date() },
   },
   { timestamps: true }
 );

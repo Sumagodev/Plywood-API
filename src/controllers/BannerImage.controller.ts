@@ -1,3 +1,5 @@
+
+
 import { NextFunction, Request, Response } from "express";
 import { dateDifference } from "../helpers/dateUtils";
 import { storeFileAndReturnNameBase64 } from "../helpers/fileSystem";
@@ -6,29 +8,56 @@ import { User } from "../models/user.model";
 import { City } from "../models/City.model";
 import { State } from "../models/State.model";
 import { Product } from "../models/product.model";
+
 export const createBannerImage = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { type, productId, userId, image } = req.body;
+        const { type, productId, userId, image, startDate, endDate } = req.body;
 
-        // Check if the type is valid (either "profilebanner" or "productbanner")
+        // Check for existing banner image for the same product and user
+        const BannerImageCheck = await BannerImage.findOne({
+            productId: productId, userId: userId
+        }).exec();
+        if (BannerImageCheck) throw new Error("Entry already exists, cannot create new BannerImage. Please change product or dates to create one.");
+
+        // Validate the banner type
         if (!type || (type !== "profilebanner" && type !== "productbanner")) {
             return res.status(400).json({ message: "Invalid banner type provided.", success: false });
         }
 
-        // Handle base64 image upload if the image contains base64 data
+        // Check if the user exists
+        let userObj: any = await User.findById(userId).exec();
+        if (!userObj) {
+            throw new Error("User not found!");
+        }
+
+        // Calculate date difference (if applicable to banner)
+        let dateDiff = 0;
+        if (startDate && endDate) {
+            dateDiff = dateDifference(startDate, endDate);
+        }
+
+        // Check if the user has enough sale days to create this banner
+        if (userObj.numberOfBannerImages - dateDiff <= 0) {
+            throw new Error("You do not have enough banner sale days left in your account. Please reduce the duration of the banner or purchase a top-up.");
+        }
+
+        // Update user's saleDays and numberOfSales (if applicable)
+        await User.findByIdAndUpdate(userObj._id, { $inc: { bannerimagesDays: -1, numberOfBannerImages: -dateDiff } }).exec();
+
+        // Handle base64 image upload if the image is base64 encoded
         let storedImage = image;
         if (image && image.includes("base64")) {
             storedImage = await storeFileAndReturnNameBase64(image); // Save the image and return the file name
         }
 
-
-
-        // Create the new banner record directly without productSlug
+        // Create the new banner record
         await new BannerImage({
             image: storedImage,
             type: type,
-            userId: userId ,
-            productId: productId ,
+            userId: userId,
+            productId: productId,
+            startDate: startDate, // If banner has startDate
+            endDate: endDate,     // If banner has endDate
         }).save();
 
         res.status(200).json({ message: "Banner image added successfully.", success: true });
@@ -36,7 +65,6 @@ export const createBannerImage = async (req: Request, res: Response, next: NextF
         next(err);
     }
 };
-
 // Get all banner images
 export const getAllBannerImages = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -103,9 +131,9 @@ export const updateBannerImage = async (req: Request, res: Response, next: NextF
             id,
             {
                 image: storedImage,
-                type:type,
-                userId:  userId ,
-                productId: productId ,
+                type: type,
+                userId: userId,
+                productId: productId,
             },
             { new: true } // Return the updated document
         );
