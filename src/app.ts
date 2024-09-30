@@ -41,6 +41,7 @@ import cors from "cors";
 import { errorHandler } from "./middlewares/errorHandler.middleware";
 import dealershipOwnerRoutes from './routes/dealershipOwnerRoutes.routes'
 import dealershipUSerRoutes from './routes/dealershipUesrRoutes.routes'
+import notificationRoutes from './routes/notification.routes'
 
 mongoose.connect(CONFIG.MONGOURI, (err) => {
   if (err) {
@@ -95,6 +96,7 @@ app.use("/newsLetter", newsLetterRouter);
 app.use("/websiteData", websiteDataRouter);
 app.use("/seo", seoRouter);
 app.use("/homepageBanners", homepageBannerRouter);
+app.use("/notifications", notificationRoutes);
 
 app.use(errorHandler);
 

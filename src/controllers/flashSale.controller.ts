@@ -48,7 +48,7 @@ export const addFlashSale = async (req: Request, res: Response, next: NextFuncti
     await User.findByIdAndUpdate(userObj?._id, { $inc: { numberOfSales: -1, saleDays: -dateDiff } }).exec();
 
     console.log(req.body, "body")
-    const newEntry = new FlashSale(req.body).save();
+    const newEntry = await new FlashSale(req.body).save();
 
     if (!newEntry) {
       throw new Error("Unable to create FlashSale");
