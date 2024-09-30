@@ -149,25 +149,7 @@ export const addUser = async (req: Request, res: Response, next: NextFunction) =
     res.status(201).json({ message: "User Created", data: user._id, success: true });
 
 
-    const newNotification = new Notifications({
-        userId: user._id,         
-        type: 'profile_completion',
-        title: 'Profile Completed',  
-        content: `Thanks for joining us! To get started and make the most of our features, please complete your profile setup.`,
-        sourceId:'',             
-        isRead: false,                      
-        viewCount: 1,
-        lastAccessTime: new Date(),           // Set initial last access time
-        payload: {                            // Dynamic payload data
-           userId:user._id
-        }
-    });
-    // Save the new notification to the database
-    try {
-        await newNotification.save();
-    } catch (error) {
-        console.error('Error saving new notification:', error);
-    }
+
   } catch (error) {
     next(error);
   }
@@ -384,6 +366,31 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
     const token = await generateAccessJwt(userData);
     let userObj = await User.findByIdAndUpdate(user._id, { token: token }, { new: true }).exec();
     res.status(201).json({ message: "Registered", data: user._id, token });
+
+
+
+    const newNotification = new Notifications({
+      userId: user._id,         
+      type: 'profile_completion',
+      title: 'Profile Completed',  
+      content: `Thanks for joining us! To get started and make the most of our features, please complete your profile setup.`,
+      sourceId:'',             
+      isRead: false,                      
+      viewCount: 1,
+      lastAccessTime: new Date(),           // Set initial last access time
+      payload: {                            // Dynamic payload data
+         userId:user._id
+      }
+  });
+  // Save the new notification to the database
+  try {
+      await newNotification.save();
+  } catch (error) {
+      console.error('Error saving new notification:', error);
+  }
+
+
+
   } catch (error) {
     next(error);
   }
