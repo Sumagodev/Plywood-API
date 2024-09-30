@@ -350,23 +350,56 @@ const registerUser = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         res.status(201).json({ message: "Registered", data: user._id, token });
         const newNotification = new Notifications_model_1.Notifications({
             userId: user._id,
-            type: 'profile_completion',
-            title: 'Profile Completed',
+            type: "profile_completion",
+            title: "Please complete your profile",
             content: `Thanks for joining us! To get started and make the most of our features, please complete your profile setup.`,
-            sourceId: '',
+            sourceId: "",
             isRead: false,
             viewCount: 1,
             lastAccessTime: new Date(),
             payload: {
-                userId: user._id
-            }
+                // Dynamic payload data
+                userId: user._id,
+            },
         });
         // Save the new notification to the database
         try {
             yield newNotification.save();
+            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
+            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
+            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
+            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
+            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
+            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
+            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
+            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
+            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
+            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
+            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
+            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
+            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
+            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
+            console.error("Saved Notification :++++++++++++++++++++++++++++++++++");
         }
         catch (error) {
-            console.error('Error saving new notification:', error);
+            console.error("Error saving new notification:", error);
+            console.error("Error saving new notification:");
+            console.error("Error saving new notification:");
+            console.error("Error saving new notification:");
+            console.error("Error saving new notification:");
+            console.error("Error saving new notification:");
+            console.error("Error saving new notification:");
+            console.error("Error saving new notification:");
+            console.error("Error saving new notification:");
+            console.error("Error saving new notification:");
+            console.error("Error saving new notification:");
+            console.error("Error saving new notification:");
+            console.error("Error saving new notification:");
+            console.error("Error saving new notification:");
+            console.error("Error saving new notification:");
+            console.error("Error saving new notification:");
+            console.error("Error saving new notification:");
+            console.error("Error saving new notification:");
         }
     }
     catch (error) {
@@ -436,21 +469,22 @@ const getUserById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
             // Define the current day range (start and end of today)
             const startOfToday = (0, date_fns_1.startOfDay)(new Date());
             const endOfToday = (0, date_fns_1.endOfDay)(new Date());
-            console.log('Profile Owner ID:', req.params.userId);
-            console.log('Visitor User ID:', visitorUserId);
-            console.log('Start of Today:', startOfToday);
-            console.log('End of Today:', endOfToday);
+            console.log("Profile Owner ID:", req.params.userId);
+            console.log("Visitor User ID:", visitorUserId);
+            console.log("Start of Today:", startOfToday);
+            console.log("End of Today:", endOfToday);
             // Check if a notification already exists for the same user and day
             let existingNotification = yield Notifications_model_1.Notifications.findOne({
                 userId: req.params.userId,
-                type: 'profile_view',
+                type: "profile_view",
                 createdAt: {
+                    // Created today
                     $gte: startOfToday,
-                    $lte: endOfToday // Less than or equal to the end of the day
+                    $lte: endOfToday, // Less than or equal to the end of the day
                 },
-                'payload.accessedBy': visitorUserId // Check for the accessedBy field
+                "payload.accessedBy": visitorUserId, // Check for the accessedBy field
             });
-            console.log('Existing Notification:', existingNotification);
+            console.log("Existing Notification:", existingNotification);
             if (existingNotification) {
                 // If a notification exists, increment the view count and update the last access time
                 yield Notifications_model_1.Notifications.updateOne({ _id: existingNotification._id }, {
@@ -458,39 +492,40 @@ const getUserById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
                     $set: {
                         lastAccessTime: new Date(),
                         isRead: false,
-                    }
+                    },
                 });
-                console.log('Notification updated with incremented view count and updated last access time');
+                console.log("Notification updated with incremented view count and updated last access time");
             }
             else {
                 // If no notification exists, create a new one
                 const newNotification = new Notifications_model_1.Notifications({
                     userId: req.params.userId,
-                    type: 'profile_view',
-                    title: 'Your profile was accessed',
+                    type: "profile_view",
+                    title: "Your profile was accessed",
                     content: `Your profile was accessed by user ${visitorUserId}`,
                     sourceId: visitorUserId,
                     isRead: false,
                     viewCount: 1,
                     lastAccessTime: new Date(),
                     payload: {
+                        // Dynamic payload data
                         accessedBy: visitorUserId,
                         accessTime: new Date(),
-                        organizationName: ((_v = leadUser === null || leadUser === void 0 ? void 0 : leadUser.companyObj) === null || _v === void 0 ? void 0 : _v.name) || 'Unknown' // Safely access company name
-                    }
+                        organizationName: ((_v = leadUser === null || leadUser === void 0 ? void 0 : leadUser.companyObj) === null || _v === void 0 ? void 0 : _v.name) || "Unknown", // Safely access company name
+                    },
                 });
                 // Save the new notification to the database
                 try {
                     yield newNotification.save();
-                    console.log('New notification created with viewCount and lastAccessTime');
+                    console.log("New notification created with viewCount and lastAccessTime");
                 }
                 catch (error) {
-                    console.error('Error saving new notification:', error);
+                    console.error("Error saving new notification:", error);
                 }
             }
         }
         else {
-            console.error('Invalid Visitor User ID:', visitorUserId);
+            console.error("Invalid Visitor User ID:", visitorUserId);
         }
     }
     catch (error) {
@@ -580,8 +615,8 @@ const getAllUsers = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
         console.log(query, "userObj.role === ROLES.FIELDUSER &&");
         let users = yield user_model_1.User.find(query)
             .skip((pageValue - 1) * limitValue)
-            .limit(limitValue).
-            sort({ createdAt: -1 })
+            .limit(limitValue)
+            .sort({ createdAt: -1 })
             .lean()
             .exec();
         if (!(req.query.showName && req.query.showName != "" && req.query.showName == "true")) {
@@ -1532,26 +1567,19 @@ const getTopVendors = (req, res, next) => __awaiter(void 0, void 0, void 0, func
         // Execute the aggregation pipeline
         const profiles = yield user_model_1.User.aggregate(pipeline);
         // Step 1: Extract cityIds and stateIds from the profiles
-        const cityIds = profiles
-            .map((profile) => profile.cityId)
-            .filter((id) => id); // Ensure no null or undefined values
-        const stateIds = profiles
-            .map((profile) => profile.stateId)
-            .filter((id) => id); // Ensure no null or undefined values
+        const cityIds = profiles.map((profile) => profile.cityId).filter((id) => id); // Ensure no null or undefined values
+        const stateIds = profiles.map((profile) => profile.stateId).filter((id) => id); // Ensure no null or undefined values
         // Step 2: Fetch city and state details
         const cityDetails = yield City_model_1.City.find({ _id: { $in: cityIds } }).select("name _id");
         const stateDetails = yield State_model_1.State.find({ _id: { $in: stateIds } }).select("name _id");
         // Step 3: Merge city and state details into the profiles
         const finalProfiles = profiles.map((profile) => {
-            const city = cityDetails.find((c) => c._id.toString() === (profile.cityId || '').toString());
-            const state = stateDetails.find((s) => s._id.toString() === (profile.stateId || '').toString());
+            const city = cityDetails.find((c) => c._id.toString() === (profile.cityId || "").toString());
+            const state = stateDetails.find((s) => s._id.toString() === (profile.stateId || "").toString());
             return Object.assign(Object.assign({}, profile), { cityName: city ? city.name : null, stateName: state ? state.name : null });
         });
         // Get total profiles count for pagination
-        const totalPipeline = [
-            { "$match": Object.assign({}, query) },
-            { "$count": "count" },
-        ];
+        const totalPipeline = [{ "$match": Object.assign({}, query) }, { "$count": "count" }];
         const totalProfiles = yield user_model_1.User.aggregate(totalPipeline);
         const total = totalProfiles.length > 0 ? totalProfiles[0].count : 0;
         const totalPages = Math.ceil(total / limitValue);

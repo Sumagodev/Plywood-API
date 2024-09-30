@@ -203,7 +203,7 @@ export const addProduct = async (req: Request, res: Response, next: NextFunction
     const newNotification = new Notifications({
       userId: req?.user?.userId,         
       type: 'product_under_review',
-      title: 'Profile Under Review',  
+      title: 'Product Under Review',  
       content: ` Hi , ${userDataObj?.companyObj?.name} Your Product is Now Under Review!  Our team is currently checking the details.`,
       sourceId:'',             
       isRead: false,                      

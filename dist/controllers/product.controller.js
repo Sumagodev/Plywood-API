@@ -170,7 +170,7 @@ const addProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
         const newNotification = new Notifications_model_1.Notifications({
             userId: (_b = req === null || req === void 0 ? void 0 : req.user) === null || _b === void 0 ? void 0 : _b.userId,
             type: 'product_under_review',
-            title: 'Profile Under Review',
+            title: 'Product Under Review',
             content: ` Hi , ${(_c = userDataObj === null || userDataObj === void 0 ? void 0 : userDataObj.companyObj) === null || _c === void 0 ? void 0 : _c.name} Your Product is Now Under Review!  Our team is currently checking the details.`,
             sourceId: '',
             isRead: false,
