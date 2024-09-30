@@ -42,7 +42,7 @@ import { errorHandler } from "./middlewares/errorHandler.middleware";
 import dealershipOwnerRoutes from './routes/dealershipOwnerRoutes.routes'
 import dealershipUSerRoutes from './routes/dealershipUesrRoutes.routes'
 import notificationRoutes from './routes/notification.routes'
-
+import VendorReviewRoutes from './routes/vendorReviews.routes'
 mongoose.connect(CONFIG.MONGOURI, (err) => {
   if (err) {
     console.log(err);
@@ -85,6 +85,8 @@ app.use("/BannerImage",BannerImage)
 app.use("/leads", leadRouter);
 app.use("/flashSales", flashSaleRouter);
 app.use("/productReview", productReviewRouter);
+app.use("/vendorReview", VendorReviewRoutes);
+
 app.use("/userRequirement", userRequirementRouter);
 app.use("/quickenqury", quickenqury);
 
