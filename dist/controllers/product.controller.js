@@ -526,10 +526,6 @@ const searchProductWithQuery = (req, res, next) => __awaiter(void 0, void 0, voi
             const categoryId = new mongoose_1.default.Types.ObjectId(req.query.categoryId);
             query = Object.assign(Object.assign({}, query), { categoryId: categoryId });
         }
-        if (req.query.state) {
-            const stateId = new mongoose_1.default.Types.ObjectId(req.query.state);
-            query = Object.assign(Object.assign({}, query), { stateId: stateId });
-        }
         // if (req.query.categoryId) {
         //   query = { ...query, "categoryId": req.query.categoryId };
         // }

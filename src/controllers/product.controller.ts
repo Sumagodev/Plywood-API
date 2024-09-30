@@ -604,11 +604,6 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
       query = { ...query, categoryId: categoryId };
     }
 
-    if (req.query.state) {
-      const stateId = new mongoose.Types.ObjectId(req.query.state as string);
-      query = { ...query, stateId: stateId };
-    }
-
     // if (req.query.categoryId) {
     //   query = { ...query, "categoryId": req.query.categoryId };
     // }
