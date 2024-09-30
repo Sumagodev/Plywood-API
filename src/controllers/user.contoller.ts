@@ -1217,6 +1217,7 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
       let stateArr = `${req.query.state}`.split(",");
       query = { ...query, "stateId": { $in: stateArr.map((el) => new mongoose.Types.ObjectId(el)) } };
     }
+
     console.log(query, "query");
 
     const pipeline: any = [
