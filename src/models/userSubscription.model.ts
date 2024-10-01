@@ -3,6 +3,8 @@ import mongoose, { model, Schema, Types } from "mongoose";
 export interface ISubscription {
   includesFlashSales: Boolean;
   includesAdvertisements: Boolean;
+  includesBannerImages: Boolean,
+
   includesValidity: Boolean;
   numberOfAdvertisement: Number;
   advertisementDays: Number;
@@ -38,6 +40,7 @@ const userSubscription = new Schema<ISubscription>(
     includesFlashSales: Boolean,
 
     includesAdvertisements: Boolean,
+    includesBannerImages: Boolean,
 
     includesValidity: Boolean,
 

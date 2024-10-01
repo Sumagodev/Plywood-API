@@ -10,6 +10,7 @@ const subscription = new mongoose_1.Schema({
     price: Number,
     includesFlashSales: Boolean,
     includesAdvertisements: Boolean,
+    includesBannerImages: Boolean,
     includesValidity: Boolean,
     numberOfAdvertisement: { type: Number, default: 0 },
     advertisementDays: { type: Number, default: 0 },

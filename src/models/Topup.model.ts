@@ -6,6 +6,7 @@ export interface ITopup {
   role: string;
   includesFlashSales: Boolean;
   includesAdvertisements: Boolean;
+  includesBannerImages: Boolean,
   numberOfAdvertisement: Number,
   advertisementDays: Number,
   price: Number,
@@ -33,6 +34,8 @@ const topup = new Schema<ITopup>(
     price: Number,
     includesFlashSales: Boolean,
     includesAdvertisements: Boolean,
+    includesBannerImages: Boolean,
+
     numberOfAdvertisement: { type: Number, default: 0 },
     advertisementDays: { type: Number, default: 0 },
     numberOfBannerImages: { type: Number, default: 0 },

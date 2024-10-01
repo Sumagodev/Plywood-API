@@ -69,6 +69,7 @@ const errorHandler_middleware_1 = require("./middlewares/errorHandler.middleware
 const dealershipOwnerRoutes_routes_1 = __importDefault(require("./routes/dealershipOwnerRoutes.routes"));
 const dealershipUesrRoutes_routes_1 = __importDefault(require("./routes/dealershipUesrRoutes.routes"));
 const notification_routes_1 = __importDefault(require("./routes/notification.routes"));
+const vendorReviews_routes_1 = __importDefault(require("./routes/vendorReviews.routes"));
 mongoose_1.default.connect(config_1.CONFIG.MONGOURI, (err) => {
     if (err) {
         console.log(err);
@@ -107,6 +108,7 @@ app.use("/BannerImage", BannerImage_routes_1.default);
 app.use("/leads", leads_routes_1.default);
 app.use("/flashSales", flashSale_routes_1.default);
 app.use("/productReview", productReviews_routes_1.default);
+app.use("/vendorReview", vendorReviews_routes_1.default);
 app.use("/userRequirement", userRequirement_routes_1.default);
 app.use("/quickenqury", quickenquiry_routes_1.default);
 app.use("/userTicket", userTickets_routes_1.default);

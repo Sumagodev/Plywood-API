@@ -3,6 +3,8 @@ import mongoose, { model, Schema, Types } from "mongoose";
 export interface IUserTopup {
   includesFlashSales: Boolean;
   includesAdvertisements: Boolean;
+  includesBannerImages: Boolean,
+
   numberOfAdvertisement: Number;
   advertisementDays: Number;
   numberOfBannerImages: Number,
@@ -34,6 +36,8 @@ const userTopup = new Schema<IUserTopup>(
     numberOfSales: Number,
     includesFlashSales: Boolean,
     includesAdvertisements: Boolean,
+    includesBannerImages: Boolean,
+
     numberOfAdvertisement: { type: Number, default: 0 },
     advertisementDays: { type: Number, default: 0 },
     numberOfBannerImages: { type: Number, default: 0 },

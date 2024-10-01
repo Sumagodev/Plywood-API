@@ -1142,6 +1142,10 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
             let vendorArr = `${req.query.vendors}`.split(",");
             query = Object.assign(Object.assign({}, query), { $or: vendorArr.map((el) => ({ "brandIdArr.brandId": el })) });
         }
+        if (req.query.state) {
+            let stateArr = `${req.query.state}`.split(",");
+            query = Object.assign(Object.assign({}, query), { "stateId": { $in: stateArr.map((el) => new mongoose_1.default.Types.ObjectId(el)) } });
+        }
         console.log(query, "query");
         const pipeline = [
             {
