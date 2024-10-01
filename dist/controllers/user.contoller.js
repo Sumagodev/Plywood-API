@@ -21,7 +21,6 @@ const fileSystem_1 = require("../helpers/fileSystem");
 const generators_1 = require("../helpers/generators");
 const jwt_1 = require("../helpers/jwt");
 const nodemailer_1 = require("../helpers/nodemailer");
-const date_fns_1 = require("date-fns"); // Use date-fns for date comparison if needed
 const City_model_1 = require("../models/City.model");
 const State_model_1 = require("../models/State.model");
 const country_model_1 = require("../models/country.model");
@@ -348,27 +347,6 @@ const registerUser = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         const token = yield (0, jwt_1.generateAccessJwt)(userData);
         let userObj = yield user_model_1.User.findByIdAndUpdate(user._id, { token: token }, { new: true }).exec();
         res.status(201).json({ message: "Registered", data: user._id, token });
-        const newNotification = new Notifications_model_1.Notifications({
-            userId: user._id,
-            type: "profile_completion",
-            title: "Please complete your profile",
-            content: `Thanks for joining us! To get started and make the most of our features, please complete your profile setup.`,
-            sourceId: "",
-            isRead: false,
-            viewCount: 1,
-            lastAccessTime: new Date(),
-            payload: {
-                // Dynamic payload data
-                userId: user._id,
-            },
-        });
-        // Save the new notification to the database
-        try {
-            yield newNotification.save();
-        }
-        catch (error) {
-            console.error("Error saving new notification:", error);
-        }
     }
     catch (error) {
         next(error);
@@ -386,7 +364,6 @@ const deleteUserById = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
 });
 exports.deleteUserById = deleteUserById;
 const getUserById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _v;
     try {
         let user = yield user_model_1.User.findById(req.params.userId).lean().exec();
         console.log(user, "user");
@@ -422,82 +399,6 @@ const getUserById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
         //   user.userSubscriptionMessage = `You do not have any subscription currently active`
         // }
         res.status(201).json({ message: "User Found", data: user });
-        let visitorUserId = req.query.visitorUserId;
-        if (Array.isArray(visitorUserId)) {
-            visitorUserId = visitorUserId[0]; // Use the first element if an array
-        }
-        if (Array.isArray(visitorUserId)) {
-            visitorUserId = visitorUserId[0]; // Use the first element if an array
-        }
-        if (visitorUserId && mongoose_1.default.Types.ObjectId.isValid(visitorUserId)) {
-            // Fetch the user who accessed the profile
-            let leadUser = yield user_model_1.User.findById(visitorUserId).lean().exec();
-            if (!leadUser)
-                throw new Error("Lead User Not Found");
-            // Define the current day range (start and end of today)
-            const startOfToday = (0, date_fns_1.startOfDay)(new Date());
-            const endOfToday = (0, date_fns_1.endOfDay)(new Date());
-            console.log("Profile Owner ID:", req.params.userId);
-            console.log("Visitor User ID:", visitorUserId);
-            console.log("Start of Today:", startOfToday);
-            console.log("End of Today:", endOfToday);
-            if (req.params.userId === visitorUserId) {
-                return;
-            }
-            // Check if a notification already exists for the same user and day
-            let existingNotification = yield Notifications_model_1.Notifications.findOne({
-                userId: req.params.userId,
-                type: "profile_view",
-                createdAt: {
-                    // Created today
-                    $gte: startOfToday,
-                    $lte: endOfToday, // Less than or equal to the end of the day
-                },
-                "payload.accessedBy": visitorUserId, // Check for the accessedBy field
-            });
-            console.log("Existing Notification:", existingNotification);
-            if (existingNotification) {
-                // If a notification exists, increment the view count and update the last access time
-                yield Notifications_model_1.Notifications.updateOne({ _id: existingNotification._id }, {
-                    $inc: { viewCount: 1 },
-                    $set: {
-                        lastAccessTime: new Date(),
-                        isRead: false,
-                    },
-                });
-                console.log("Notification updated with incremented view count and updated last access time");
-            }
-            else {
-                // If no notification exists, create a new one
-                const newNotification = new Notifications_model_1.Notifications({
-                    userId: req.params.userId,
-                    type: "profile_view",
-                    title: "Your profile was accessed",
-                    content: `Your profile was accessed by user ${visitorUserId}`,
-                    sourceId: visitorUserId,
-                    isRead: false,
-                    viewCount: 1,
-                    lastAccessTime: new Date(),
-                    payload: {
-                        // Dynamic payload data
-                        accessedBy: visitorUserId,
-                        accessTime: new Date(),
-                        organizationName: ((_v = leadUser === null || leadUser === void 0 ? void 0 : leadUser.companyObj) === null || _v === void 0 ? void 0 : _v.name) || "Unknown", // Safely access company name
-                    },
-                });
-                // Save the new notification to the database
-                try {
-                    yield newNotification.save();
-                    console.log("New notification created with viewCount and lastAccessTime");
-                }
-                catch (error) {
-                    console.error("Error saving new notification:", error);
-                }
-            }
-        }
-        else {
-            console.error("Invalid Visitor User ID:", visitorUserId);
-        }
     }
     catch (error) {
         next(error);
@@ -536,13 +437,13 @@ const blockUserById = (req, res, next) => __awaiter(void 0, void 0, void 0, func
 });
 exports.blockUserById = blockUserById;
 const uploadDocuments = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _w;
+    var _v;
     try {
         if (!req.file) {
             throw new Error("Error Uploading File");
         }
         const userObj = yield user_model_1.User.findByIdAndUpdate(req.params.userId, {
-            $push: { documents: { fileName: (_w = req.file) === null || _w === void 0 ? void 0 : _w.filename } },
+            $push: { documents: { fileName: (_v = req.file) === null || _v === void 0 ? void 0 : _v.filename } },
         }).exec();
         if (!userObj) {
             throw new Error(`User does not exist`);
@@ -555,9 +456,9 @@ const uploadDocuments = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
 });
 exports.uploadDocuments = uploadDocuments;
 const getAllUsers = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _x;
+    var _w;
     try {
-        let userObj = yield user_model_1.User.findById((_x = req.user) === null || _x === void 0 ? void 0 : _x.userId).exec();
+        let userObj = yield user_model_1.User.findById((_w = req.user) === null || _w === void 0 ? void 0 : _w.userId).exec();
         let query = { $and: [{ role: { $ne: constant_1.ROLES.ADMIN } }] };
         if (userObj && userObj.role) {
             if (userObj.role !== constant_1.ROLES.ADMIN) {
@@ -586,8 +487,8 @@ const getAllUsers = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
         console.log(query, "userObj.role === ROLES.FIELDUSER &&");
         let users = yield user_model_1.User.find(query)
             .skip((pageValue - 1) * limitValue)
-            .limit(limitValue)
-            .sort({ createdAt: -1 })
+            .limit(limitValue).
+            sort({ createdAt: -1 })
             .lean()
             .exec();
         if (!(req.query.showName && req.query.showName != "" && req.query.showName == "true")) {
@@ -1145,10 +1046,6 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
             let vendorArr = `${req.query.vendors}`.split(",");
             query = Object.assign(Object.assign({}, query), { $or: vendorArr.map((el) => ({ "brandIdArr.brandId": el })) });
         }
-        if (req.query.state) {
-            let stateArr = `${req.query.state}`.split(",");
-            query = Object.assign(Object.assign({}, query), { "stateId": { $in: stateArr.map((el) => new mongoose_1.default.Types.ObjectId(el)) } });
-        }
         console.log(query, "query");
         const pipeline = [
             {
@@ -1542,19 +1439,26 @@ const getTopVendors = (req, res, next) => __awaiter(void 0, void 0, void 0, func
         // Execute the aggregation pipeline
         const profiles = yield user_model_1.User.aggregate(pipeline);
         // Step 1: Extract cityIds and stateIds from the profiles
-        const cityIds = profiles.map((profile) => profile.cityId).filter((id) => id); // Ensure no null or undefined values
-        const stateIds = profiles.map((profile) => profile.stateId).filter((id) => id); // Ensure no null or undefined values
+        const cityIds = profiles
+            .map((profile) => profile.cityId)
+            .filter((id) => id); // Ensure no null or undefined values
+        const stateIds = profiles
+            .map((profile) => profile.stateId)
+            .filter((id) => id); // Ensure no null or undefined values
         // Step 2: Fetch city and state details
         const cityDetails = yield City_model_1.City.find({ _id: { $in: cityIds } }).select("name _id");
         const stateDetails = yield State_model_1.State.find({ _id: { $in: stateIds } }).select("name _id");
         // Step 3: Merge city and state details into the profiles
         const finalProfiles = profiles.map((profile) => {
-            const city = cityDetails.find((c) => c._id.toString() === (profile.cityId || "").toString());
-            const state = stateDetails.find((s) => s._id.toString() === (profile.stateId || "").toString());
+            const city = cityDetails.find((c) => c._id.toString() === (profile.cityId || '').toString());
+            const state = stateDetails.find((s) => s._id.toString() === (profile.stateId || '').toString());
             return Object.assign(Object.assign({}, profile), { cityName: city ? city.name : null, stateName: state ? state.name : null });
         });
         // Get total profiles count for pagination
-        const totalPipeline = [{ "$match": Object.assign({}, query) }, { "$count": "count" }];
+        const totalPipeline = [
+            { "$match": Object.assign({}, query) },
+            { "$count": "count" },
+        ];
         const totalProfiles = yield user_model_1.User.aggregate(totalPipeline);
         const total = totalProfiles.length > 0 ? totalProfiles[0].count : 0;
         const totalPages = Math.ceil(total / limitValue);
@@ -1566,7 +1470,7 @@ const getTopVendors = (req, res, next) => __awaiter(void 0, void 0, void 0, func
 });
 exports.getTopVendors = getTopVendors;
 const getAllUsersWithAniversaryDate = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _y, _z;
+    var _x, _y;
     try {
         console.log(req.query, "query");
         let query = {};
@@ -1633,10 +1537,10 @@ const getAllUsersWithAniversaryDate = (req, res, next) => __awaiter(void 0, void
         let totalCount = yield user_model_1.User.aggregate(ogPipeline).exec();
         console.log(JSON.stringify(ogPipeline, null, 2), "ogPipeline");
         console.log(JSON.stringify(pipeline, null, 2), "pipeline");
-        console.log((_y = totalCount[0]) === null || _y === void 0 ? void 0 : _y.total, "totalCount");
+        console.log((_x = totalCount[0]) === null || _x === void 0 ? void 0 : _x.total, "totalCount");
         let users = yield user_model_1.User.aggregate(pipeline).exec();
         // console.log(users, "users")
-        res.json({ message: "ALL Users with subscription", data: users, totalCounts: (_z = totalCount[0]) === null || _z === void 0 ? void 0 : _z.total });
+        res.json({ message: "ALL Users with subscription", data: users, totalCounts: (_y = totalCount[0]) === null || _y === void 0 ? void 0 : _y.total });
     }
     catch (error) {
         next(error);
