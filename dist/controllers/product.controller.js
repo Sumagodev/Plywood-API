@@ -383,6 +383,9 @@ const getProductById = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             const endOfToday = (0, date_fns_1.endOfDay)(new Date());
             console.log('Product Creator ID:', ProductObj.createdById.toString());
             console.log('Visitor User ID:', visitorUserId);
+            if (ProductObj.createdById.toString() === visitorUserId) {
+                return;
+            }
             let existingNotification = yield Notifications_model_1.Notifications.findOne({
                 userId: ProductObj.createdById.toString(),
                 sourceId: visitorUserId,

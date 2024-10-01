@@ -441,6 +441,9 @@ const getUserById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
             console.log("Visitor User ID:", visitorUserId);
             console.log("Start of Today:", startOfToday);
             console.log("End of Today:", endOfToday);
+            if (req.params.userId === visitorUserId) {
+                return;
+            }
             // Check if a notification already exists for the same user and day
             let existingNotification = yield Notifications_model_1.Notifications.findOne({
                 userId: req.params.userId,

@@ -439,6 +439,11 @@ export const getProductById = async (req: Request, res: Response, next: NextFunc
       console.log('Product Creator ID:', ProductObj.createdById.toString());
       console.log('Visitor User ID:', visitorUserId);
   
+      if(ProductObj.createdById.toString()===visitorUserId)
+        {
+          return ;
+        }
+
       let existingNotification = await Notifications.findOne({
         userId: ProductObj.createdById.toString(), // Profile owner
         sourceId: visitorUserId, // The user who accessed the profile
