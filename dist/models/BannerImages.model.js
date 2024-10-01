@@ -14,6 +14,7 @@ const BannerImages = new mongoose_1.Schema({
     },
     isVerified: { type: Boolean, default: false },
     image: String,
+    url: String,
     endDate: { type: Date, default: new Date() },
     startDate: { type: Date, default: new Date() },
 }, { timestamps: true });

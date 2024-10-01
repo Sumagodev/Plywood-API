@@ -4,6 +4,7 @@ export interface IBannerImages {
   productId: string | Types.ObjectId;
   userId: string | Types.ObjectId;
   image: string;
+  url: string;
   type: string;
   isVerified: Boolean,
   endDate: Date;
@@ -26,7 +27,7 @@ const BannerImages = new Schema<IBannerImages>(
     },
     isVerified: { type: Boolean, default: false },
     image: String,
-
+    url:String,
     endDate: { type: Date, default: new Date() },
     startDate: { type: Date, default: new Date() },
   },
