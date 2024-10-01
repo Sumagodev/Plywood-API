@@ -13,7 +13,9 @@ const router = express.Router();
 router.post("/postbanner", createBannerImage);              // Create a banner image
 router.get("/getbanner", getAllBannerImages);              // Get all banner images
 router.get("/getBannerImagesByUserId/:userId", getBannerImagesByUserId);          // Get a banner image by ID
-router.put("/updatebanner/:id", updateBannerImage);           // Update a banner image by ID
+router.put("/updatebanner/:id", updateBannerImage);   
+router.put("/getBannerImageById/:id", getBannerImageById);           // Update a banner image by ID
+        // Update a banner image by ID
 router.delete("/deletebanner/:id", deleteBannerImage);        // Delete a banner image by ID
 
 export default router;
