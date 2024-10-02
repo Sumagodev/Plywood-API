@@ -1955,5 +1955,9 @@ export const getAllSalesReport: RequestHandler = async (req, res, next) => {
     res.status(200).json({ message: "Arr", data: arr, totalPages: totalCounts?.length, success: true });
   } catch (error) {
     next(error);
+
+    
+
+
   }
 };
