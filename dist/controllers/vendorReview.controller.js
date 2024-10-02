@@ -102,12 +102,12 @@ const getVendorReview = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
         let VendorReviewArr = yield VendorReview_model_1.VendorReview.find(query)
             .populate({
             path: "userId",
-            select: "profileImage name",
+            select: "profileImage companyName name",
             model: user_model_1.User, // Specify the User model
         })
             .populate({
             path: "addedby",
-            select: "profileImage name",
+            select: "profileImage companyName name",
             model: user_model_1.User, // Specify the User model
         })
             .skip((pageValue - 1) * limitValue)
