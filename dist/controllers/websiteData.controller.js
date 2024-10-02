@@ -15,6 +15,7 @@ const websitedata_model_1 = require("../models/websitedata.model");
 const CreateWebsiteData = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let existsCheck = yield websitedata_model_1.WebsiteData.findOne({}).exec();
+        //
         if (existsCheck) {
             if (req.body.image && req.body.image.includes("base64")) {
                 let temp = yield (0, fileSystem_1.storeFileAndReturnNameBase64)(req.body.image);
