@@ -35,6 +35,7 @@ const notifications = new Schema<INotifications>(
     createdAt: {
       type: Date,
       default: Date.now,
+      index: { expires: '1m' } // Automatically delete after 15 days
     },
     updatedAt: {
       type: Date,
