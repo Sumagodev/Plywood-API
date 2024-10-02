@@ -1958,6 +1958,5 @@ export const getAllSalesReport: RequestHandler = async (req, res, next) => {
 
     
 
-
   }
 };
