@@ -101,7 +101,7 @@ const appLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
         };
         const token = yield (0, jwt_1.generateAccessJwt)(userData);
         const user = yield user_model_1.User.findByIdAndUpdate(UserExistCheck._id, { token: token }, { new: true }).exec();
-        res.status(200).json({ message: "User Logged In", token: token, role: user === null || user === void 0 ? void 0 : user.role });
+        res.status(200).json({ message: "User Logged In", token: token });
     }
     catch (error) {
         next(error);

@@ -96,7 +96,7 @@ export const appLogin = async (req: Request, res: Response, next: NextFunction) 
     };
     const token = await generateAccessJwt(userData);
     const user = await User.findByIdAndUpdate(UserExistCheck._id, { token: token }, { new: true }).exec();
-    res.status(200).json({ message: "User Logged In", token: token, role:user?.role });
+    res.status(200).json({ message: "User Logged In", token: token });
   } catch (error) {
     next(error);
   }
@@ -1955,5 +1955,9 @@ export const getAllSalesReport: RequestHandler = async (req, res, next) => {
     res.status(200).json({ message: "Arr", data: arr, totalPages: totalCounts?.length, success: true });
   } catch (error) {
     next(error);
+
+    
+
+
   }
 };
