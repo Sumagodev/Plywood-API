@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUserNotificationCount = exports.getUserNotifications = exports.updateReadStatus = void 0;
 const Notifications_model_1 = require("../models/Notifications.model");
+const mongoose_1 = require("mongoose"); // Import Types from mongoose
 const updateReadStatus = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { userId, notificationId } = req.body;
@@ -73,9 +74,10 @@ const getUserNotificationCount = (req, res, next) => __awaiter(void 0, void 0, v
                 success: false,
             });
         }
+        const userId = new mongoose_1.Types.ObjectId(req.body.userId);
         // Construct the query for unread notifications by userId
         const countQuery = {
-            userId: req.body.userId,
+            userId: userId,
             isRead: false,
         };
         // Count unread notifications

@@ -1,5 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { Notifications } from "../models/Notifications.model";
+import { ObjectId } from 'mongoose'; // Import ObjectId from mongoose
+import { Types } from 'mongoose'; // Import Types from mongoose
 
 
 export const updateReadStatus = async (req: Request, res: Response, next: NextFunction) => {
@@ -73,10 +75,11 @@ export const getUserNotificationCount = async (req: Request, res: Response, next
         success: false,
       });
     }
+    const userId = new Types.ObjectId(req.body.userId);
 
     // Construct the query for unread notifications by userId
     const countQuery = {
-      userId: req.body.userId,
+      userId: userId,
       isRead: false,
     };
 
