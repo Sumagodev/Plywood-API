@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateReadStatus = void 0;
+exports.getUserNotifications = exports.updateReadStatus = void 0;
 const Notifications_model_1 = require("../models/Notifications.model");
 const updateReadStatus = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -38,3 +38,29 @@ const updateReadStatus = (req, res, next) => __awaiter(void 0, void 0, void 0, f
     }
 });
 exports.updateReadStatus = updateReadStatus;
+const getUserNotifications = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        let ProductArr = [];
+        let query = {};
+        if (req.query.userId) {
+            query.userId = req.query.userId;
+        }
+        if (req.query.isRead != undefined && req.query.isRead) {
+            query.isRead = req.query.isRead;
+        }
+        let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
+        let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
+        ProductArr = yield Notifications_model_1.Notifications.find(query)
+            .skip((pageValue - 1) * limitValue)
+            .limit(limitValue)
+            .sort({ createdAt: -1 })
+            .exec();
+        let totalElements = yield Notifications_model_1.Notifications.find(query).count().exec();
+        console.log(totalElements, ProductArr === null || ProductArr === void 0 ? void 0 : ProductArr.length);
+        res.status(200).json({ message: "getProduct", data: ProductArr, totalElements: totalElements, success: true });
+    }
+    catch (err) {
+        next(err);
+    }
+});
+exports.getUserNotifications = getUserNotifications;

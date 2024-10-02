@@ -96,7 +96,7 @@ export const appLogin = async (req: Request, res: Response, next: NextFunction) 
     };
     const token = await generateAccessJwt(userData);
     const user = await User.findByIdAndUpdate(UserExistCheck._id, { token: token }, { new: true }).exec();
-    res.status(200).json({ message: "User Logged In", token: token });
+    res.status(200).json({ message: "User Logged In", token: token, role:user?.role });
   } catch (error) {
     next(error);
   }
