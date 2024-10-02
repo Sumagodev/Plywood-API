@@ -94,35 +94,22 @@ const getVendorReview = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             query = Object.assign(Object.assign({}, query), { name: new RegExp(`${req.query.q}`, "i") });
         }
         // Get total count of matching product reviews
-        const categoryCount = yield VendorReview_model_1.VendorReview.find(query).countDocuments();
+        let categoryCount = yield VendorReview_model_1.VendorReview.find(query).countDocuments();
         // Pagination settings
-        const pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
-        const limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
-        // Fetch the reviews
-        const vendorReviews = yield VendorReview_model_1.VendorReview.find(query)
+        let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
+        let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
+        // Fetch the reviews, populating both product and user details (including profileImage)
+        let VendorReviewArr = yield VendorReview_model_1.VendorReview.find(query)
+            .populate("userId")
             .skip((pageValue - 1) * limitValue)
             .sort({ createdAt: -1 })
             .limit(limitValue)
             .lean()
             .exec();
-        // Fetch users corresponding to the userIds in the reviews
-        const userIds = vendorReviews.map(review => review.userId);
-        const users = yield user_model_1.User.find({ _id: { $in: userIds } }).lean();
-        // Create a map of users for easy lookup
-        const userMap = new Map(users.map(user => [user._id.toString(), { name: user.name, profileImage: user.profileImage }]));
-        // Log the userMap for debugging
-        console.log("User Map:", userMap);
-        // Enrich the reviews with user information
-        const enrichedReviews = vendorReviews.map(review => {
-            const userInfo = userMap.get(review.userId.toString());
-            console.log("Review UserId:", review.userId.toString());
-            console.log("Mapped User:", userInfo);
-            return Object.assign(Object.assign({}, review), { userName: (userInfo === null || userInfo === void 0 ? void 0 : userInfo.name) || "Unknown User", userProfileImage: (userInfo === null || userInfo === void 0 ? void 0 : userInfo.profileImage) || "No Image" });
-        });
-        // Respond with the enriched reviews
+        // Respond with the product reviews and the populated data
         res.status(200).json({
             message: "getVendorReview",
-            data: enrichedReviews,
+            data: VendorReviewArr,
             count: categoryCount,
             success: true,
         });
