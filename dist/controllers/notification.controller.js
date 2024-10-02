@@ -97,9 +97,9 @@ exports.getUserNotificationCount = getUserNotificationCount;
 // The function to get notifications for a user
 const getNotificationsForUser = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     // Fetch notifications for the specific user
-    const userNotifications = yield Notifications_model_1.Notifications.find({ userId, isRead: false }).lean();
+    const userNotifications = yield Notifications_model_1.Notifications.find({ userId }).lean();
     // Fetch notifications that reach "all" and are not read
-    const allNotifications = yield Notifications_model_1.Notifications.find({ reach: "all", isRead: false }).lean();
+    const allNotifications = yield Notifications_model_1.Notifications.find({ reach: "all" }).lean();
     // Fetch read statuses for this user
     const readStatuses = yield NotificationReadStatus_model_1.NotificationReadStatus.find({ userId }).lean();
     // Create a map of notificationId to readAt date for quick lookup
@@ -124,7 +124,7 @@ const getUserNotificationsController = (req, res, next) => __awaiter(void 0, voi
         const notifications = yield (0, exports.getNotificationsForUser)(userId);
         // Return the response with notifications
         res.status(200).json({
-            message: "Unread notifications retrieved successfully",
+            message: "Notifications retrieved successfully",
             data: notifications,
             success: true,
         });

@@ -101,10 +101,10 @@ export const getUserNotificationCount = async (req: Request, res: Response, next
 // The function to get notifications for a user
 export const getNotificationsForUser = async (userId: string): Promise<(INotifications & { isRead: boolean; readAt?: Date })[]> => {
   // Fetch notifications for the specific user
-  const userNotifications: INotifications[] = await Notifications.find({ userId, isRead: false }).lean();
+  const userNotifications: INotifications[] = await Notifications.find({ userId}).lean();
   
   // Fetch notifications that reach "all" and are not read
-  const allNotifications: INotifications[] = await Notifications.find({ reach: "all", isRead: false }).lean();
+  const allNotifications: INotifications[] = await Notifications.find({ reach: "all" }).lean();
 
   // Fetch read statuses for this user
   const readStatuses = await NotificationReadStatus.find({ userId }).lean();
@@ -138,7 +138,7 @@ export const getUserNotificationsController = async (req: Request, res: Response
     const notifications = await getNotificationsForUser(userId);
     // Return the response with notifications
     res.status(200).json({
-      message: "Unread notifications retrieved successfully",
+      message: "Notifications retrieved successfully",
       data: notifications,
       success: true,
     });
