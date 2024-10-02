@@ -1,6 +1,7 @@
 import { model, Schema } from "mongoose";
 
 export interface INotifications {
+  _id: Schema.Types.ObjectId; // Add the _id property
     userId: Schema.Types.ObjectId;
     type: string;
     title: string;
@@ -35,8 +36,7 @@ const notifications = new Schema<INotifications>(
     createdAt: {
       type: Date,
       default: Date.now,
-      expires: 1296000,
-      
+      expires: 1296000, // This will automatically delete documents after 15 days
     },
     updatedAt: {
       type: Date,
@@ -47,5 +47,8 @@ const notifications = new Schema<INotifications>(
     timestamps: true, // Automatically handle createdAt and updatedAt
   }
 );
+
+// Add index for the reach field
+notifications.index({ reach: 1 });
 
 export const Notifications = model<INotifications>("notifications", notifications);
