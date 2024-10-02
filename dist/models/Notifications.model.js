@@ -20,8 +20,7 @@ const notifications = new mongoose_1.Schema({
     createdAt: {
         type: Date,
         default: Date.now,
-        expires: 60 * 1,
-        // Automatically delete after 15 days
+        expires: 1296000,
     },
     updatedAt: {
         type: Date,
