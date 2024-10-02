@@ -100,7 +100,11 @@ const getVendorReview = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
         let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
         // Fetch the reviews, populating both product and user details (including profileImage)
         let VendorReviewArr = yield VendorReview_model_1.VendorReview.find(query)
-            .populate("userId")
+            .populate({
+            path: "userId",
+            select: "profileImage name",
+            model: user_model_1.User, // Specify the User model
+        })
             .skip((pageValue - 1) * limitValue)
             .sort({ createdAt: -1 })
             .limit(limitValue)

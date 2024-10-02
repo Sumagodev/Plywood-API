@@ -116,7 +116,11 @@ export const getVendorReview = async (req: Request, res: Response, next: NextFun
 
     // Fetch the reviews, populating both product and user details (including profileImage)
     let VendorReviewArr = await VendorReview.find(query)
-      .populate("userId")
+      .populate({
+        path: "userId", // Populate user details
+        select: "profileImage name", // Fetch the user's profileImage and name
+        model: User, // Specify the User model
+      })
       .skip((pageValue - 1) * limitValue)
       .sort({ createdAt: -1 })
       .limit(limitValue)
