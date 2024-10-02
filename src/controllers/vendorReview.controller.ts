@@ -37,47 +37,13 @@ export const addVendorReview = async (req: Request, res: Response, next: NextFun
       // console.log(rating, (typeof (totalRatings / total) == "number" || typeof (totalRatings / total) == "bigint") ? (totalRatings / total) : 0, '(typeof (totalRatings / total) == "number" || typeof (totalRatings / total) == "bigint") ? (totalRatings / total) : 0');
       await User.findByIdAndUpdate(req.body?.userId, { rating: rating }).exec();
 
-      let fcmTokensArr = await UserFcmToken.find({ userId: req.body.userId }).exec();
-      console.log(fcmTokensArr)
-      let obj = {
-          tokens: fcmTokensArr.map((el:any) => el.fcmToken),
-          data: { title: notification_text.review_text_obj.title, content: notification_text.review_text_obj.content }
-      }
-      // let saveNotificationObj = {
-      //     userId: req.body.userId,
-      //     title: obj.data.title,
-      //     content: obj.data.content
-      // }
-      // await new Notifications(saveNotificationObj).save()
-
-      // console.log(saveNotificationObj, "NOTIFICATION OBJ")
-
-      await fcmMulticastNotify(obj)
 
 
 
       res.status(200).json({ message: "Review Successfully Created", success: true });
 
 
-    //   const newNotification = new Notifications({
-    //     userId: user._id,         
-    //     type: 'profile_completion',
-    //     title: 'Profile Completed',  
-    //     content: `Thanks for joining us! To get started and make the most of our features, please complete your profile setup.`,
-    //     sourceId:'',             
-    //     isRead: false,                      
-    //     viewCount: 1,
-    //     lastAccessTime: new Date(),           // Set initial last access time
-    //     payload: {                            // Dynamic payload data
-    //        userId:user._id
-    //     }
-    // });
-    // // Save the new notification to the database
-    // try {
-    //     await newNotification.save();
-    // } catch (error) {
-    //     console.error('Error saving new notification:', error);
-    // }
+ 
 
 
       

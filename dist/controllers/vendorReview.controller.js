@@ -13,9 +13,6 @@ exports.getById = exports.deleteById = exports.updateById = exports.getVendorRev
 const country_model_1 = require("../models/country.model");
 const VendorReview_model_1 = require("../models/VendorReview.model");
 const user_model_1 = require("../models/user.model");
-const UserFcmTokens_model_1 = require("../models/UserFcmTokens.model");
-const fcmNotify_1 = require("../helpers/fcmNotify");
-const constant_1 = require("../helpers/constant");
 const addVendorReview = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     try {
@@ -37,40 +34,7 @@ const addVendorReview = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
         // Math.round((typeof (totalRatings / total) == "number" || typeof (totalRatings / total) == "bigint") ? (totalRatings / total) : 0);
         // console.log(rating, (typeof (totalRatings / total) == "number" || typeof (totalRatings / total) == "bigint") ? (totalRatings / total) : 0, '(typeof (totalRatings / total) == "number" || typeof (totalRatings / total) == "bigint") ? (totalRatings / total) : 0');
         yield user_model_1.User.findByIdAndUpdate((_b = req.body) === null || _b === void 0 ? void 0 : _b.userId, { rating: rating }).exec();
-        let fcmTokensArr = yield UserFcmTokens_model_1.UserFcmToken.find({ userId: req.body.userId }).exec();
-        console.log(fcmTokensArr);
-        let obj = {
-            tokens: fcmTokensArr.map((el) => el.fcmToken),
-            data: { title: constant_1.notification_text.review_text_obj.title, content: constant_1.notification_text.review_text_obj.content }
-        };
-        // let saveNotificationObj = {
-        //     userId: req.body.userId,
-        //     title: obj.data.title,
-        //     content: obj.data.content
-        // }
-        // await new Notifications(saveNotificationObj).save()
-        // console.log(saveNotificationObj, "NOTIFICATION OBJ")
-        yield (0, fcmNotify_1.fcmMulticastNotify)(obj);
         res.status(200).json({ message: "Review Successfully Created", success: true });
-        //   const newNotification = new Notifications({
-        //     userId: user._id,         
-        //     type: 'profile_completion',
-        //     title: 'Profile Completed',  
-        //     content: `Thanks for joining us! To get started and make the most of our features, please complete your profile setup.`,
-        //     sourceId:'',             
-        //     isRead: false,                      
-        //     viewCount: 1,
-        //     lastAccessTime: new Date(),           // Set initial last access time
-        //     payload: {                            // Dynamic payload data
-        //        userId:user._id
-        //     }
-        // });
-        // // Save the new notification to the database
-        // try {
-        //     await newNotification.save();
-        // } catch (error) {
-        //     console.error('Error saving new notification:', error);
-        // }
     }
     catch (err) {
         next(err);
