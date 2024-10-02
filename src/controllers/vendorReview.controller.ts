@@ -85,12 +85,70 @@ export const addVendorReview = async (req: Request, res: Response, next: NextFun
       next(err);
   }
 };
+// export const getVendorReview = async (req: Request, res: Response, next: NextFunction) => {
+//   try {
+//     let query: any = {};
+
+//     // Build the query based on the request query parameters
+
+//     if (req.query.userId) {
+//       query = { ...query, userId: req.query.userId };
+//     }
+//     if (req.query.startDate && req.query.endDate) {
+//       query = {
+//         ...query,
+//         createdAt: {
+//           $gte: new Date(req.query.startDate as string),
+//           $lte: new Date(req.query.endDate as string),
+//         },
+//       };
+//     }
+//     if (req.query.q) {
+//       query = { ...query, name: new RegExp(`${req.query.q}`, "i") };
+//     }
+
+//     // Get total count of matching product reviews
+//     let categoryCount = await VendorReview.find(query).countDocuments();
+
+//     // Pagination settings
+//     let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
+//     let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
+
+//     // Fetch the reviews, populating both product and user details (including profileImage)
+//     let VendorReviewArr = await VendorReview.find(query)
+//       .populate({
+//         path: "userId", // Populate user details
+//         select: "profileImage companyName name", // Fetch the user's profileImage and name
+//         model: User, // Specify the User model
+//       })
+//       .populate({
+//         path: "addedby", // Populate user details
+//         select: "profileImage companyName name", // Fetch the user's profileImage and name
+//         model: User, // Specify the User model
+//       })
+//       .skip((pageValue - 1) * limitValue)
+//       .sort({ createdAt: -1 })
+//       .limit(limitValue)
+//       .lean()
+//       .exec();
+
+//     // Respond with the product reviews and the populated data
+//     res.status(200).json({
+//       message: "getVendorReview",
+//       data: VendorReviewArr,
+//       count: categoryCount,
+//       success: true,
+//     });
+//   } catch (err) {
+//     next(err);
+//   }
+// };
+
 export const getVendorReview = async (req: Request, res: Response, next: NextFunction) => {
   try {
     let query: any = {};
 
     // Build the query based on the request query parameters
-
     if (req.query.userId) {
       query = { ...query, userId: req.query.userId };
     }
@@ -108,34 +166,55 @@ export const getVendorReview = async (req: Request, res: Response, next: NextFun
     }
 
     // Get total count of matching product reviews
-    let categoryCount = await VendorReview.find(query).countDocuments();
+    const categoryCount = await VendorReview.find(query).countDocuments();
 
     // Pagination settings
-    let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
-    let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
+    const pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
+    const limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
 
-    // Fetch the reviews, populating both product and user details (including profileImage)
-    let VendorReviewArr = await VendorReview.find(query)
-      .populate({
-        path: "userId", // Populate user details
-        select: "profileImage companyName name", // Fetch the user's profileImage and name
-        model: User, // Specify the User model
-      })
-      .populate({
-        path: "addedby", // Populate user details
-        select: "profileImage companyName name", // Fetch the user's profileImage and name
-        model: User, // Specify the User model
-      })
+    // Fetch the reviews
+    const vendorReviews = await VendorReview.find(query)
       .skip((pageValue - 1) * limitValue)
       .sort({ createdAt: -1 })
       .limit(limitValue)
       .lean()
       .exec();
 
-    // Respond with the product reviews and the populated data
+    // Fetch users corresponding to the userIds in the reviews
+    const userIds = vendorReviews.map(review => review.userId);
+    const users = await User.find({ _id: { $in: userIds } }).lean();
+
+    // Create a map of users for easy lookup
+    const userMap = new Map(users.map(user => [
+      user._id.toString(),
+      {
+        name: user.name,
+        profileImage: user.profileImage,
+        companyName: user.companyObj.name, // Fetching the name from companyObj
+      },
+    ]));
+
+    // Log the userMap for debugging
+    console.log("User Map:", userMap);
+
+    // Enrich the reviews with user information
+    const enrichedReviews = vendorReviews.map(review => {
+      const userInfo = userMap.get(review.userId.toString());
+      console.log("Review UserId:", review.userId.toString());
+      console.log("Mapped User:", userInfo);
+
+      return {
+        ...review,
+        userName: userInfo?.name || "Unknown User",
+        userProfileImage: userInfo?.profileImage || "No Image",
+        companyName: userInfo?.companyName || "No Company", // Adding company name
+      };
+    });
+
+    // Respond with the enriched reviews
     res.status(200).json({
       message: "getVendorReview",
-      data: VendorReviewArr,
+      data: enrichedReviews,
       count: categoryCount,
       success: true,
     });
@@ -143,8 +222,6 @@ export const getVendorReview = async (req: Request, res: Response, next: NextFun
     next(err);
   }
 };
-
-
 
 
 export const updateById = async (req: Request, res: Response, next: NextFunction) => {
