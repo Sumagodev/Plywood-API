@@ -90,7 +90,6 @@ export const getVendorReview = async (req: Request, res: Response, next: NextFun
     let query: any = {};
 
     // Build the query based on the request query parameters
-
     if (req.query.userId) {
       query = { ...query, userId: req.query.userId };
     }
@@ -108,18 +107,18 @@ export const getVendorReview = async (req: Request, res: Response, next: NextFun
     }
 
     // Get total count of matching product reviews
-    let categoryCount = await VendorReview.find(query).countDocuments();
+    const categoryCount = await VendorReview.find(query).countDocuments();
 
     // Pagination settings
-    let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
-    let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
+    const pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
+    const limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
 
     // Fetch the reviews, populating both product and user details (including profileImage)
-    let VendorReviewArr = await VendorReview.find(query)
+    const vendorReviews = await VendorReview.find(query)
       .populate({
         path: "userId", // Populate user details
         select: "profileImage name", // Fetch the user's profileImage and name
-        model: User, // Specify the User model
+        model: "User", // Ensure the correct User model is specified
       })
       .skip((pageValue - 1) * limitValue)
       .sort({ createdAt: -1 })
@@ -127,10 +126,10 @@ export const getVendorReview = async (req: Request, res: Response, next: NextFun
       .lean()
       .exec();
 
-    // Respond with the product reviews and the populated data
+    // Respond with the vendor reviews and the populated data
     res.status(200).json({
       message: "getVendorReview",
-      data: VendorReviewArr,
+      data: vendorReviews,
       count: categoryCount,
       success: true,
     });
