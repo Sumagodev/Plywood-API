@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateReadStatusNew = exports.getUserNotificationsController = exports.getNotificationsForUser = exports.getUserNotificationCount = exports.getUserNotifications = exports.updateReadStatus = void 0;
+exports.getUnreadNotificationsCount = exports.updateReadStatusNew = exports.getUserNotificationsController = exports.getNotificationsForUser = exports.getUserNotificationCount = exports.getUserNotifications = exports.updateReadStatus = void 0;
 const Notifications_model_1 = require("../models/Notifications.model");
 const mongoose_1 = require("mongoose"); // Import Types from mongoose
 const NotificationReadStatus_model_1 = require("../models/NotificationReadStatus.model");
@@ -114,6 +114,12 @@ exports.getNotificationsForUser = getNotificationsForUser;
 const getUserNotificationsController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.body.userId; // Assume you're sending userId in the request body
+        if (!req.body.userId) {
+            return res.status(400).json({
+                message: "User ID is required",
+                success: false,
+            });
+        }
         // Call the function to get notifications
         const notifications = yield (0, exports.getNotificationsForUser)(userId);
         // Return the response with notifications
@@ -160,3 +166,34 @@ const updateReadStatusNew = (req, res, next) => __awaiter(void 0, void 0, void 0
     }
 });
 exports.updateReadStatusNew = updateReadStatusNew;
+// Function to get the unread notification count for a user
+const getUnreadNotificationsCount = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.body.userId;
+        if (!userId) {
+            return res.status(400).json({ message: "User ID is required", success: false });
+        }
+        // Get the notifications that are either specific to the user or for all users
+        const userSpecificNotifications = yield Notifications_model_1.Notifications.find({ userId, isRead: false }).lean();
+        const globalNotifications = yield Notifications_model_1.Notifications.find({ reach: "all" }).lean();
+        // Fetch the read statuses for this user
+        const readStatuses = yield NotificationReadStatus_model_1.NotificationReadStatus.find({ userId }).lean();
+        // Create a map of notificationId to easily check which notifications have been read
+        const readStatusMap = new Map(readStatuses.map(status => [status.notificationId.toString(), status.readAt]));
+        // Combine all the notifications (user-specific + global)
+        const combinedNotifications = [...userSpecificNotifications, ...globalNotifications];
+        // Count the notifications that are not read (i.e., not present in the readStatusMap)
+        const unreadCount = combinedNotifications.filter(notification => !readStatusMap.has(notification._id.toString())).length;
+        // Return the count in the response
+        res.status(200).json({
+            message: "Unread notification count retrieved successfully",
+            unreadCount,
+            success: true,
+        });
+    }
+    catch (error) {
+        console.error("Error fetching unread notifications count:", error);
+        next(error); // Pass the error to the global error handler
+    }
+});
+exports.getUnreadNotificationsCount = getUnreadNotificationsCount;
