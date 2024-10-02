@@ -8,7 +8,6 @@ import { generateRandomNumber } from "../helpers/generators";
 import { generateAccessJwt, generateRefreshJwt } from "../helpers/jwt";
 import { sendMail } from "../helpers/nodemailer";
 import { sendMail as sendMail2 } from "../helpers/mailer";
-
 import { City } from "../models/City.model";
 import { State } from "../models/State.model";
 import { Country } from "../models/country.model";
@@ -19,6 +18,7 @@ import { Notifications } from "../models/Notifications.model";
 import otpModels from "../models/otp.models";
 import { ValidateEmail, ValidateLandline, ValidatePhone, validMobileNo } from "../helpers/validiator";
 import { postSpiCrmLead } from "../service/sipCrm.service";
+import { startOfDay, endOfDay } from 'date-fns'; // Use date-fns for date comparison if needed
 
 export const webLogin = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -415,6 +415,78 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
     // }
 
     res.status(201).json({ message: "User Found", data: user });
+
+    let visitorUserId: string | undefined = req.query.visitorUserId as string | undefined;
+    if (Array.isArray(visitorUserId)) {
+      visitorUserId = visitorUserId[0]; // Use the first element if an array
+  }
+  
+  if (Array.isArray(visitorUserId)) {
+    visitorUserId = visitorUserId[0]; // Use the first element if an array
+}
+if (visitorUserId && mongoose.Types.ObjectId.isValid(visitorUserId)) {
+    // Fetch the user who accessed the profile
+    let leadUser = await User.findById(visitorUserId).lean().exec();
+    if (!leadUser) throw new Error("Lead User Not Found");
+    // Define the current day range (start and end of today)
+    const startOfToday = startOfDay(new Date());
+    const endOfToday = endOfDay(new Date());
+    console.log('Profile Owner ID:', req.params.userId);
+    console.log('Visitor User ID:', visitorUserId);
+    console.log('Start of Today:', startOfToday);
+    console.log('End of Today:', endOfToday);
+    // Check if a notification already exists for the same user and day
+    let existingNotification = await Notifications.findOne({
+        userId: req.params.userId,                  // Profile owner
+        type: 'profile_view',
+        createdAt: {                                // Created today
+            $gte: startOfToday,                     // Greater than or equal to the start of the day
+            $lte: endOfToday                        // Less than or equal to the end of the day
+        },
+        'payload.accessedBy': visitorUserId // Check for the accessedBy field
+    });
+    console.log('Existing Notification:', existingNotification);
+    if (existingNotification) {
+        // If a notification exists, increment the view count and update the last access time
+        await Notifications.updateOne(
+            { _id: existingNotification._id },
+            {
+                $inc: { viewCount: 1 },            // Increment viewCount by 1
+                $set: { 
+                    lastAccessTime: new Date(),
+                    isRead: false,
+                } // Update lastAccessTime to current time
+            }
+        );
+        console.log('Notification updated with incremented view count and updated last access time');
+    } else {
+        // If no notification exists, create a new one
+        const newNotification = new Notifications({
+            userId: req.params.userId,            // ID of the user related to the notification
+            type: 'profile_view',                 // Type of notification
+            title: 'Your profile was accessed',   // Title of the notification
+            content: `Your profile was accessed by user ${visitorUserId}`, // Message content
+            sourceId: visitorUserId,              // ID of the user who accessed the profile
+            isRead: false,                        // Notification status
+            viewCount: 1,                         // Initialize viewCount to 1
+            lastAccessTime: new Date(),           // Set initial last access time
+            payload: {                            // Dynamic payload data
+                accessedBy: visitorUserId,
+                accessTime: new Date(),
+                organizationName: leadUser?.companyObj?.name || 'Unknown' // Safely access company name
+            }
+        });
+        // Save the new notification to the database
+        try {
+            await newNotification.save();
+            console.log('New notification created with viewCount and lastAccessTime');
+        } catch (error) {
+            console.error('Error saving new notification:', error);
+        }
+    }
+} else {
+    console.error('Invalid Visitor User ID:', visitorUserId);
+}
   } catch (error) {
     next(error);
   }
