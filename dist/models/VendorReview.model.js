@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VendorReview = void 0;
 const mongoose_1 = require("mongoose");
+// helllloooo
 const vendorReview = new mongoose_1.Schema({
     userId: {
         type: mongoose_1.Schema.Types.ObjectId,
@@ -9,6 +10,11 @@ const vendorReview = new mongoose_1.Schema({
         required: true,
     },
     name: String,
+    addedby: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+    },
     rating: { type: Number, default: 0 },
     message: String,
     displayOnProductPage: { type: Boolean, default: false },
