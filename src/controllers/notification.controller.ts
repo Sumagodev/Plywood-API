@@ -66,45 +66,33 @@ export const getUserNotifications = async (req: Request, res: Response, next: Ne
 
 export const getUserNotificationCount = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    let ProductArr: any = [];
-    let query: any = {};
-
-    // Access userId and isRead from req.body
-    if (req.body.userId) {
-      query.userId = req.body.userId;
+    // Ensure that userId is provided in the request body
+    if (!req.body.userId) {
+      return res.status(400).json({
+        message: "User ID is required",
+        success: false,
+      });
     }
 
-    // Always include isRead: false in the count query
-    const countQuery = { ...query, isRead: false };
+    // Construct the query for unread notifications by userId
+    const countQuery = {
+      userId: req.body.userId,
+      isRead: false,
+    };
 
-    if (req.body.isRead !== undefined) {
-      query.isRead = req.body.isRead;
-    }
-
-    let pageValue = req.body.page ? parseInt(`${req.body.page}`) : 1;
-    let limitValue = req.body.perPage ? parseInt(`${req.body.perPage}`) : 1000;
-
-    ProductArr = await Notifications.find(query)
-      .skip((pageValue - 1) * limitValue)
-      .limit(limitValue)
-      .sort({ createdAt: -1 })
-      .exec();
-
-    // Count only unread notifications
-    let totalElements = await Notifications.countDocuments(countQuery).exec();
-
-    console.log(totalElements, ProductArr?.length);
+    // Count unread notifications
+    let totalUnreadCount = await Notifications.countDocuments(countQuery).exec();
 
     res.status(200).json({
-      message: "getProduct",
-      data: ProductArr,
-      totalElements: totalElements,
+      message: "Unread notification count retrieved successfully",
+      totalUnreadCount: totalUnreadCount,
       success: true,
     });
   } catch (err) {
     next(err);
   }
 };
+
 
 
 

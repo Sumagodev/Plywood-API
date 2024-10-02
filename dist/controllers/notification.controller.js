@@ -66,31 +66,23 @@ const getUserNotifications = (req, res, next) => __awaiter(void 0, void 0, void 
 exports.getUserNotifications = getUserNotifications;
 const getUserNotificationCount = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        let ProductArr = [];
-        let query = {};
-        // Access userId and isRead from req.body
-        if (req.body.userId) {
-            query.userId = req.body.userId;
+        // Ensure that userId is provided in the request body
+        if (!req.body.userId) {
+            return res.status(400).json({
+                message: "User ID is required",
+                success: false,
+            });
         }
-        // Always include isRead: false in the count query
-        const countQuery = Object.assign(Object.assign({}, query), { isRead: false });
-        if (req.body.isRead !== undefined) {
-            query.isRead = req.body.isRead;
-        }
-        let pageValue = req.body.page ? parseInt(`${req.body.page}`) : 1;
-        let limitValue = req.body.perPage ? parseInt(`${req.body.perPage}`) : 1000;
-        ProductArr = yield Notifications_model_1.Notifications.find(query)
-            .skip((pageValue - 1) * limitValue)
-            .limit(limitValue)
-            .sort({ createdAt: -1 })
-            .exec();
-        // Count only unread notifications
-        let totalElements = yield Notifications_model_1.Notifications.countDocuments(countQuery).exec();
-        console.log(totalElements, ProductArr === null || ProductArr === void 0 ? void 0 : ProductArr.length);
+        // Construct the query for unread notifications by userId
+        const countQuery = {
+            userId: req.body.userId,
+            isRead: false,
+        };
+        // Count unread notifications
+        let totalUnreadCount = yield Notifications_model_1.Notifications.countDocuments(countQuery).exec();
         res.status(200).json({
-            message: "getProduct",
-            data: ProductArr,
-            totalElements: totalElements,
+            message: "Unread notification count retrieved successfully",
+            totalUnreadCount: totalUnreadCount,
             success: true,
         });
     }
