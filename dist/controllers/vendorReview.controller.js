@@ -98,22 +98,28 @@ const getVendorReview = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
         // Pagination settings
         const pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
         const limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
-        // Fetch the reviews, populating both product and user details (including profileImage)
+        // Fetch the reviews (without population for now)
         const vendorReviews = yield VendorReview_model_1.VendorReview.find(query)
-            .populate({
-            path: "userId",
-            select: "profileImage name",
-            model: "User", // Ensure the correct User model is specified
-        })
             .skip((pageValue - 1) * limitValue)
             .sort({ createdAt: -1 })
             .limit(limitValue)
             .lean()
             .exec();
-        // Respond with the vendor reviews and the populated data
+        // Extract all unique userIds from vendorReviews
+        const userIds = vendorReviews.map(review => review.userId).filter(Boolean);
+        // Fetch all relevant users
+        const users = yield user_model_1.User.find({ _id: { $in: userIds } }).select("profileImage name").lean();
+        // Create a Map to link userId with profile details (name and profileImage)
+        const userMap = new Map(users.map(user => [user._id.toString(), { name: user.name, profileImage: user.profileImage }]));
+        // Attach user details (profileImage and name) to each review
+        const enrichedReviews = vendorReviews.map(review => {
+            var _a, _b;
+            return (Object.assign(Object.assign({}, review), { userName: ((_a = userMap.get(review.userId.toString())) === null || _a === void 0 ? void 0 : _a.name) || "Unknown User", userProfileImage: ((_b = userMap.get(review.userId.toString())) === null || _b === void 0 ? void 0 : _b.profileImage) || "No Image" }));
+        });
+        // Respond with the enriched vendor reviews
         res.status(200).json({
             message: "getVendorReview",
-            data: vendorReviews,
+            data: enrichedReviews,
             count: categoryCount,
             success: true,
         });
