@@ -69,19 +69,20 @@ export const getUserNotificationCount = async (req: Request, res: Response, next
     let ProductArr: any = [];
     let query: any = {};
 
-    if (req.query.userId) {
-      query.userId = req.query.userId;
+    // Access userId and isRead from req.body
+    if (req.body.userId) {
+      query.userId = req.body.userId;
     }
 
     // Always include isRead: false in the count query
     const countQuery = { ...query, isRead: false };
 
-    if (req.query.isRead !== undefined) {
-      query.isRead = req.query.isRead;
+    if (req.body.isRead !== undefined) {
+      query.isRead = req.body.isRead;
     }
 
-    let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
-    let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
+    let pageValue = req.body.page ? parseInt(`${req.body.page}`) : 1;
+    let limitValue = req.body.perPage ? parseInt(`${req.body.perPage}`) : 1000;
 
     ProductArr = await Notifications.find(query)
       .skip((pageValue - 1) * limitValue)
@@ -104,6 +105,7 @@ export const getUserNotificationCount = async (req: Request, res: Response, next
     next(err);
   }
 };
+
 
 
 

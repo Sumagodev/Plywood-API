@@ -5,7 +5,7 @@ import { getUserNotificationCount, updateReadStatus } from "../controllers/notif
 const router = express.Router();
 
 router.post("/updateReadStatus", updateReadStatus);
-router.post("/getNotificationCount", getUserNotificationCount);
+router.get("/getNotificationCount", getUserNotificationCount);
 
 
 
