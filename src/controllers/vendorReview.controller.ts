@@ -121,6 +121,11 @@ export const getVendorReview = async (req: Request, res: Response, next: NextFun
         select: "profileImage name", // Fetch the user's profileImage and name
         model: User, // Specify the User model
       })
+      .populate({
+        path: "addedby", // Populate user details
+        select: "profileImage name", // Fetch the user's profileImage and name
+        model: User, // Specify the User model
+      })
       .skip((pageValue - 1) * limitValue)
       .sort({ createdAt: -1 })
       .limit(limitValue)
