@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import { Notifications } from "../models/Notifications.model";
+import { Notifications,INotifications  } from "../models/Notifications.model";
 import { ObjectId } from 'mongoose'; // Import ObjectId from mongoose
 import { Types } from 'mongoose'; // Import Types from mongoose
+import { NotificationReadStatus } from "../models/NotificationReadStatus.model";
 
 
 export const updateReadStatus = async (req: Request, res: Response, next: NextFunction) => {
@@ -95,6 +96,91 @@ export const getUserNotificationCount = async (req: Request, res: Response, next
     next(err);
   }
 };
+
+
+// The function to get notifications for a user
+export const getNotificationsForUser = async (userId: string): Promise<(INotifications & { isRead: boolean; readAt?: Date })[]> => {
+  // Fetch notifications for the specific user
+  const userNotifications: INotifications[] = await Notifications.find({ userId, isRead: false }).lean();
+  
+  // Fetch notifications that reach "all" and are not read
+  const allNotifications: INotifications[] = await Notifications.find({ reach: "all", isRead: false }).lean();
+
+  // Fetch read statuses for this user
+  const readStatuses = await NotificationReadStatus.find({ userId }).lean();
+  
+  // Create a map of notificationId to readAt date for quick lookup
+  const readStatusMap = new Map<string, Date>(
+    readStatuses.map(status => [status.notificationId.toString(), status.readAt])
+  );
+
+  // Combine user-specific notifications with notifications for all users
+  const combinedNotifications = [...userNotifications, ...allNotifications];
+
+  // Add isRead property and return the notifications
+  return combinedNotifications.map(notification => ({
+    ...notification,
+    isRead: readStatusMap.has(notification._id.toString()), // This will reflect the actual read status
+    readAt: readStatusMap.get(notification._id.toString()) // Optional: get the read timestamp
+  })).filter(notification => !notification.isRead); // Filter out read notifications
+
+};
+export const getUserNotificationsController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.body.userId; // Assume you're sending userId in the request body
+
+    // Call the function to get notifications
+    const notifications = await getNotificationsForUser(userId);
+
+    // Return the response with notifications
+    res.status(200).json({
+      message: "Unread notifications retrieved successfully",
+      data: notifications,
+      success: true,
+    });
+  } catch (error) {
+    next(error); // Pass the error to your global error handler
+  }
+};
+
+
+
+export const updateReadStatusNew = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { userId, notificationId } = req.body;
+
+    if (!userId || !notificationId) {
+      return res.status(400).json({ message: "userId and notificationId are required." });
+    }
+
+    // Convert notificationId to ObjectId
+    const notificationObjectId = new Types.ObjectId(notificationId);
+    
+    // Find the read status for this user and notification
+    const existingStatus = await NotificationReadStatus.findOne({ userId, notificationId: notificationObjectId });
+
+    if (existingStatus) {
+      // If the read status already exists, update it
+      existingStatus.readAt = new Date(); // Update the read timestamp
+      await existingStatus.save();
+    } else {
+      // If it does not exist, create a new read status
+      const newStatus = new NotificationReadStatus({
+        notificationId: notificationObjectId,
+        userId: new Types.ObjectId(userId),
+        readAt: new Date() // Set the current timestamp
+      });
+      
+      await newStatus.save();
+    }
+
+    res.status(200).json({ message: "Read status updated successfully." });
+  } catch (error) {
+    console.error("Error updating read status:", error);
+    next(error); // Pass the error to the global error handler
+  }
+};
+
 
 
 

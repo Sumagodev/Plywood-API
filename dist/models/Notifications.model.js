@@ -20,7 +20,7 @@ const notifications = new mongoose_1.Schema({
     createdAt: {
         type: Date,
         default: Date.now,
-        expires: 1296000,
+        expires: 1296000, // This will automatically delete documents after 15 days
     },
     updatedAt: {
         type: Date,
@@ -29,4 +29,6 @@ const notifications = new mongoose_1.Schema({
 }, {
     timestamps: true, // Automatically handle createdAt and updatedAt
 });
+// Add index for the reach field
+notifications.index({ reach: 1 });
 exports.Notifications = (0, mongoose_1.model)("notifications", notifications);
