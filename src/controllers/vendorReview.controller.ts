@@ -85,6 +85,7 @@ export const addVendorReview = async (req: Request, res: Response, next: NextFun
       next(err);
   }
 };
+
 export const getVendorReview = async (req: Request, res: Response, next: NextFunction) => {
   try {
     let query: any = {};
@@ -113,7 +114,7 @@ export const getVendorReview = async (req: Request, res: Response, next: NextFun
     const pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
     const limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
 
-    // Fetch the reviews (without population for now)
+    // Fetch the reviews
     const vendorReviews = await VendorReview.find(query)
       .skip((pageValue - 1) * limitValue)
       .sort({ createdAt: -1 })
@@ -121,23 +122,30 @@ export const getVendorReview = async (req: Request, res: Response, next: NextFun
       .lean()
       .exec();
 
-    // Extract all unique userIds from vendorReviews
-    const userIds = vendorReviews.map(review => review.userId).filter(Boolean);
+    // Fetch users corresponding to the userIds in the reviews
+    const userIds = vendorReviews.map(review => review.userId);
+    const users = await User.find({ _id: { $in: userIds } }).lean();
 
-    // Fetch all relevant users
-    const users = await User.find({ _id: { $in: userIds } }).select("profileImage name").lean();
-
-    // Create a Map to link userId with profile details (name and profileImage)
+    // Create a map of users for easy lookup
     const userMap = new Map(users.map(user => [user._id.toString(), { name: user.name, profileImage: user.profileImage }]));
 
-    // Attach user details (profileImage and name) to each review
-    const enrichedReviews = vendorReviews.map(review => ({
-      ...review,
-      userName: userMap.get(review.userId.toString())?.name || "Unknown User",
-      userProfileImage: userMap.get(review.userId.toString())?.profileImage || "No Image",
-    }));
+    // Log the userMap for debugging
+    console.log("User Map:", userMap);
 
-    // Respond with the enriched vendor reviews
+    // Enrich the reviews with user information
+    const enrichedReviews = vendorReviews.map(review => {
+      const userInfo = userMap.get(review.userId.toString());
+      console.log("Review UserId:", review.userId.toString());
+      console.log("Mapped User:", userInfo);
+
+      return {
+        ...review,
+        userName: userInfo?.name || "Unknown User",
+        userProfileImage: userInfo?.profileImage || "No Image",
+      };
+    });
+
+    // Respond with the enriched reviews
     res.status(200).json({
       message: "getVendorReview",
       data: enrichedReviews,
