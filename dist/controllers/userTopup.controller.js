@@ -17,7 +17,7 @@ const phonepay_1 = require("../helpers/phonepay");
 const mailer_1 = require("../helpers/mailer");
 const constant_1 = require("../helpers/constant");
 const buyTopup = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y;
     try {
         console.log(req.body, req.user);
         let existsCheck = yield userTopup_model_1.UserTopup.findOne({ userId: (_a = req === null || req === void 0 ? void 0 : req.user) === null || _a === void 0 ? void 0 : _a.userId }).sort({ endDate: -1 }).exec();
@@ -38,12 +38,14 @@ const buyTopup = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
             advertisementDays: ((_o = req === null || req === void 0 ? void 0 : req.body) === null || _o === void 0 ? void 0 : _o.advertisementDays) ? (_p = req === null || req === void 0 ? void 0 : req.body) === null || _p === void 0 ? void 0 : _p.advertisementDays : 0,
             numberOfBannerImages: ((_q = req === null || req === void 0 ? void 0 : req.body) === null || _q === void 0 ? void 0 : _q.numberOfBannerImages) ? (_r = req === null || req === void 0 ? void 0 : req.body) === null || _r === void 0 ? void 0 : _r.numberOfBannerImages : 0,
             bannerimagesDays: ((_s = req === null || req === void 0 ? void 0 : req.body) === null || _s === void 0 ? void 0 : _s.bannerimagesDays) ? (_t = req === null || req === void 0 ? void 0 : req.body) === null || _t === void 0 ? void 0 : _t.bannerimagesDays : 0,
+            numberOfOpportunities: ((_u = req === null || req === void 0 ? void 0 : req.body) === null || _u === void 0 ? void 0 : _u.numberOfOpportunities) ? (_v = req === null || req === void 0 ? void 0 : req.body) === null || _v === void 0 ? void 0 : _v.numberOfOpportunities : 0,
+            OpportunitiesDays: ((_w = req === null || req === void 0 ? void 0 : req.body) === null || _w === void 0 ? void 0 : _w.OpportunitiesDays) ? (_x = req === null || req === void 0 ? void 0 : req.body) === null || _x === void 0 ? void 0 : _x.OpportunitiesDays : 0,
             isExpired: false,
             endDate: null,
         };
         // Add GST
         obj.price = obj.price + Math.round(obj.price * 0.18);
-        yield user_model_1.User.findByIdAndUpdate((_u = req === null || req === void 0 ? void 0 : req.user) === null || _u === void 0 ? void 0 : _u.userId, {
+        yield user_model_1.User.findByIdAndUpdate((_y = req === null || req === void 0 ? void 0 : req.user) === null || _y === void 0 ? void 0 : _y.userId, {
             $inc: {
                 numberOfSales: obj.numberOfSales,
                 saleDays: obj === null || obj === void 0 ? void 0 : obj.saleDays,
@@ -51,6 +53,8 @@ const buyTopup = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
                 advertisementDays: obj === null || obj === void 0 ? void 0 : obj.advertisementDays,
                 numberOfBannerImages: obj === null || obj === void 0 ? void 0 : obj.numberOfBannerImages,
                 bannerimagesDays: obj === null || obj === void 0 ? void 0 : obj.bannerimagesDays,
+                numberOfOpportunities: obj === null || obj === void 0 ? void 0 : obj.numberOfOpportunities,
+                OpportunitiesDays: obj === null || obj === void 0 ? void 0 : obj.OpportunitiesDays,
             },
         }).exec();
         let options = {
@@ -91,7 +95,7 @@ const buyTopup = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
 });
 exports.buyTopup = buyTopup;
 const phonepePaymentTopUpStatusCheck = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _v, _w, _x, _y;
+    var _z, _0, _1, _2;
     try {
         console.log(req.body, "-------------------------------------------------");
         // const userObj = await User.findById(req.user.userId).lean().exec();
@@ -112,19 +116,19 @@ const phonepePaymentTopUpStatusCheck = (req, res, next) => __awaiter(void 0, voi
         if (checkPaymentStatus && !(checkPaymentStatus === null || checkPaymentStatus === void 0 ? void 0 : checkPaymentStatus.sucess)) {
             throw new Error("Please Contact to Admin for payment is failed");
         }
-        phoneObj.paymentInstrument = (_v = checkPaymentStatus === null || checkPaymentStatus === void 0 ? void 0 : checkPaymentStatus.data) === null || _v === void 0 ? void 0 : _v.paymentInstrument;
+        phoneObj.paymentInstrument = (_z = checkPaymentStatus === null || checkPaymentStatus === void 0 ? void 0 : checkPaymentStatus.data) === null || _z === void 0 ? void 0 : _z.paymentInstrument;
         orderObj = yield Payment_model_1.Payment.findByIdAndUpdate(req.params.orderId, {
             "paymentChk": 1,
             "gatwayPaymentObj": phoneObj,
         })
             .lean()
             .exec();
-        let userObj = yield user_model_1.User.findById((_w = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj) === null || _w === void 0 ? void 0 : _w.userId).exec();
+        let userObj = yield user_model_1.User.findById((_0 = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj) === null || _0 === void 0 ? void 0 : _0.userId).exec();
         let patObj = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj;
         let totalSubscription = yield userTopup_model_1.UserTopup.countDocuments({});
         let invoiceId = (0, constant_1.getTopUpOrderIdSequence)(totalSubscription + 1);
         patObj.orderId = invoiceId;
-        yield user_model_1.User.findByIdAndUpdate((_x = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj) === null || _x === void 0 ? void 0 : _x.userId, {
+        yield user_model_1.User.findByIdAndUpdate((_1 = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj) === null || _1 === void 0 ? void 0 : _1.userId, {
             $inc: {
                 numberOfSales: patObj.numberOfSales,
                 saleDays: patObj === null || patObj === void 0 ? void 0 : patObj.saleDays,
@@ -132,11 +136,13 @@ const phonepePaymentTopUpStatusCheck = (req, res, next) => __awaiter(void 0, voi
                 advertisementDays: patObj === null || patObj === void 0 ? void 0 : patObj.advertisementDays,
                 numberOfBannerImages: patObj === null || patObj === void 0 ? void 0 : patObj.numberOfBannerImages,
                 bannerimagesDays: patObj === null || patObj === void 0 ? void 0 : patObj.bannerimagesDays,
+                numberOfOpportunities: patObj === null || patObj === void 0 ? void 0 : patObj.numberOfOpportunities,
+                OpportunitiesDays: patObj === null || patObj === void 0 ? void 0 : patObj.OpportunitiesDays,
             },
             subscriptionEndDate: patObj.endDate,
         }).exec();
         orderObj = yield new userTopup_model_1.UserTopup(patObj).save();
-        let email = (userObj === null || userObj === void 0 ? void 0 : userObj.email) ? userObj === null || userObj === void 0 ? void 0 : userObj.email : (_y = userObj === null || userObj === void 0 ? void 0 : userObj.companyObj) === null || _y === void 0 ? void 0 : _y.email;
+        let email = (userObj === null || userObj === void 0 ? void 0 : userObj.email) ? userObj === null || userObj === void 0 ? void 0 : userObj.email : (_2 = userObj === null || userObj === void 0 ? void 0 : userObj.companyObj) === null || _2 === void 0 ? void 0 : _2.email;
         let name = userObj === null || userObj === void 0 ? void 0 : userObj.name;
         let orderId = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderId;
         let emailArr = [
@@ -230,6 +236,8 @@ const getTopupSubscribedbyUserId = (req, res, next) => __awaiter(void 0, void 0,
                     "usersArr.numberOfBannerImages": 1,
                     "usersArr.bannerimagesDays": 1,
                     "usersArr.TopupEndDate": 1,
+                    "usersArr.numberOfOpportunities": 1,
+                    "usersArr.OpportunitiesDays": 1,
                     "usersArr.price": 1,
                     "usersArr.startDate": 1,
                     "usersArr.endDate": 1,
@@ -268,7 +276,7 @@ const getTopupSubscribedbyUserId = (req, res, next) => __awaiter(void 0, void 0,
 });
 exports.getTopupSubscribedbyUserId = getTopupSubscribedbyUserId;
 const getAllTopupbyUserId = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _z, _0, _1, _2;
+    var _3, _4, _5, _6;
     try {
         let TopupArr = [];
         // let query: any = {}
@@ -283,9 +291,9 @@ const getAllTopupbyUserId = (req, res, next) => __awaiter(void 0, void 0, void 0
         let pageValue = req.query.currentPage ? parseInt(`${req.query.currentPage}`) : 1;
         let limitValue = req.query.rowsPerPage ? parseInt(`${req.query.rowsPerPage}`) : 10;
         const totalCount = yield userTopup_model_1.UserTopup.find({
-            $or: [{ userId: (_z = req.user) === null || _z === void 0 ? void 0 : _z.userId }, { userId: (_0 = req.query) === null || _0 === void 0 ? void 0 : _0.userId }],
+            $or: [{ userId: (_3 = req.user) === null || _3 === void 0 ? void 0 : _3.userId }, { userId: (_4 = req.query) === null || _4 === void 0 ? void 0 : _4.userId }],
         }).countDocuments();
-        TopupArr = yield userTopup_model_1.UserTopup.find({ $or: [{ userId: (_1 = req.user) === null || _1 === void 0 ? void 0 : _1.userId }, { userId: (_2 = req.query) === null || _2 === void 0 ? void 0 : _2.userId }] })
+        TopupArr = yield userTopup_model_1.UserTopup.find({ $or: [{ userId: (_5 = req.user) === null || _5 === void 0 ? void 0 : _5.userId }, { userId: (_6 = req.query) === null || _6 === void 0 ? void 0 : _6.userId }] })
             .skip((pageValue - 1) * limitValue)
             .limit(limitValue)
             .lean()

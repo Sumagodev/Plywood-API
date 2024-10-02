@@ -4,11 +4,13 @@ export interface IUserTopup {
   includesFlashSales: Boolean;
   includesAdvertisements: Boolean;
   includesBannerImages: Boolean,
-
+  includesOpportunities:Boolean,
   numberOfAdvertisement: Number;
   advertisementDays: Number;
   numberOfBannerImages: Number,
   bannerimagesDays: Number,
+  numberOfOpportunities: Number,
+  OpportunitiesDays: Number,
   name: string;
   orderId: string;
   description: Boolean;
@@ -37,7 +39,9 @@ const userTopup = new Schema<IUserTopup>(
     includesFlashSales: Boolean,
     includesAdvertisements: Boolean,
     includesBannerImages: Boolean,
-
+    includesOpportunities: Boolean,
+    numberOfOpportunities: { type: Number, default: 0 },
+    OpportunitiesDays: { type: Number, default: 0 },
     numberOfAdvertisement: { type: Number, default: 0 },
     advertisementDays: { type: Number, default: 0 },
     numberOfBannerImages: { type: Number, default: 0 },

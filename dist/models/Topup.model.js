@@ -16,6 +16,8 @@ const topup = new mongoose_1.Schema({
     bannerimagesDays: { type: Number, default: 0 },
     numberOfSales: { type: Number, default: 0 },
     saleDays: { type: Number, default: 0 },
+    numberOfOpportunities: { type: Number, default: 0 },
+    OpportunitiesDays: { type: Number, default: 0 },
     messageArr: Array
 }, { timestamps: true });
 exports.Topup = (0, mongoose_1.model)("topup", topup);

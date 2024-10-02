@@ -28,6 +28,8 @@ export const buyTopup = async (req: Request, res: Response, next: NextFunction) 
       advertisementDays: req?.body?.advertisementDays ? req?.body?.advertisementDays : 0,
       numberOfBannerImages: req?.body?.numberOfBannerImages ? req?.body?.numberOfBannerImages : 0,
       bannerimagesDays: req?.body?.bannerimagesDays ? req?.body?.bannerimagesDays : 0,
+      numberOfOpportunities: req?.body?.numberOfOpportunities ? req?.body?.numberOfOpportunities : 0,
+      OpportunitiesDays: req?.body?.OpportunitiesDays ? req?.body?.OpportunitiesDays : 0,
       isExpired: false,
       endDate: null,
     };
@@ -43,6 +45,9 @@ export const buyTopup = async (req: Request, res: Response, next: NextFunction) 
         advertisementDays: obj?.advertisementDays,
         numberOfBannerImages: obj?.numberOfBannerImages,
         bannerimagesDays: obj?.bannerimagesDays,
+        numberOfOpportunities: obj?.numberOfOpportunities,
+        OpportunitiesDays: obj?.OpportunitiesDays,
+
       },
     }).exec();
     let options: any = {
@@ -128,6 +133,8 @@ export const phonepePaymentTopUpStatusCheck = async (req: Request, res: Response
         advertisementDays: patObj?.advertisementDays,
         numberOfBannerImages: patObj?.numberOfBannerImages,
         bannerimagesDays: patObj?.bannerimagesDays,
+        numberOfOpportunities: patObj?.numberOfOpportunities,
+        OpportunitiesDays: patObj?.OpportunitiesDays,
       },
       subscriptionEndDate: patObj.endDate,
     }).exec();
@@ -229,6 +236,9 @@ export const getTopupSubscribedbyUserId = async (req: Request, res: Response, ne
           "usersArr.numberOfBannerImages": 1,
           "usersArr.bannerimagesDays": 1,
           "usersArr.TopupEndDate": 1,
+          "usersArr.numberOfOpportunities": 1,
+          "usersArr.OpportunitiesDays": 1,
+
           "usersArr.price": 1,
           "usersArr.startDate": 1,
           "usersArr.endDate": 1,

@@ -13,6 +13,8 @@ export interface ITopup {
   numberOfSales: Number,
   numberOfBannerImages: Number,
   bannerimagesDays: Number,
+  numberOfOpportunities: Number,
+  OpportunitiesDays: Number,
   saleDays: Number,
   messageArr: [{
     message: String
@@ -42,7 +44,8 @@ const topup = new Schema<ITopup>(
     bannerimagesDays: { type: Number, default: 0 },
     numberOfSales: { type: Number, default: 0 },
     saleDays: { type: Number, default: 0 },
-
+    numberOfOpportunities: { type: Number, default: 0 },
+    OpportunitiesDays: { type: Number, default: 0 },
     messageArr: Array
 
   },

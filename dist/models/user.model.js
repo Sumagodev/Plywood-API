@@ -109,6 +109,8 @@ const userSchema = new mongoose_1.Schema({
     saleDays: { type: Number, default: 0 },
     numberOfBannerImages: { type: Number, default: 0 },
     bannerimagesDays: { type: Number, default: 0 },
+    numberOfOpportunities: { type: Number, default: 0 },
+    OpportunitiesDays: { type: Number, default: 0 },
     numberOfAdvertisement: { type: Number, default: 0 },
     advertisementDays: { type: Number, default: 0 },
 }, { timestamps: true });
