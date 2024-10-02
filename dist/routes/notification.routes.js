@@ -7,4 +7,5 @@ const express_1 = __importDefault(require("express"));
 const notification_controller_1 = require("../controllers/notification.controller");
 const router = express_1.default.Router();
 router.post("/updateReadStatus", notification_controller_1.updateReadStatus);
+router.post("/getNotificationCount", notification_controller_1.getUserNotificationCount);
 exports.default = router;

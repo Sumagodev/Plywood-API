@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUserNotifications = exports.updateReadStatus = void 0;
+exports.getUserNotificationCount = exports.getUserNotifications = exports.updateReadStatus = void 0;
 const Notifications_model_1 = require("../models/Notifications.model");
 const updateReadStatus = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -64,3 +64,37 @@ const getUserNotifications = (req, res, next) => __awaiter(void 0, void 0, void 
     }
 });
 exports.getUserNotifications = getUserNotifications;
+const getUserNotificationCount = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        let ProductArr = [];
+        let query = {};
+        if (req.query.userId) {
+            query.userId = req.query.userId;
+        }
+        // Always include isRead: false in the count query
+        const countQuery = Object.assign(Object.assign({}, query), { isRead: false });
+        if (req.query.isRead !== undefined) {
+            query.isRead = req.query.isRead;
+        }
+        let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
+        let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
+        ProductArr = yield Notifications_model_1.Notifications.find(query)
+            .skip((pageValue - 1) * limitValue)
+            .limit(limitValue)
+            .sort({ createdAt: -1 })
+            .exec();
+        // Count only unread notifications
+        let totalElements = yield Notifications_model_1.Notifications.countDocuments(countQuery).exec();
+        console.log(totalElements, ProductArr === null || ProductArr === void 0 ? void 0 : ProductArr.length);
+        res.status(200).json({
+            message: "getProduct",
+            data: ProductArr,
+            totalElements: totalElements,
+            success: true,
+        });
+    }
+    catch (err) {
+        next(err);
+    }
+});
+exports.getUserNotificationCount = getUserNotificationCount;

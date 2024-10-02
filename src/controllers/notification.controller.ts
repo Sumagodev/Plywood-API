@@ -64,5 +64,47 @@ export const getUserNotifications = async (req: Request, res: Response, next: Ne
   }
 };
 
+export const getUserNotificationCount = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    let ProductArr: any = [];
+    let query: any = {};
+
+    if (req.query.userId) {
+      query.userId = req.query.userId;
+    }
+
+    // Always include isRead: false in the count query
+    const countQuery = { ...query, isRead: false };
+
+    if (req.query.isRead !== undefined) {
+      query.isRead = req.query.isRead;
+    }
+
+    let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
+    let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
+
+    ProductArr = await Notifications.find(query)
+      .skip((pageValue - 1) * limitValue)
+      .limit(limitValue)
+      .sort({ createdAt: -1 })
+      .exec();
+
+    // Count only unread notifications
+    let totalElements = await Notifications.countDocuments(countQuery).exec();
+
+    console.log(totalElements, ProductArr?.length);
+
+    res.status(200).json({
+      message: "getProduct",
+      data: ProductArr,
+      totalElements: totalElements,
+      success: true,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
 
 
