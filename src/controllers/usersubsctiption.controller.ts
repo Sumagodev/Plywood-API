@@ -10,6 +10,23 @@ import { State } from "../models/State.model";
 import { City } from "../models/City.model";
 import { postSpiCrmLead } from "../service/sipCrm.service";
 import { getSubscriptionSequence } from "../helpers/constant";
+
+import fs from 'fs';
+import path from 'path';
+
+const logFilePath = path.join(__dirname, 'request_logs.txt');
+
+// Function to log request body to a file
+const logRequestBody = (data: any) => {
+  const logEntry = `${new Date().toISOString()} - ${JSON.stringify(data)}\n`;
+  fs.appendFile(logFilePath, logEntry, (err) => {
+    if (err) {
+      console.error('Error writing to log file', err);
+    }
+  });
+};
+
+
 export const buySubscription = async (req: Request, res: Response, next: NextFunction) => {
   try {
     let existsCheck: any = await UserSubscription.findOne({ userId: req?.user?.userId }).sort({ endDate: -1 }).exec();
@@ -104,6 +121,7 @@ export const buySubscription = async (req: Request, res: Response, next: NextFun
 export const phonepePaymentStatusCheck = async (req: Request, res: Response, next: NextFunction) => {
   try {
     console.log(req.body, "-------------------------------------------------");
+    logRequestBody(req.body); // Log the request body
 
     // const userObj = await User.findById(req.user.userId).lean().exec();
     let orderObj: any = await Payment.findById(req.params.orderId).exec();
