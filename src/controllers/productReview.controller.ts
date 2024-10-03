@@ -151,7 +151,7 @@ export const addProductReview = async (req: Request, res: Response, next: NextFu
       const newNotification = new Notifications({
           userId: userId,         
           type: 'product_review',
-          title: 'Profile Review Received',  
+          title: 'Product Review Received',  
           content: `${reviewerObj?.companyObj?.name} has shared their thoughts on your product.`,
           sourceId:'',             
           isRead: false,                      

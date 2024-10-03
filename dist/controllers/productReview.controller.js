@@ -127,7 +127,7 @@ const addProductReview = (req, res, next) => __awaiter(void 0, void 0, void 0, f
         const newNotification = new Notifications_model_1.Notifications({
             userId: userId,
             type: 'product_review',
-            title: 'Profile Review Received',
+            title: 'Product Review Received',
             content: `${(_c = reviewerObj === null || reviewerObj === void 0 ? void 0 : reviewerObj.companyObj) === null || _c === void 0 ? void 0 : _c.name} has shared their thoughts on your product.`,
             sourceId: '',
             isRead: false,
