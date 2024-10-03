@@ -14,6 +14,7 @@ export interface ITopup {
   numberOfBannerImages: Number,
   bannerimagesDays: Number,
   numberOfOpportunities: Number,
+  
   OpportunitiesDays: Number,
   saleDays: Number,
   messageArr: [{
