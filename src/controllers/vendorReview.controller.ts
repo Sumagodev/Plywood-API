@@ -14,6 +14,26 @@ export const addVendorReview = async (req: Request, res: Response, next: NextFun
       console.log(req.body);
    
       console.log(req.body)
+
+      const { userId, name, addedby, rating, message} = req.body;
+
+      // Manual validation checks
+      if (!userId || typeof userId !== 'string') {
+        return res.status(400).json({ message: 'User ID is required and must be a string.', success: false });
+      }
+      if (!name || typeof name !== 'string') {
+        return res.status(400).json({ message: 'Name is required and must be a string.', success: false });
+      }
+      if (!addedby || typeof addedby !== 'string') {
+        return res.status(400).json({ message: 'Added By is required and must be a string.', success: false });
+      }
+      if (rating === undefined || typeof rating !== 'number' || rating < 1 || rating > 5) {
+        return res.status(400).json({ message: 'Rating is required and must be a number between 1 and 5.', success: false });
+      }
+      if (!message || typeof message !== 'string') {
+        return res.status(400).json({ message: 'Message is required and must be a string.', success: false });
+      }
+      
       const newEntry = new VendorReview(req.body).save();
 
       if (!newEntry) {
@@ -27,26 +47,47 @@ export const addVendorReview = async (req: Request, res: Response, next: NextFun
       let total = reviewArr && reviewArr.length > 0 ? reviewArr.length : 0;
       let totalRatings = reviewArr && reviewArr.length > 0 ? reviewArr.reduce((acc, el) => acc + el.rating, 0) : 0
       console.log(totalRatings, total, "totalRatings")
-      let rating: number = 0;
+      let ratingCal: number = 0;
 
       if (totalRatings != 0 && total != 0) {
-          rating = Math.round(totalRatings / total);
+        ratingCal = Math.round(totalRatings / total);
       }
 
       // Math.round((typeof (totalRatings / total) == "number" || typeof (totalRatings / total) == "bigint") ? (totalRatings / total) : 0);
       // console.log(rating, (typeof (totalRatings / total) == "number" || typeof (totalRatings / total) == "bigint") ? (totalRatings / total) : 0, '(typeof (totalRatings / total) == "number" || typeof (totalRatings / total) == "bigint") ? (totalRatings / total) : 0');
-      await User.findByIdAndUpdate(req.body?.userId, { rating: rating }).exec();
+      await User.findByIdAndUpdate(req.body?.userId, { rating: ratingCal }).exec();
 
 
 
 
-      res.status(200).json({ message: "Review Successfully Created", success: true });
+      res.status(200).json({ message: "Review Successfully added", success: true });
 
+      let reviewerObj= await User.findById(addedby);
 
- 
-
-
-      
+    const newNotification = new Notifications({
+        userId: userId,         
+        type: 'vendor_review',
+        title: 'Profile Review Received',  
+        content: `${reviewerObj?.companyObj?.name} has shared their thoughts on your Profile.`,
+        sourceId:'',             
+        isRead: false,                      
+        viewCount: 1,
+        lastAccessTime: new Date(),           // Set initial last access time
+        payload: {                            // Dynamic payload data
+           userId:userId,
+           addedbyUserId:addedby,
+           addedbyUserObj:reviewerObj,
+           addeByOrganizationName:reviewerObj?.companyObj?.name,
+           message:message,
+           ratingReceived:rating
+        }
+    });
+    // Save the new notification to the database
+    try {
+        await newNotification.save();
+    } catch (error) {
+        console.error('Error saving new notification:', error);
+    }
   } catch (err) {
       next(err);
   }

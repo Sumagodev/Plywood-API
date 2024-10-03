@@ -10,6 +10,7 @@ export interface IProductReview {
     name: string,
     createdAt: Date;
     updateAt: Date;
+    addedBy:String;
 }
 
 const productReview = new Schema<IProductReview>(
@@ -24,6 +25,7 @@ const productReview = new Schema<IProductReview>(
         },
         displayOnProductPage: { type: Boolean, default: false },
         status: String,
+        addedBy:String
     },
     { timestamps: true }
 );

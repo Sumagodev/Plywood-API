@@ -74,6 +74,29 @@ export const addProductReview = async (req: Request, res: Response, next: NextFu
       // if (ProductReviewNameCheck) throw new Error("You have already added a review for this product");
 
       console.log(req.body)
+
+      const { userId, name, addedby, rating, message,productId} = req.body;
+
+
+      if (!userId || typeof userId !== 'string') {
+        return res.status(400).json({ message: 'User ID is required and must be a string.', success: false });
+      }
+      if (!productId || typeof productId !== 'string') {
+        return res.status(400).json({ message: 'Product  ID is required and must be a string.', success: false });
+      }
+      if (!name || typeof name !== 'string') {
+        return res.status(400).json({ message: 'Name is required and must be a string.', success: false });
+      }
+      if (!addedby || typeof addedby !== 'string') {
+        return res.status(400).json({ message: 'Added By is required and must be a string.', success: false });
+      }
+      if (rating === undefined || typeof rating !== 'number' || rating < 1 || rating > 5) {
+        return res.status(400).json({ message: 'Rating is required and must be a number between 1 and 5.', success: false });
+      }
+      if (!message || typeof message !== 'string') {
+        return res.status(400).json({ message: 'Message is required and must be a string.', success: false });
+      }
+      
       const newEntry = new ProductReview(req.body).save();
 
       if (!newEntry) {
@@ -87,15 +110,15 @@ export const addProductReview = async (req: Request, res: Response, next: NextFu
       let total = reviewArr && reviewArr.length > 0 ? reviewArr.length : 0;
       let totalRatings = reviewArr && reviewArr.length > 0 ? reviewArr.reduce((acc, el) => acc + el.rating, 0) : 0
       console.log(totalRatings, total, "totalRatings")
-      let rating: number = 0;
+      let ratingCal: number = 0;
 
       if (totalRatings != 0 && total != 0) {
-          rating = Math.round(totalRatings / total);
+        ratingCal = Math.round(totalRatings / total);
       }
 
       // Math.round((typeof (totalRatings / total) == "number" || typeof (totalRatings / total) == "bigint") ? (totalRatings / total) : 0);
       // console.log(rating, (typeof (totalRatings / total) == "number" || typeof (totalRatings / total) == "bigint") ? (totalRatings / total) : 0, '(typeof (totalRatings / total) == "number" || typeof (totalRatings / total) == "bigint") ? (totalRatings / total) : 0');
-      await User.findByIdAndUpdate(req.body?.userId, { rating: rating }).exec();
+      await User.findByIdAndUpdate(req.body?.userId, { rating: ratingCal }).exec();
       // await Product.findByIdAndUpdate(req.body.productId, { "createdByObj.rating": rating }).exec();
 
       let fcmTokensArr = await UserFcmToken.find({ userId: req.body.userId }).exec();
@@ -113,6 +136,8 @@ export const addProductReview = async (req: Request, res: Response, next: NextFu
 
       // console.log(saveNotificationObj, "NOTIFICATION OBJ")
 
+      
+
       await fcmMulticastNotify(obj)
 
 
@@ -120,27 +145,34 @@ export const addProductReview = async (req: Request, res: Response, next: NextFu
       res.status(200).json({ message: "Review Successfully Created", success: true });
 
 
-    //   const newNotification = new Notifications({
-    //     userId: user._id,         
-    //     type: 'profile_completion',
-    //     title: 'Profile Completed',  
-    //     content: `Thanks for joining us! To get started and make the most of our features, please complete your profile setup.`,
-    //     sourceId:'',             
-    //     isRead: false,                      
-    //     viewCount: 1,
-    //     lastAccessTime: new Date(),           // Set initial last access time
-    //     payload: {                            // Dynamic payload data
-    //        userId:user._id
-    //     }
-    // });
-    // // Save the new notification to the database
-    // try {
-    //     await newNotification.save();
-    // } catch (error) {
-    //     console.error('Error saving new notification:', error);
-    // }
+      let reviewerObj= await User.findById(addedby);
+      let prodctObj= await Product.findById(productId);
 
-
+      const newNotification = new Notifications({
+          userId: userId,         
+          type: 'product_review',
+          title: 'Profile Review Received',  
+          content: `${reviewerObj?.companyObj?.name} has shared their thoughts on your product.`,
+          sourceId:'',             
+          isRead: false,                      
+          viewCount: 1,
+          lastAccessTime: new Date(),           // Set initial last access time
+          payload: {                            // Dynamic payload data
+             userId:userId,
+             addedbyUserId:addedby,
+             addedbyUserObj:reviewerObj,
+             addeByOrganizationName:reviewerObj?.companyObj?.name,
+             message:message,
+             ratingReceived:rating,
+             prodctObj:prodctObj,
+             productName:prodctObj?.name
+          }
+      });
+      try {
+        await newNotification.save();
+    } catch (error) {
+        console.error('Error saving new notification:', error);
+    }
       
   } catch (err) {
       next(err);
