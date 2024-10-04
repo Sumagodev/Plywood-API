@@ -144,9 +144,8 @@ typings/
 src/helpers/fileSystem.ts
 dist/helpers/fileSystem.js
 
-/src/helpers/config.ts
-/dist/helpers/config.js
+/src/helpers/fileSystem.ts
+/dist/helpers/fileSystem.js
 
 src/helpers/config.ts
-dist/helpers/config.js
-
+/src/helpers/config.ts

@@ -13,11 +13,29 @@ exports.getById = exports.deleteById = exports.updateById = exports.getVendorRev
 const country_model_1 = require("../models/country.model");
 const VendorReview_model_1 = require("../models/VendorReview.model");
 const user_model_1 = require("../models/user.model");
+const Notifications_model_1 = require("../models/Notifications.model");
 const addVendorReview = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a, _b, _c, _d;
     try {
         console.log(req.body);
         console.log(req.body);
+        const { userId, name, addedby, rating, message } = req.body;
+        // Manual validation checks
+        if (!userId || typeof userId !== 'string') {
+            return res.status(400).json({ message: 'User ID is required and must be a string.', success: false });
+        }
+        if (!name || typeof name !== 'string') {
+            return res.status(400).json({ message: 'Name is required and must be a string.', success: false });
+        }
+        if (!addedby || typeof addedby !== 'string') {
+            return res.status(400).json({ message: 'Added By is required and must be a string.', success: false });
+        }
+        if (rating === undefined || typeof rating !== 'number' || rating < 1 || rating > 5) {
+            return res.status(400).json({ message: 'Rating is required and must be a number between 1 and 5.', success: false });
+        }
+        if (!message || typeof message !== 'string') {
+            return res.status(400).json({ message: 'Message is required and must be a string.', success: false });
+        }
         const newEntry = new VendorReview_model_1.VendorReview(req.body).save();
         if (!newEntry) {
             throw new Error("Unable to create VendorReview");
@@ -27,14 +45,40 @@ const addVendorReview = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
         let total = reviewArr && reviewArr.length > 0 ? reviewArr.length : 0;
         let totalRatings = reviewArr && reviewArr.length > 0 ? reviewArr.reduce((acc, el) => acc + el.rating, 0) : 0;
         console.log(totalRatings, total, "totalRatings");
-        let rating = 0;
+        let ratingCal = 0;
         if (totalRatings != 0 && total != 0) {
-            rating = Math.round(totalRatings / total);
+            ratingCal = Math.round(totalRatings / total);
         }
         // Math.round((typeof (totalRatings / total) == "number" || typeof (totalRatings / total) == "bigint") ? (totalRatings / total) : 0);
         // console.log(rating, (typeof (totalRatings / total) == "number" || typeof (totalRatings / total) == "bigint") ? (totalRatings / total) : 0, '(typeof (totalRatings / total) == "number" || typeof (totalRatings / total) == "bigint") ? (totalRatings / total) : 0');
-        yield user_model_1.User.findByIdAndUpdate((_b = req.body) === null || _b === void 0 ? void 0 : _b.userId, { rating: rating }).exec();
-        res.status(200).json({ message: "Review Successfully Created", success: true });
+        yield user_model_1.User.findByIdAndUpdate((_b = req.body) === null || _b === void 0 ? void 0 : _b.userId, { rating: ratingCal }).exec();
+        res.status(200).json({ message: "Review Successfully added", success: true });
+        let reviewerObj = yield user_model_1.User.findById(addedby);
+        const newNotification = new Notifications_model_1.Notifications({
+            userId: userId,
+            type: 'vendor_review',
+            title: 'Profile Review Received',
+            content: `${(_c = reviewerObj === null || reviewerObj === void 0 ? void 0 : reviewerObj.companyObj) === null || _c === void 0 ? void 0 : _c.name} has shared their thoughts on your Profile.`,
+            sourceId: '',
+            isRead: false,
+            viewCount: 1,
+            lastAccessTime: new Date(),
+            payload: {
+                userId: userId,
+                addedbyUserId: addedby,
+                addedbyUserObj: reviewerObj,
+                addeByOrganizationName: (_d = reviewerObj === null || reviewerObj === void 0 ? void 0 : reviewerObj.companyObj) === null || _d === void 0 ? void 0 : _d.name,
+                message: message,
+                ratingReceived: rating
+            }
+        });
+        // Save the new notification to the database
+        try {
+            yield newNotification.save();
+        }
+        catch (error) {
+            console.error('Error saving new notification:', error);
+        }
     }
     catch (err) {
         next(err);

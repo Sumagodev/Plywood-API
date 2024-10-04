@@ -24,6 +24,18 @@ const State_model_1 = require("../models/State.model");
 const City_model_1 = require("../models/City.model");
 const sipCrm_service_1 = require("../service/sipCrm.service");
 const constant_1 = require("../helpers/constant");
+const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
+const logFilePath = path_1.default.join(__dirname, 'request_logs.txt');
+// Function to log request body to a file
+const logRequestBody = (data) => {
+    const logEntry = `${new Date().toISOString()} - ${JSON.stringify(data)}\n`;
+    fs_1.default.appendFile(logFilePath, logEntry, (err) => {
+        if (err) {
+            console.error('Error writing to log file', err);
+        }
+    });
+};
 const buySubscription = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
     try {
@@ -113,6 +125,7 @@ const phonepePaymentStatusCheck = (req, res, next) => __awaiter(void 0, void 0, 
     var _t, _u, _v, _w, _x, _y, _z;
     try {
         console.log(req.body, "-------------------------------------------------");
+        logRequestBody(req.body); // Log the request body
         // const userObj = await User.findById(req.user.userId).lean().exec();
         let orderObj = yield Payment_model_1.Payment.findById(req.params.orderId).exec();
         if (!orderObj)

@@ -13,5 +13,7 @@ const productReview = new mongoose_1.Schema({
     },
     displayOnProductPage: { type: Boolean, default: false },
     status: String,
+    addedBy: String,
+    productIdExtra: String
 }, { timestamps: true });
 exports.ProductReview = (0, mongoose_1.model)("productReview", productReview);
