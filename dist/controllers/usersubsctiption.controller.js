@@ -145,6 +145,7 @@ const phonepePaymentStatusCheck = (req, res, next) => __awaiter(void 0, void 0, 
         let totalSubscription = yield userSubscription_model_1.UserSubscription.countDocuments({});
         let invoiceId = (0, constant_1.getSubscriptionSequence)(totalSubscription + 1);
         patObj.orderId = invoiceId;
+        console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxpatObj', patObj);
         yield user_model_1.User.findByIdAndUpdate((_v = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj) === null || _v === void 0 ? void 0 : _v.userId, {
             $inc: {
                 numberOfSales: patObj.numberOfSales,
@@ -155,6 +156,7 @@ const phonepePaymentStatusCheck = (req, res, next) => __awaiter(void 0, void 0, 
             subscriptionEndDate: patObj.endDate,
         }).exec();
         orderObj = yield new userSubscription_model_1.UserSubscription(patObj).save();
+        console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxorderObj', orderObj);
         let email = (userObj === null || userObj === void 0 ? void 0 : userObj.email) ? userObj === null || userObj === void 0 ? void 0 : userObj.email : (_w = userObj === null || userObj === void 0 ? void 0 : userObj.companyObj) === null || _w === void 0 ? void 0 : _w.email;
         let name = userObj === null || userObj === void 0 ? void 0 : userObj.name;
         let orderId = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderId;
