@@ -79,7 +79,7 @@ const product = new Schema<IProduct>(
     },
     createdByObj: {},
     status: { type: Boolean, default: false },
-    approved: { type: String, default: APPROVED_STATUS.APPROVED },
+    approved: { type: String, default: false},
   },
   { timestamps: true }
 );
