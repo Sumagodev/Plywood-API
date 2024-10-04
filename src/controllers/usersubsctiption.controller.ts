@@ -140,6 +140,11 @@ export const phonepePaymentStatusCheck = async (req: Request, res: Response, nex
     let totalSubscription = await UserSubscription.countDocuments({});
     let invoiceId = getSubscriptionSequence(totalSubscription + 1);
     patObj.orderId = invoiceId;
+
+
+    console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxpatObj',patObj)
+
+
     await User.findByIdAndUpdate(orderObj?.orderObj?.userId, {
       $inc: {
         numberOfSales: patObj.numberOfSales,
@@ -150,7 +155,7 @@ export const phonepePaymentStatusCheck = async (req: Request, res: Response, nex
       subscriptionEndDate: patObj.endDate,
     }).exec();
     orderObj = await new UserSubscription(patObj).save();
-
+    console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxorderObj',orderObj)
     let email = userObj?.email ? userObj?.email : userObj?.companyObj?.email;
     let name = userObj?.name;
     let orderId = orderObj?.orderId;
