@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Product = void 0;
 const mongoose_1 = require("mongoose");
+const constant_1 = require("../helpers/constant");
 const product = new mongoose_1.Schema({
     name: String,
     slug: String,
@@ -42,6 +43,6 @@ const product = new mongoose_1.Schema({
     },
     createdByObj: {},
     status: { type: Boolean, default: false },
-    approved: { type: String, default: false },
+    approved: { type: String, default: constant_1.APPROVED_STATUS.APPROVED },
 }, { timestamps: true });
 exports.Product = (0, mongoose_1.model)("product", product);
