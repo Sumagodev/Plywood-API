@@ -592,6 +592,7 @@ const searchVendor = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
     try {
         console.log(req.query, "query");
         let query = {};
+        // Build the search regex query
         if (req.query.search) {
             console.log(req.query.search, "req.query.search");
             query = {
@@ -614,11 +615,9 @@ const searchVendor = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         }
         let pipeline = [
             {
-                "$match": {
-                    "role": {
+                "$match": Object.assign(Object.assign(Object.assign({ "role": {
                         "$nin": roleArr,
-                    },
-                },
+                    } }, query), (req.query.stateId ? { stateId: req.query.stateId } : {})), (req.query.categoryId ? { "categoryArr.categoryId": req.query.categoryId } : {})),
             },
             {
                 "$lookup": {
@@ -647,17 +646,11 @@ const searchVendor = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
                         "$cond": {
                             "if": {
                                 "$and": [
-                                    {
-                                        "$ifNull": ["$productsArr.brand", false],
-                                    },
-                                    {
-                                        "$ne": ["$productsArr.brand", ""],
-                                    },
+                                    { "$ifNull": ["$productsArr.brand", false] },
+                                    { "$ne": ["$productsArr.brand", ""] },
                                 ],
                             },
-                            "then": {
-                                "$toObjectId": "$productsArr.brand",
-                            },
+                            "then": { "$toObjectId": "$productsArr.brand" },
                             "else": null,
                         },
                     },
@@ -691,36 +684,15 @@ const searchVendor = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
             {
                 "$group": {
                     "_id": "$_id",
-                    "name": {
-                        "$first": "$name",
-                    },
-                    "role": {
-                        "$first": "$role",
-                    },
-                    // 'bannerImage': {
-                    //   '$first': '$bannerImage'
-                    // },
-                    // 'profileImage': {
-                    //   '$first': '$profileImage'
-                    // },
-                    "productsIdArr": {
-                        "$addToSet": "$productsArr",
-                    },
-                    "brandNames": {
-                        "$addToSet": "$brandNames",
-                    },
-                    "companyObj": {
-                        "$first": "$companyObj",
-                    },
-                    "brandArr": {
-                        "$addToSet": {
-                            "name": "$brandName",
-                        },
-                    },
+                    "name": { "$first": "$name" },
+                    "role": { "$first": "$role" },
+                    "productsIdArr": { "$addToSet": "$productsArr" },
+                    "brandNames": { "$addToSet": "$brandNames" },
+                    "companyObj": { "$first": "$companyObj" },
+                    "stateId": { "$first": "$stateId" },
+                    "categoryId": { "$first": "$categoryId" },
+                    "brandArr": { "$addToSet": { "name": "$brandName" } },
                 },
-            },
-            {
-                "$match": query,
             },
             {
                 "$project": {
@@ -734,8 +706,6 @@ const searchVendor = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         console.log(JSON.stringify(pipeline, null, 2), "pipeline");
         let users = yield user_model_1.User.aggregate(pipeline);
         console.log("USERS", users, "USERS2");
-        // let users: any = await User.find(query).select({ _id: 1, name: 1, companyObj: 1 }).lean()
-        //   .exec();
         res.json({
             message: "ALL Users",
             data: users,

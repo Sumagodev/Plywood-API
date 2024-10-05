@@ -22,7 +22,7 @@ import { postSpiCrmLead } from "../service/sipCrm.service";
 import { startOfDay, endOfDay } from 'date-fns'; // Use date-fns for date comparison if needed
 import OtpVerifyModel from "../models/OtpVerify.model";
 import VerifiedUsers from "../models/VerifiedUser.model";
- 
+
 export const webLogin = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const UserExistCheck = await User.findOne({ $or: [{ email: new RegExp(`^${req.body.email}$`) }] }).exec();
@@ -623,6 +623,7 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
 
     let query: any = {};
 
+    // Build the search regex query
     if (req.query.search) {
       console.log(req.query.search, "req.query.search");
       query = {
@@ -651,6 +652,9 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
           "role": {
             "$nin": roleArr,
           },
+          ...query, // Integrate the search query here
+          ...(req.query.stateId ? { stateId: req.query.stateId } : {}), // Check if stateId exists in query and add to match
+          ...(req.query.categoryId ? { "categoryArr.categoryId": req.query.categoryId } : {}), // Check if categoryId exists in query and add to match
         },
       },
       {
@@ -680,17 +684,11 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
             "$cond": {
               "if": {
                 "$and": [
-                  {
-                    "$ifNull": ["$productsArr.brand", false],
-                  },
-                  {
-                    "$ne": ["$productsArr.brand", ""],
-                  },
+                  { "$ifNull": ["$productsArr.brand", false] },
+                  { "$ne": ["$productsArr.brand", ""] },
                 ],
               },
-              "then": {
-                "$toObjectId": "$productsArr.brand",
-              },
+              "then": { "$toObjectId": "$productsArr.brand" },
               "else": null,
             },
           },
@@ -724,36 +722,15 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
       {
         "$group": {
           "_id": "$_id",
-          "name": {
-            "$first": "$name",
-          },
-          "role": {
-            "$first": "$role",
-          },
-          // 'bannerImage': {
-          //   '$first': '$bannerImage'
-          // },
-          // 'profileImage': {
-          //   '$first': '$profileImage'
-          // },
-          "productsIdArr": {
-            "$addToSet": "$productsArr",
-          },
-          "brandNames": {
-            "$addToSet": "$brandNames",
-          },
-          "companyObj": {
-            "$first": "$companyObj",
-          },
-          "brandArr": {
-            "$addToSet": {
-              "name": "$brandName",
-            },
-          },
+          "name": { "$first": "$name" },
+          "role": { "$first": "$role" },
+          "productsIdArr": { "$addToSet": "$productsArr" },
+          "brandNames": { "$addToSet": "$brandNames" },
+          "companyObj": { "$first": "$companyObj" },
+          "stateId": { "$first": "$stateId" },
+          "categoryId": { "$first": "$categoryId" },
+          "brandArr": { "$addToSet": { "name": "$brandName" } },
         },
-      },
-      {
-        "$match": query,
       },
       {
         "$project": {
@@ -768,8 +745,6 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
     console.log(JSON.stringify(pipeline, null, 2), "pipeline");
     let users: any = await User.aggregate(pipeline);
     console.log("USERS", users, "USERS2");
-    // let users: any = await User.find(query).select({ _id: 1, name: 1, companyObj: 1 }).lean()
-    //   .exec();
 
     res.json({
       message: "ALL Users",
@@ -779,6 +754,7 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
     next(error);
   }
 };
+
 
 export const getAllUsersWithSubsciption = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -1053,7 +1029,7 @@ export const sendOTPForVerify = async (req: Request, res: Response, next: NextFu
     const phoneRegex = /^[6-9]\d{9}$/; // Regex for 10-digit numbers starting with 6-9
 
     if (!phone || typeof phone !== 'string' || !phoneRegex.test(phone)) {
-      return res.status(400).json({ result:false, message: "Invalid phone number. It must be a 10-digit number starting with 6-9." });
+      return res.status(400).json({ result: false, message: "Invalid phone number. It must be a 10-digit number starting with 6-9." });
     }
 
     let otp = generateRandomNumber(6);
@@ -1062,11 +1038,11 @@ export const sendOTPForVerify = async (req: Request, res: Response, next: NextFu
     }
 
     const otpPayload = { phone, otp };
-   const otpObj= await OtpVerifyModel.create(otpPayload);
-    if(otpObj)
-    res.status(200).json({result:true,  message: `OTP sent to your mobile ${phone}` });
-  else
-   res.status(500).json({ result:false, message: `OTP sending failed for your mobile ${phone}` });
+    const otpObj = await OtpVerifyModel.create(otpPayload);
+    if (otpObj)
+      res.status(200).json({ result: true, message: `OTP sent to your mobile ${phone}` });
+    else
+      res.status(500).json({ result: false, message: `OTP sending failed for your mobile ${phone}` });
 
   } catch (error) {
     next(error);
@@ -1089,7 +1065,7 @@ export const verifyUserOTP = async (req: Request, res: Response, next: NextFunct
     }
 
     const response = await OtpVerifyModel.find({ phone }).sort({ createdAt: -1 }).limit(1);
-    
+
     // Check if OTP exists and is valid
     if (response.length === 0 || otp !== response[0].otp) {
       return res.status(400).json({ result: false, message: "Invalid OTP." });
@@ -1110,7 +1086,7 @@ export const verifyUserOTP = async (req: Request, res: Response, next: NextFunct
       await verifiedUser.save();
     }
     // Successful verification response
-    return res.status(200).json({ result: true, message: "User verification successful"});
+    return res.status(200).json({ result: true, message: "User verification successful" });
 
   } catch (error) {
     next(error);

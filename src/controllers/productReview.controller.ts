@@ -75,7 +75,13 @@ export const addProductReview = async (req: Request, res: Response, next: NextFu
 
       console.log(req.body)
 
+
+
       const { userId, name, addedby, rating, message,productId} = req.body;
+
+
+
+      //////////
 
 
       if (!userId || typeof userId !== 'string') {
