@@ -606,6 +606,7 @@ const searchVendor = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
                     { "brandNames": new RegExp(`${req.query.search}`, "i") },
                     { "brandArr.name": new RegExp(`${req.query.search}`, "i") },
                     { "stateId": new RegExp(`${req.query.search}`, "i") },
+                    { "categoryId": new RegExp(`${req.query.search}`, "i") }
                 ],
             };
         }
@@ -715,6 +716,9 @@ const searchVendor = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
                     },
                     "stateId": {
                         "$first": "$stateId",
+                    },
+                    "categoryId": {
+                        "$first": "$categoryId",
                     },
                     "brandArr": {
                         "$addToSet": {

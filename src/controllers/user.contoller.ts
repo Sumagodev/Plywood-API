@@ -22,7 +22,7 @@ import { postSpiCrmLead } from "../service/sipCrm.service";
 import { startOfDay, endOfDay } from 'date-fns'; // Use date-fns for date comparison if needed
 import OtpVerifyModel from "../models/OtpVerify.model";
 import VerifiedUsers from "../models/VerifiedUser.model";
- 
+
 export const webLogin = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const UserExistCheck = await User.findOne({ $or: [{ email: new RegExp(`^${req.body.email}$`) }] }).exec();
@@ -637,10 +637,10 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
           { "brandNames": new RegExp(`${req.query.search}`, "i") },
           { "brandArr.name": new RegExp(`${req.query.search}`, "i") },
           { "stateId": new RegExp(`${req.query.search}`, "i") },
-
+          { "categoryId": new RegExp(`${req.query.search}`, "i") }
         ],
       };
-      
+
     }
 
     let roleArr = ["ADMIN"];
@@ -750,7 +750,11 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
           },
           "stateId": {
             "$first": "$stateId",
-
+      
+          },
+          "categoryId": {
+            "$first": "$categoryId",
+            
           },
           "brandArr": {
             "$addToSet": {
@@ -1060,7 +1064,7 @@ export const sendOTPForVerify = async (req: Request, res: Response, next: NextFu
     const phoneRegex = /^[6-9]\d{9}$/; // Regex for 10-digit numbers starting with 6-9
 
     if (!phone || typeof phone !== 'string' || !phoneRegex.test(phone)) {
-      return res.status(400).json({ result:false, message: "Invalid phone number. It must be a 10-digit number starting with 6-9." });
+      return res.status(400).json({ result: false, message: "Invalid phone number. It must be a 10-digit number starting with 6-9." });
     }
 
     let otp = generateRandomNumber(6);
@@ -1069,11 +1073,11 @@ export const sendOTPForVerify = async (req: Request, res: Response, next: NextFu
     }
 
     const otpPayload = { phone, otp };
-   const otpObj= await OtpVerifyModel.create(otpPayload);
-    if(otpObj)
-    res.status(200).json({result:true,  message: `OTP sent to your mobile ${phone}` });
-  else
-   res.status(500).json({ result:false, message: `OTP sending failed for your mobile ${phone}` });
+    const otpObj = await OtpVerifyModel.create(otpPayload);
+    if (otpObj)
+      res.status(200).json({ result: true, message: `OTP sent to your mobile ${phone}` });
+    else
+      res.status(500).json({ result: false, message: `OTP sending failed for your mobile ${phone}` });
 
   } catch (error) {
     next(error);
@@ -1096,7 +1100,7 @@ export const verifyUserOTP = async (req: Request, res: Response, next: NextFunct
     }
 
     const response = await OtpVerifyModel.find({ phone }).sort({ createdAt: -1 }).limit(1);
-    
+
     // Check if OTP exists and is valid
     if (response.length === 0 || otp !== response[0].otp) {
       return res.status(400).json({ result: false, message: "Invalid OTP." });
@@ -1117,7 +1121,7 @@ export const verifyUserOTP = async (req: Request, res: Response, next: NextFunct
       await verifiedUser.save();
     }
     // Successful verification response
-    return res.status(200).json({ result: true, message: "User verification successful"});
+    return res.status(200).json({ result: true, message: "User verification successful" });
 
   } catch (error) {
     next(error);
