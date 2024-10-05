@@ -1244,6 +1244,9 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                             "role": "$productsArr.createdByObj.role",
                         },
                     },
+                    "stateName": {
+                        "$first": "$stateInfo.name",
+                    },
                 },
             },
             {
