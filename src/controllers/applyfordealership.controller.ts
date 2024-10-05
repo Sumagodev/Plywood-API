@@ -240,7 +240,10 @@ export const deleteApplication = async (req: Request, res: Response, next: NextF
 export const getDealershipApplicationByUserId = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { userId } = req.params;
+    
+////////
 
+///////
     // Step 1: Fetch all ownerIds associated with the given userId
     const owners = await DealershipOwner.find({ userId: new mongoose.Types.ObjectId(userId) });
 
@@ -249,7 +252,7 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
       return res.status(404).json({ message: "No owners found for the given userId" });
     }
 
-    
+
 
     // Extract the ownerIds
     const ownerIds = owners.map(owner => owner._id);

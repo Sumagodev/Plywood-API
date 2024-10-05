@@ -224,6 +224,8 @@ exports.deleteApplication = deleteApplication;
 const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { userId } = req.params;
+        ////////
+        ///////
         // Step 1: Fetch all ownerIds associated with the given userId
         const owners = yield adddealership_model_1.DealershipOwner.find({ userId: new mongoose_1.default.Types.ObjectId(userId) });
         // Check if no owners are found
