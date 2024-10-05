@@ -258,6 +258,7 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
       .populate("productId", "name") // Populate productId with product name
       .lean(); // Return plain JavaScript objects for easier manipulation
 
+      
     // Step 3: Check if no applications are found
     if (!applications || applications.length === 0) {
       return res.status(404).json({ message: "No applications found for the given userId" });
