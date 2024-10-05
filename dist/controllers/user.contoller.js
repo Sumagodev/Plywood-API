@@ -118,11 +118,13 @@ const addUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
         //   throw new Error(`User with this phone number Already Exists`);
         // }
         console.log(req.body, "SSD");
+        // Check if the phone number already exists
         const UserExistPhoneCheck = yield user_model_1.User.findOne({
             phone: req.body.phone,
         }).exec();
-        if (!UserExistPhoneCheck) {
-            throw new Error(`User with this phone Already Exists`);
+        // If a user with the same phone number exists, throw an error
+        if (UserExistPhoneCheck) {
+            throw new Error(`User with this phone number already exists`);
         }
         const documents = [];
         if (req.body.gstCertificate) {
@@ -183,7 +185,7 @@ const updateUserById = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             _id: { $ne: req.params.id },
         }).exec();
         console.log(UserExistPhoneCheck, "UserExistPhoneCheck");
-        if (UserExistPhoneCheck) {
+        if (!UserExistPhoneCheck) {
             throw new Error(`User with this phone Already Exists`);
         }
         const documents = [];
@@ -271,7 +273,7 @@ const registerUser = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         const UserExistPhoneCheck = yield user_model_1.User.findOne({
             phone: req.body.phone,
         }).exec();
-        if (UserExistPhoneCheck) {
+        if (!UserExistPhoneCheck) {
             throw new Error(`User with this phone Already Exists`);
         }
         if (req.body.profileImage && req.body.profileImage.includes("base64")) {
@@ -1157,7 +1159,7 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
             },
             {
                 "$lookup": {
-                    "from": "states",
+                    "from": "State",
                     "localField": "stateId",
                     "foreignField": "_id",
                     "as": "stateInfo",

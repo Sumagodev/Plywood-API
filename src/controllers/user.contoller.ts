@@ -113,11 +113,14 @@ export const addUser = async (req: Request, res: Response, next: NextFunction) =
     // }
     console.log(req.body, "SSD");
 
+    // Check if the phone number already exists
     const UserExistPhoneCheck = await User.findOne({
       phone: req.body.phone,
     }).exec();
-    if (!UserExistPhoneCheck) {
-      throw new Error(`User with this phone Already Exists`);
+
+    // If a user with the same phone number exists, throw an error
+    if (UserExistPhoneCheck) {
+      throw new Error(`User with this phone number already exists`);
     }
     const documents = [];
     if (req.body.gstCertificate) {
@@ -183,7 +186,7 @@ export const updateUserById = async (req: Request, res: Response, next: NextFunc
       _id: { $ne: req.params.id },
     }).exec();
     console.log(UserExistPhoneCheck, "UserExistPhoneCheck");
-    if (UserExistPhoneCheck) {
+    if (!UserExistPhoneCheck) {
       throw new Error(`User with this phone Already Exists`);
     }
 
@@ -278,7 +281,7 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
     const UserExistPhoneCheck = await User.findOne({
       phone: req.body.phone,
     }).exec();
-    if (UserExistPhoneCheck) {
+    if (!UserExistPhoneCheck) {
       throw new Error(`User with this phone Already Exists`);
     }
 
@@ -1224,7 +1227,7 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
       },
       {
         "$lookup": {
-          "from": "states",
+          "from": "State",
           "localField": "stateId",
           "foreignField": "_id",
           "as": "stateInfo",
