@@ -16,11 +16,9 @@ import mongoose from "mongoose";
 import { UserFcmToken } from "../models/UserFcmTokens.model";
 import { Notifications } from "../models/Notifications.model";
 import otpModels from "../models/otp.models";
-
 import { ValidateEmail, ValidateLandline, ValidatePhone, validMobileNo } from "../helpers/validiator";
 import { postSpiCrmLead } from "../service/sipCrm.service";
 import { startOfDay, endOfDay } from 'date-fns'; // Use date-fns for date comparison if needed
-import OtpVerifyModel from "../models/OtpVerify.model";
 
 export const webLogin = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -115,7 +113,7 @@ export const addUser = async (req: Request, res: Response, next: NextFunction) =
     // }
     console.log(req.body, "SSD");
 
-
+   
     const documents = [];
     if (req.body.gstCertificate) {
       let gstCertificate = await storeFileAndReturnNameBase64(req.body.gstCertificate);
@@ -416,74 +414,74 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
     let visitorUserId: string | undefined = req.query.visitorUserId as string | undefined;
     if (Array.isArray(visitorUserId)) {
       visitorUserId = visitorUserId[0]; // Use the first element if an array
-    }
-
-    if (Array.isArray(visitorUserId)) {
-      visitorUserId = visitorUserId[0]; // Use the first element if an array
-    }
-    if (visitorUserId && mongoose.Types.ObjectId.isValid(visitorUserId)) {
-      // Fetch the user who accessed the profile
-      let leadUser = await User.findById(visitorUserId).lean().exec();
-      if (!leadUser) throw new Error("Lead User Not Found");
-      // Define the current day range (start and end of today)
-      const startOfToday = startOfDay(new Date());
-      const endOfToday = endOfDay(new Date());
-      console.log('Profile Owner ID:', req.params.userId);
-      console.log('Visitor User ID:', visitorUserId);
-      console.log('Start of Today:', startOfToday);
-      console.log('End of Today:', endOfToday);
-      // Check if a notification already exists for the same user and day
-      let existingNotification = await Notifications.findOne({
+  }
+  
+  if (Array.isArray(visitorUserId)) {
+    visitorUserId = visitorUserId[0]; // Use the first element if an array
+}
+if (visitorUserId && mongoose.Types.ObjectId.isValid(visitorUserId)) {
+    // Fetch the user who accessed the profile
+    let leadUser = await User.findById(visitorUserId).lean().exec();
+    if (!leadUser) throw new Error("Lead User Not Found");
+    // Define the current day range (start and end of today)
+    const startOfToday = startOfDay(new Date());
+    const endOfToday = endOfDay(new Date());
+    console.log('Profile Owner ID:', req.params.userId);
+    console.log('Visitor User ID:', visitorUserId);
+    console.log('Start of Today:', startOfToday);
+    console.log('End of Today:', endOfToday);
+    // Check if a notification already exists for the same user and day
+    let existingNotification = await Notifications.findOne({
         userId: req.params.userId,                  // Profile owner
         type: 'profile_view',
         createdAt: {                                // Created today
-          $gte: startOfToday,                     // Greater than or equal to the start of the day
-          $lte: endOfToday                        // Less than or equal to the end of the day
+            $gte: startOfToday,                     // Greater than or equal to the start of the day
+            $lte: endOfToday                        // Less than or equal to the end of the day
         },
         'payload.accessedBy': visitorUserId // Check for the accessedBy field
-      });
-      console.log('Existing Notification:', existingNotification);
-      if (existingNotification) {
+    });
+    console.log('Existing Notification:', existingNotification);
+    if (existingNotification) {
         // If a notification exists, increment the view count and update the last access time
         await Notifications.updateOne(
-          { _id: existingNotification._id },
-          {
-            $inc: { viewCount: 1 },            // Increment viewCount by 1
-            $set: {
-              lastAccessTime: new Date(),
-              isRead: false,
-            } // Update lastAccessTime to current time
-          }
+            { _id: existingNotification._id },
+            {
+                $inc: { viewCount: 1 },            // Increment viewCount by 1
+                $set: { 
+                    lastAccessTime: new Date(),
+                    isRead: false,
+                } // Update lastAccessTime to current time
+            }
         );
         console.log('Notification updated with incremented view count and updated last access time');
-      } else {
+    } else {
         // If no notification exists, create a new one
         const newNotification = new Notifications({
-          userId: req.params.userId,            // ID of the user related to the notification
-          type: 'profile_view',                 // Type of notification
-          title: 'Your profile was accessed',   // Title of the notification
-          content: `Your profile was accessed by user ${visitorUserId}`, // Message content
-          sourceId: visitorUserId,              // ID of the user who accessed the profile
-          isRead: false,                        // Notification status
-          viewCount: 1,                         // Initialize viewCount to 1
-          lastAccessTime: new Date(),           // Set initial last access time
-          payload: {                            // Dynamic payload data
-            accessedBy: visitorUserId,
-            accessTime: new Date(),
-            organizationName: leadUser?.companyObj?.name || 'Unknown' // Safely access company name
-          }
+            userId: req.params.userId,            // ID of the user related to the notification
+            type: 'profile_view',                 // Type of notification
+            title: 'Your profile was accessed',   // Title of the notification
+            content: `Your profile was accessed by user ${visitorUserId}`, // Message content
+            sourceId: visitorUserId,              // ID of the user who accessed the profile
+            isRead: false,                        // Notification status
+            viewCount: 1,                         // Initialize viewCount to 1
+            lastAccessTime: new Date(),           // Set initial last access time
+            payload: {                            // Dynamic payload data
+                accessedBy: visitorUserId,
+                accessTime: new Date(),
+                organizationName: leadUser?.companyObj?.name || 'Unknown' // Safely access company name
+            }
         });
         // Save the new notification to the database
         try {
-          await newNotification.save();
-          console.log('New notification created with viewCount and lastAccessTime');
+            await newNotification.save();
+            console.log('New notification created with viewCount and lastAccessTime');
         } catch (error) {
-          console.error('Error saving new notification:', error);
+            console.error('Error saving new notification:', error);
         }
-      }
-    } else {
-      console.error('Invalid Visitor User ID:', visitorUserId);
     }
+} else {
+    console.error('Invalid Visitor User ID:', visitorUserId);
+}
   } catch (error) {
     next(error);
   }
@@ -585,7 +583,7 @@ export const getAllUsers = async (req: Request, res: Response, next: NextFunctio
     let users: any = await User.find(query)
       .skip((pageValue - 1) * limitValue)
       .limit(limitValue).
-      sort({ createdAt: -1 })
+      sort({createdAt:-1})
       .lean()
       .exec();
 
@@ -934,18 +932,18 @@ export const getAllUsersWithSubsciption = async (req: Request, res: Response, ne
       },
     ];
 
-    let query: any = {};
+    let query:any = {};
     if (req.query.q) {
-      query["$or"] = [{ name: new RegExp(`${req.query.q}`, "i") }, { email: new RegExp(`${req.query.q}`, "i") }]
+      query["$or"] =[{ name: new RegExp(`${req.query.q}`, "i") }, { email: new RegExp(`${req.query.q}`, "i") }]
     }
 
-    if (req.query.startDate) {
-      query = { ...query, createdAt: { $gte: req.query.startDate, $lte: req.query.endDate } };
+        if (req.query.startDate) {
+              query = { ...query, createdAt: { $gte: req.query.startDate, $lte: req.query.endDate } };
 
-    }
+        }
 
-
-    if (query) {
+       
+      if (query) {
       pipeline.push({
         "$match": query,
       });
@@ -1044,63 +1042,6 @@ export const sentOtp = async (req: Request, res: Response, next: NextFunction) =
   }
 };
 
-export const sendOTPForVerify = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const phone = req.body.phone;
-
-    // Validate the phone number
-    const phoneRegex = /^[6-9]\d{9}$/; // Regex for 10-digit numbers starting with 6-9
-
-    if (!phone || typeof phone !== 'string' || !phoneRegex.test(phone)) {
-      return res.status(400).json({ result:false, message: "Invalid phone number. It must be a 10-digit number starting with 6-9." });
-    }
-
-    let otp = generateRandomNumber(6);
-    if (phone === "9000000000") {
-      otp = "123456";
-    }
-
-    const otpPayload = { phone, otp };
-   const otpObj= await OtpVerifyModel.create(otpPayload);
-    if(otpObj)
-    res.status(200).json({result:true,  message: `OTP sent to your mobile ${phone}` });
-  else
-   res.status(500).json({ result:false, message: `OTP sending failed for your mobile ${phone}` });
-
-  } catch (error) {
-    next(error);
-  }
-};
-export const verifyUserOTP = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const phone = req.body.phone;
-    const otp = req.body.otp;
-
-    // Validate the phone number
-    const phoneRegex = /^[6-9]\d{9}$/; // Regex for 10-digit numbers starting with 6-9
-    if (!phone || typeof phone !== 'string' || !phoneRegex.test(phone)) {
-      return res.status(400).json({ result: false, message: "Invalid phone number. It must be a 10-digit number starting with 6-9." });
-    }
-
-    // Validate OTP
-    if (!otp) {
-      return res.status(400).json({ result: false, message: "OTP is required." });
-    }
-
-    const response = await OtpVerifyModel.find({ phone }).sort({ createdAt: -1 }).limit(1);
-    
-    // Check if OTP exists and is valid
-    if (response.length === 0 || otp !== response[0].otp) {
-      return res.status(400).json({ result: false, message: "Invalid OTP." });
-    }
-    // Successful verification response
-    return res.status(200).json({ result: true, message: "User verification successful"});
-
-  } catch (error) {
-    next(error);
-  }
-};
-
 export const checkForValidSubscription = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userObj = await User.findOne({ _id: req.params.id }).exec();
@@ -1170,7 +1111,7 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
         {
           companyName: regex,
         },
-
+       
       ];
       query = { ...query, ...{ $or: rangeQuery } };
     }
@@ -1185,7 +1126,7 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
         {
           companyName: regex,
         },
-
+        
       ];
       query = { ...query, ...{ $or: rangeQuery } };
     }
@@ -1229,7 +1170,7 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
     //   let locationArr = `${req.query.city}`.split(",");
     //   query = { ...query, "state": { $in: [...locationArr] } };
     // }
-
+    
     if (req.query.rating) {
       let ratingValue: number = +req.query.rating;
       query = { ...query, "rating": { $gte: ratingValue } };
@@ -1275,6 +1216,11 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
             "$size": "$productsArr",
           },
         },
+      },
+      {
+        "$addFields": {
+          "stateId": { "$toObjectId": "$stateId" } // Convert stateId to ObjectId
+        }
       },
       {
         "$lookup": {
@@ -1330,13 +1276,6 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
           "profileImage": {
             "$first": "$profileImage",
           },
-          "stateName": {
-
-            // "$first":  {"$arrayElemAt": ["$stateInfo.name", 0]}
-            "$addToSet": {
-              "stateName": "stateInfo.name",
-            },
-          },
           "categoryIdArr": {
             "$addToSet": {
               "categoryId": {
@@ -1372,7 +1311,9 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
               "role": "$productsArr.createdByObj.role",
             },
           },
-
+          "stateName": {
+            "$first": '$stateInfo.name',
+          },
         },
       },
       {
@@ -2087,7 +2028,7 @@ export const getAllSalesReport: RequestHandler = async (req, res, next) => {
   } catch (error) {
     next(error);
 
-
+    
 
   }
 };
