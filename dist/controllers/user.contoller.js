@@ -1185,6 +1185,8 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                     "cityName": {
                         "$arrayElemAt": ["$cityInfo.name", 0], // Correct for cityName
                     },
+                    "stateData": "$stateInfo",
+                    "cityData": "$cityInfo",
                 },
             }, {
                 "$unwind": {

@@ -1238,7 +1238,7 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
       },
       {
         "$lookup": {
-          "from": "city",
+          "from": "cities",
           "localField": "cityId",
           "foreignField": "_id",
           "as": "cityInfo",
@@ -1250,13 +1250,14 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
             "$size": "$productsArr",
           },
           "stateName": {
-            "$arrayElemAt": ["$stateInfo.name", 0],  // Correct for stateName
+            "$arrayElemAt": ["$stateInfo.name", 0],
           },
           "cityName": {
-            "$arrayElemAt": ["$cityInfo.name", 0],  // Correct for cityName
+            "$arrayElemAt": ["$cityInfo.name", 0],
           },
         },
-      }, {
+      },
+      {
         "$unwind": {
           "path": "$productsArr",
           "preserveNullAndEmptyArrays": true,
