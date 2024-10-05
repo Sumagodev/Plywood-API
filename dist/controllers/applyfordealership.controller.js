@@ -271,7 +271,7 @@ const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, v
                 Organisation_name: application.Organisation_name,
                 Type: application.Type,
                 Brand: application.Brand,
-                dealershipOwnerId: application.Brand,
+                dealershipOwnerId: application.dealershipOwnerId,
                 productName: ((_a = application.productId) === null || _a === void 0 ? void 0 : _a.name) || "",
                 userId: ((_b = application.userId) === null || _b === void 0 ? void 0 : _b._id) || "",
                 userName: ((_c = application.userId) === null || _c === void 0 ? void 0 : _c.name) || "",
