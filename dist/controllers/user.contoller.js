@@ -1110,10 +1110,10 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
             let locationArr = `${req.query.state}`.split(",");
             query = Object.assign(Object.assign({}, query), { "stateId": { $in: [...locationArr] } });
         }
-        // if (req.query.city) {
-        //   let locationArr = `${req.query.city}`.split(",");
-        //   query = { ...query, "state": { $in: [...locationArr] } };
-        // }
+        if (req.query.city) {
+            let locationArr = `${req.query.city}`.split(",");
+            query = Object.assign(Object.assign({}, query), { "state": { $in: [...locationArr] } });
+        }
         if (req.query.rating) {
             let ratingValue = +req.query.rating;
             query = Object.assign(Object.assign({}, query), { "rating": { $gte: ratingValue } });
@@ -1168,10 +1168,10 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
             },
             {
                 "$lookup": {
-                    "from": "states",
-                    "localField": "stateId",
+                    "from": "city",
+                    "localField": "cityId",
                     "foreignField": "_id",
-                    "as": "scityInfo",
+                    "as": "cityInfo",
                 },
             },
             {

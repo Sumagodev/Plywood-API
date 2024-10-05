@@ -1177,10 +1177,10 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
       let locationArr = `${req.query.state}`.split(",");
       query = { ...query, "stateId": { $in: [...locationArr] } };
     }
-    // if (req.query.city) {
-    //   let locationArr = `${req.query.city}`.split(",");
-    //   query = { ...query, "state": { $in: [...locationArr] } };
-    // }
+    if (req.query.city) {
+      let locationArr = `${req.query.city}`.split(",");
+      query = { ...query, "state": { $in: [...locationArr] } };
+    }
 
     if (req.query.rating) {
       let ratingValue: number = +req.query.rating;
@@ -1238,10 +1238,10 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
       },
       {
         "$lookup": {
-          "from": "states",
-          "localField": "stateId",
+          "from": "city",
+          "localField": "cityId",
           "foreignField": "_id",
-          "as": "scityInfo",
+          "as": "cityInfo",
         },
       },
       {
