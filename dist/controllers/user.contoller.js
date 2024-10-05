@@ -1169,7 +1169,7 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                         "$size": "$productsArr",
                     },
                     "stateName": {
-                        "$arrayElemAt": "$stateInfo.name",
+                        "$arrayElemAt": ["$stateInfo.name", 0],
                     },
                 },
             },
@@ -1245,7 +1245,7 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                         },
                     },
                     "stateName": {
-                        "$first": "$stateInfo.name",
+                        "$first": "$stateName",
                     },
                 },
             },

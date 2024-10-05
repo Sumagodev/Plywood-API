@@ -1236,7 +1236,7 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
             "$size": "$productsArr",
           },
           "stateName": {
-            "$arrayElemAt": "$stateInfo.name",
+            "$arrayElemAt": ["$stateInfo.name", 0],
           },
         },
       },
@@ -1312,7 +1312,7 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
             },
           },
           "stateName": {
-            "$first": "$stateInfo.name",
+            "$first": "$stateName",
           },
         },
       },
