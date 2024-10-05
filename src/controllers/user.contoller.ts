@@ -1236,7 +1236,7 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
             "$size": "$productsArr",
           },
           "stateName": {
-            "$ifNull": [{ "$arrayElemAt": ["$stateInfo.name", 0] }, "Unknown"],
+            "$ifNull": [{ "$arrayElemAt": ["$stateInfo", 0] }, "Unknown"],
           },
 
         },

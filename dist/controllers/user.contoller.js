@@ -1169,7 +1169,7 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                         "$size": "$productsArr",
                     },
                     "stateName": {
-                        "$ifNull": [{ "$arrayElemAt": ["$stateInfo.name", 0] }, "Unknown"],
+                        "$ifNull": [{ "$arrayElemAt": ["$stateInfo", 0] }, "Unknown"],
                     },
                 },
             },
