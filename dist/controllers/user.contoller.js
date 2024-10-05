@@ -121,7 +121,7 @@ const addUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
         const UserExistPhoneCheck = yield user_model_1.User.findOne({
             phone: req.body.phone,
         }).exec();
-        if (UserExistPhoneCheck) {
+        if (!UserExistPhoneCheck) {
             throw new Error(`User with this phone Already Exists`);
         }
         const documents = [];

@@ -116,7 +116,7 @@ export const addUser = async (req: Request, res: Response, next: NextFunction) =
     const UserExistPhoneCheck = await User.findOne({
       phone: req.body.phone,
     }).exec();
-    if (UserExistPhoneCheck) {
+    if (!UserExistPhoneCheck) {
       throw new Error(`User with this phone Already Exists`);
     }
     const documents = [];
@@ -419,74 +419,74 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
     let visitorUserId: string | undefined = req.query.visitorUserId as string | undefined;
     if (Array.isArray(visitorUserId)) {
       visitorUserId = visitorUserId[0]; // Use the first element if an array
-  }
-  
-  if (Array.isArray(visitorUserId)) {
-    visitorUserId = visitorUserId[0]; // Use the first element if an array
-}
-if (visitorUserId && mongoose.Types.ObjectId.isValid(visitorUserId)) {
-    // Fetch the user who accessed the profile
-    let leadUser = await User.findById(visitorUserId).lean().exec();
-    if (!leadUser) throw new Error("Lead User Not Found");
-    // Define the current day range (start and end of today)
-    const startOfToday = startOfDay(new Date());
-    const endOfToday = endOfDay(new Date());
-    console.log('Profile Owner ID:', req.params.userId);
-    console.log('Visitor User ID:', visitorUserId);
-    console.log('Start of Today:', startOfToday);
-    console.log('End of Today:', endOfToday);
-    // Check if a notification already exists for the same user and day
-    let existingNotification = await Notifications.findOne({
+    }
+
+    if (Array.isArray(visitorUserId)) {
+      visitorUserId = visitorUserId[0]; // Use the first element if an array
+    }
+    if (visitorUserId && mongoose.Types.ObjectId.isValid(visitorUserId)) {
+      // Fetch the user who accessed the profile
+      let leadUser = await User.findById(visitorUserId).lean().exec();
+      if (!leadUser) throw new Error("Lead User Not Found");
+      // Define the current day range (start and end of today)
+      const startOfToday = startOfDay(new Date());
+      const endOfToday = endOfDay(new Date());
+      console.log('Profile Owner ID:', req.params.userId);
+      console.log('Visitor User ID:', visitorUserId);
+      console.log('Start of Today:', startOfToday);
+      console.log('End of Today:', endOfToday);
+      // Check if a notification already exists for the same user and day
+      let existingNotification = await Notifications.findOne({
         userId: req.params.userId,                  // Profile owner
         type: 'profile_view',
         createdAt: {                                // Created today
-            $gte: startOfToday,                     // Greater than or equal to the start of the day
-            $lte: endOfToday                        // Less than or equal to the end of the day
+          $gte: startOfToday,                     // Greater than or equal to the start of the day
+          $lte: endOfToday                        // Less than or equal to the end of the day
         },
         'payload.accessedBy': visitorUserId // Check for the accessedBy field
-    });
-    console.log('Existing Notification:', existingNotification);
-    if (existingNotification) {
+      });
+      console.log('Existing Notification:', existingNotification);
+      if (existingNotification) {
         // If a notification exists, increment the view count and update the last access time
         await Notifications.updateOne(
-            { _id: existingNotification._id },
-            {
-                $inc: { viewCount: 1 },            // Increment viewCount by 1
-                $set: { 
-                    lastAccessTime: new Date(),
-                    isRead: false,
-                } // Update lastAccessTime to current time
-            }
+          { _id: existingNotification._id },
+          {
+            $inc: { viewCount: 1 },            // Increment viewCount by 1
+            $set: {
+              lastAccessTime: new Date(),
+              isRead: false,
+            } // Update lastAccessTime to current time
+          }
         );
         console.log('Notification updated with incremented view count and updated last access time');
-    } else {
+      } else {
         // If no notification exists, create a new one
         const newNotification = new Notifications({
-            userId: req.params.userId,            // ID of the user related to the notification
-            type: 'profile_view',                 // Type of notification
-            title: 'Your profile was accessed',   // Title of the notification
-            content: `Your profile was accessed by user ${visitorUserId}`, // Message content
-            sourceId: visitorUserId,              // ID of the user who accessed the profile
-            isRead: false,                        // Notification status
-            viewCount: 1,                         // Initialize viewCount to 1
-            lastAccessTime: new Date(),           // Set initial last access time
-            payload: {                            // Dynamic payload data
-                accessedBy: visitorUserId,
-                accessTime: new Date(),
-                organizationName: leadUser?.companyObj?.name || 'Unknown' // Safely access company name
-            }
+          userId: req.params.userId,            // ID of the user related to the notification
+          type: 'profile_view',                 // Type of notification
+          title: 'Your profile was accessed',   // Title of the notification
+          content: `Your profile was accessed by user ${visitorUserId}`, // Message content
+          sourceId: visitorUserId,              // ID of the user who accessed the profile
+          isRead: false,                        // Notification status
+          viewCount: 1,                         // Initialize viewCount to 1
+          lastAccessTime: new Date(),           // Set initial last access time
+          payload: {                            // Dynamic payload data
+            accessedBy: visitorUserId,
+            accessTime: new Date(),
+            organizationName: leadUser?.companyObj?.name || 'Unknown' // Safely access company name
+          }
         });
         // Save the new notification to the database
         try {
-            await newNotification.save();
-            console.log('New notification created with viewCount and lastAccessTime');
+          await newNotification.save();
+          console.log('New notification created with viewCount and lastAccessTime');
         } catch (error) {
-            console.error('Error saving new notification:', error);
+          console.error('Error saving new notification:', error);
         }
+      }
+    } else {
+      console.error('Invalid Visitor User ID:', visitorUserId);
     }
-} else {
-    console.error('Invalid Visitor User ID:', visitorUserId);
-}
   } catch (error) {
     next(error);
   }
@@ -588,7 +588,7 @@ export const getAllUsers = async (req: Request, res: Response, next: NextFunctio
     let users: any = await User.find(query)
       .skip((pageValue - 1) * limitValue)
       .limit(limitValue).
-      sort({createdAt:-1})
+      sort({ createdAt: -1 })
       .lean()
       .exec();
 
@@ -937,18 +937,18 @@ export const getAllUsersWithSubsciption = async (req: Request, res: Response, ne
       },
     ];
 
-    let query:any = {};
+    let query: any = {};
     if (req.query.q) {
-      query["$or"] =[{ name: new RegExp(`${req.query.q}`, "i") }, { email: new RegExp(`${req.query.q}`, "i") }]
+      query["$or"] = [{ name: new RegExp(`${req.query.q}`, "i") }, { email: new RegExp(`${req.query.q}`, "i") }]
     }
 
-        if (req.query.startDate) {
-              query = { ...query, createdAt: { $gte: req.query.startDate, $lte: req.query.endDate } };
+    if (req.query.startDate) {
+      query = { ...query, createdAt: { $gte: req.query.startDate, $lte: req.query.endDate } };
 
-        }
+    }
 
-       
-      if (query) {
+
+    if (query) {
       pipeline.push({
         "$match": query,
       });
@@ -1116,7 +1116,7 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
         {
           companyName: regex,
         },
-       
+
       ];
       query = { ...query, ...{ $or: rangeQuery } };
     }
@@ -1131,7 +1131,7 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
         {
           companyName: regex,
         },
-        
+
       ];
       query = { ...query, ...{ $or: rangeQuery } };
     }
@@ -1175,7 +1175,7 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
     //   let locationArr = `${req.query.city}`.split(",");
     //   query = { ...query, "state": { $in: [...locationArr] } };
     // }
-    
+
     if (req.query.rating) {
       let ratingValue: number = +req.query.rating;
       query = { ...query, "rating": { $gte: ratingValue } };
@@ -2028,7 +2028,7 @@ export const getAllSalesReport: RequestHandler = async (req, res, next) => {
   } catch (error) {
     next(error);
 
-    
+
 
   }
 };
