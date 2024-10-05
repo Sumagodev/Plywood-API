@@ -1238,9 +1238,17 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                             "role": "$productsArr.createdByObj.role",
                         },
                     },
+                    // "stateName": {
+                    //   "$first": {
+                    //     "$arrayElemAt": ["$stateInfo.name"]
+                    //   },
+                    // },
                     "stateName": {
-                        "$first": {
-                            "$arrayElemAt": ["$stateInfo.name", 0]
+                        "$lookup": {
+                            "from": "states",
+                            "localField": "stateId",
+                            "foreignField": "_id",
+                            "as": "stateInfo",
                         },
                     },
                 },
