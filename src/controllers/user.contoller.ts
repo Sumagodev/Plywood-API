@@ -115,12 +115,7 @@ export const addUser = async (req: Request, res: Response, next: NextFunction) =
     // }
     console.log(req.body, "SSD");
 
-    // const UserExistPhoneCheck = await User.findOne({
-    //   phone: req.body.phone,
-    // }).exec();
-    // if (UserExistPhoneCheck) {
-    //   throw new Error(`User with this phone Already Exists`);
-    // }
+
     const documents = [];
     if (req.body.gstCertificate) {
       let gstCertificate = await storeFileAndReturnNameBase64(req.body.gstCertificate);
@@ -1295,9 +1290,8 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
             "$size": "$productsArr",
           },
           "stateName": {
-            "$ifNull": [{ "$arrayElemAt": ["$stateInfo.name", 0] }, "Unknown"],
+            "$arrayElemAt": ["$stateInfo.name", 0],
           },
-
         },
       },
       {
@@ -1336,6 +1330,10 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
           "profileImage": {
             "$first": "$profileImage",
           },
+          "stateName": {
+
+            "$first":  {"$arrayElemAt": ["$stateInfo.name", 0]}
+          },
           "categoryIdArr": {
             "$addToSet": {
               "categoryId": {
@@ -1371,7 +1369,6 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
               "role": "$productsArr.createdByObj.role",
             },
           },
-          "stateName": { "$first": "$stateName" },  // Directly using the fetched stateName
 
         },
       },
