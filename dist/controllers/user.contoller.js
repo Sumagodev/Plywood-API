@@ -1112,7 +1112,7 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
         }
         if (req.query.city) {
             let locationArr = `${req.query.city}`.split(",");
-            query = Object.assign(Object.assign({}, query), { "state": { $in: [...locationArr] } });
+            query = Object.assign(Object.assign({}, query), { "cityId": { $in: [...locationArr] } });
         }
         if (req.query.rating) {
             let ratingValue = +req.query.rating;
