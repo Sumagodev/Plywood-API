@@ -1225,11 +1225,8 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
             },
             {
                 "$addFields": {
-                    "productsCount": {
-                        "$size": "$productsArr",
-                    },
                     "stateName": {
-                        "$arrayElemAt": ["$stateInfo.name", 0],
+                        "$arrayElemAt": ["$stateInfo.name", 0], // Extracting state name correctly
                     },
                 },
             },
@@ -1248,63 +1245,28 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
             {
                 "$group": {
                     "_id": "$_id",
-                    "name": {
-                        "$first": "$name",
-                    },
-                    "phone": {
-                        "$first": "$phone",
-                    },
-                    "address": {
-                        "$first": "$address",
-                    },
-                    "companyName": {
-                        "$first": "$companyObj.name",
-                    },
-                    "bannerImage": {
-                        "$first": "$bannerImage",
-                    },
-                    "productsCount": {
-                        "$first": "$productsCount",
-                    },
-                    "profileImage": {
-                        "$first": "$profileImage",
-                    },
-                    "stateName": {
-                        // "$first":  {"$arrayElemAt": ["$stateInfo.name", 0]}
-                        "$addToSet": {
-                            "stateName": "stateInfo.name",
-                        },
-                    },
+                    "name": { "$first": "$name" },
+                    "phone": { "$first": "$phone" },
+                    "address": { "$first": "$address" },
+                    "companyName": { "$first": "$companyObj.name" },
+                    "bannerImage": { "$first": "$bannerImage" },
+                    "productsCount": { "$first": "$productsCount" },
+                    "profileImage": { "$first": "$profileImage" },
+                    "stateName": { "$first": "$stateName" },
                     "categoryIdArr": {
                         "$addToSet": {
-                            "categoryId": {
-                                "$toString": "$productsArr.categoryArr.categoryId",
-                            },
+                            "$toString": "$productsArr.categoryArr.categoryId",
                         },
                     },
-                    "categoryArr": {
-                        $first: "$categoryArr",
-                    },
+                    "categoryArr": { "$first": "$categoryArr" },
                     "brandIdArr": {
-                        "$addToSet": {
-                            "brandId": "$productsArr.brand",
-                        },
+                        "$addToSet": "$productsArr.brand",
                     },
-                    "countryId": {
-                        "$first": "$countryId",
-                    },
-                    "stateId": {
-                        "$first": "$stateId",
-                    },
-                    "cityId": {
-                        "$first": "$cityId",
-                    },
-                    "role": {
-                        "$first": "$role",
-                    },
-                    "rating": {
-                        "$first": "$rating",
-                    },
+                    "countryId": { "$first": "$countryId" },
+                    "stateId": { "$first": "$stateId" },
+                    "cityId": { "$first": "$cityId" },
+                    "role": { "$first": "$role" },
+                    "rating": { "$first": "$rating" },
                     "createdByObj": {
                         "$first": {
                             "role": "$productsArr.createdByObj.role",
@@ -1320,6 +1282,7 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                     "name": 1,
                 },
             },
+            // Uncomment for pagination
             // {
             //   $skip: (pageValue - 1) * limitValue,
             // },
