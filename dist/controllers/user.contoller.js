@@ -605,6 +605,7 @@ const searchVendor = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
                     { "productsIdArr.longDescription": new RegExp(`${req.query.search}`, "i") },
                     { "brandNames": new RegExp(`${req.query.search}`, "i") },
                     { "brandArr.name": new RegExp(`${req.query.search}`, "i") },
+                    { "stateId": new RegExp(`${req.query.search}`, "i") },
                 ],
             };
         }
@@ -711,6 +712,9 @@ const searchVendor = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
                     },
                     "companyObj": {
                         "$first": "$companyObj",
+                    },
+                    "stateId": {
+                        "$first": "$stateId",
                     },
                     "brandArr": {
                         "$addToSet": {

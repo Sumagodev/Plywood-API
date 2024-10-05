@@ -636,6 +636,8 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
           { "productsIdArr.longDescription": new RegExp(`${req.query.search}`, "i") },
           { "brandNames": new RegExp(`${req.query.search}`, "i") },
           { "brandArr.name": new RegExp(`${req.query.search}`, "i") },
+          { "stateId": new RegExp(`${req.query.search}`, "i") },
+
         ],
       };
     }
@@ -744,6 +746,10 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
           },
           "companyObj": {
             "$first": "$companyObj",
+          },
+          "stateId": {
+            "$first": "$stateId",
+            
           },
           "brandArr": {
             "$addToSet": {
