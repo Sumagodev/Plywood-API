@@ -254,7 +254,7 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
 
     // Step 2: Query the dealership applications using the ownerIds
     const applications = await DealershipApplication.find({ dealershipOwnerId: { $in: ownerIds } })
-      .populate("userId", "name email") // Populate userId with name and email
+      .populate("userId", "name email bannerImage") // Populate userId with name and email
       .populate("productId", "name") // Populate productId with product name
       .lean(); // Return plain JavaScript objects for easier manipulation
 

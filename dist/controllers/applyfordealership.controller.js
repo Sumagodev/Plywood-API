@@ -234,7 +234,7 @@ const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, v
         const ownerIds = owners.map(owner => owner._id);
         // Step 2: Query the dealership applications using the ownerIds
         const applications = yield applyfordealership_model_1.DealershipApplication.find({ dealershipOwnerId: { $in: ownerIds } })
-            .populate("userId", "name email") // Populate userId with name and email
+            .populate("userId", "name email bannerImage") // Populate userId with name and email
             .populate("productId", "name") // Populate productId with product name
             .lean(); // Return plain JavaScript objects for easier manipulation
         // Step 3: Check if no applications are found
