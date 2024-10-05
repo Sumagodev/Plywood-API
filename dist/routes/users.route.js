@@ -30,6 +30,8 @@ router.patch("/blockUserById/:userId", user_contoller_1.blockUserById);
 router.post("/registerUserFcmToken", user_contoller_1.registerUserFcmToken);
 router.post("/upload-documents/:userId", multer_middleware_1.upload.single("file"), user_contoller_1.uploadDocuments);
 router.post("/sentOtp", user_contoller_1.sentOtp);
+router.post("/sendOTPForVerify", user_contoller_1.sendOTPForVerify);
+router.post("/verifyUserOTP", user_contoller_1.verifyUserOTP);
 router.post("/refresh-token", user_contoller_1.refreshToken);
 router.get("/getUserNotifications", user_contoller_1.getUserNotifications);
 router.get("/markedAsRead", user_contoller_1.markedAsReadNotificatins);

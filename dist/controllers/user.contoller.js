@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllSalesReport = exports.ChangeAllManufacturerRoles = exports.getSalesUsers = exports.markedAsReadNotificatins = exports.getUserNotifications = exports.registerUserFcmToken = exports.getAllUsersWithAniversaryDate = exports.getTopVendors = exports.getAllUsersForWebsite = exports.checkForValidSubscriptionAndReturnBoolean = exports.checkForValidSubscription = exports.sentOtp = exports.refreshToken = exports.getAllUsersWithSubsciption = exports.searchVendor = exports.getAllUsers = exports.uploadDocuments = exports.blockUserById = exports.verifyUserById = exports.approveUserById = exports.getUserById = exports.deleteUserById = exports.registerUser = exports.updateUserById = exports.addUser = exports.appLogin = exports.webLogin = void 0;
+exports.getAllSalesReport = exports.ChangeAllManufacturerRoles = exports.getSalesUsers = exports.markedAsReadNotificatins = exports.getUserNotifications = exports.registerUserFcmToken = exports.getAllUsersWithAniversaryDate = exports.getTopVendors = exports.getAllUsersForWebsite = exports.checkForValidSubscriptionAndReturnBoolean = exports.checkForValidSubscription = exports.verifyUserOTP = exports.sendOTPForVerify = exports.sentOtp = exports.refreshToken = exports.getAllUsersWithSubsciption = exports.searchVendor = exports.getAllUsers = exports.uploadDocuments = exports.blockUserById = exports.verifyUserById = exports.approveUserById = exports.getUserById = exports.deleteUserById = exports.registerUser = exports.updateUserById = exports.addUser = exports.appLogin = exports.webLogin = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const bcrypt_1 = require("../helpers/bcrypt");
 const config_1 = require("../helpers/config");
@@ -32,6 +32,7 @@ const otp_models_1 = __importDefault(require("../models/otp.models"));
 const validiator_1 = require("../helpers/validiator");
 const sipCrm_service_1 = require("../service/sipCrm.service");
 const date_fns_1 = require("date-fns"); // Use date-fns for date comparison if needed
+const OtpVerify_model_1 = __importDefault(require("../models/OtpVerify.model"));
 const webLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const UserExistCheck = yield user_model_1.User.findOne({ $or: [{ email: new RegExp(`^${req.body.email}$`) }] }).exec();
@@ -1002,6 +1003,56 @@ const sentOtp = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.sentOtp = sentOtp;
+const sendOTPForVerify = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const phone = req.body.phone;
+        // Validate the phone number
+        const phoneRegex = /^[6-9]\d{9}$/; // Regex for 10-digit numbers starting with 6-9
+        if (!phone || typeof phone !== 'string' || !phoneRegex.test(phone)) {
+            return res.status(400).json({ result: false, message: "Invalid phone number. It must be a 10-digit number starting with 6-9." });
+        }
+        let otp = (0, generators_1.generateRandomNumber)(6);
+        if (phone === "9000000000") {
+            otp = "123456";
+        }
+        const otpPayload = { phone, otp };
+        const otpObj = yield OtpVerify_model_1.default.create(otpPayload);
+        if (otpObj)
+            res.status(200).json({ result: true, message: `OTP sent to your mobile ${phone}` });
+        else
+            res.status(500).json({ result: false, message: `OTP sending failed for your mobile ${phone}` });
+    }
+    catch (error) {
+        next(error);
+    }
+});
+exports.sendOTPForVerify = sendOTPForVerify;
+const verifyUserOTP = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const phone = req.body.phone;
+        const otp = req.body.otp;
+        // Validate the phone number
+        const phoneRegex = /^[6-9]\d{9}$/; // Regex for 10-digit numbers starting with 6-9
+        if (!phone || typeof phone !== 'string' || !phoneRegex.test(phone)) {
+            return res.status(400).json({ result: false, message: "Invalid phone number. It must be a 10-digit number starting with 6-9." });
+        }
+        // Validate OTP
+        if (!otp) {
+            return res.status(400).json({ result: false, message: "OTP is required." });
+        }
+        const response = yield OtpVerify_model_1.default.find({ phone }).sort({ createdAt: -1 }).limit(1);
+        // Check if OTP exists and is valid
+        if (response.length === 0 || otp !== response[0].otp) {
+            return res.status(400).json({ result: false, message: "Invalid OTP." });
+        }
+        // Successful verification response
+        return res.status(200).json({ result: true, message: "User verification successful" });
+    }
+    catch (error) {
+        next(error);
+    }
+});
+exports.verifyUserOTP = verifyUserOTP;
 const checkForValidSubscription = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userObj = yield user_model_1.User.findOne({ _id: req.params.id }).exec();
