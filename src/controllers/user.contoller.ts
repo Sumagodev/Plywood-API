@@ -113,12 +113,12 @@ export const addUser = async (req: Request, res: Response, next: NextFunction) =
     // }
     console.log(req.body, "SSD");
 
-    const UserExistPhoneCheck = await User.findOne({
-      phone: req.body.phone,
-    }).exec();
-    if (UserExistPhoneCheck) {
-      throw new Error(`User with this phone Already Exists`);
-    }
+    // const UserExistPhoneCheck = await User.findOne({
+    //   phone: req.body.phone,
+    // }).exec();
+    // if (UserExistPhoneCheck) {
+    //   throw new Error(`User with this phone Already Exists`);
+    // }
     const documents = [];
     if (req.body.gstCertificate) {
       let gstCertificate = await storeFileAndReturnNameBase64(req.body.gstCertificate);
