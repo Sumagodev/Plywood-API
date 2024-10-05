@@ -255,7 +255,7 @@ const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, v
         const categoryMap = new Map(categories.map(category => [category._id.toString(), category.name]));
         // Step 5: Structure the response
         const formattedApplications = applications.map(application => {
-            var _a, _b, _c, _d;
+            var _a, _b, _c, _d, _e;
             const populatedCities = application.cityId.map((cityId) => ({
                 cityId,
                 cityName: cityMap.get(cityId) || "Unknown City"
@@ -277,8 +277,8 @@ const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, v
                 productName: ((_a = application.productId) === null || _a === void 0 ? void 0 : _a.name) || "",
                 userId: ((_b = application.userId) === null || _b === void 0 ? void 0 : _b._id) || "",
                 userName: ((_c = application.userId) === null || _c === void 0 ? void 0 : _c.name) || "",
-                bannerImage: application.userId.bannerImage || "",
-                email: ((_d = application.userId) === null || _d === void 0 ? void 0 : _d.email) || "",
+                bannerImage: ((_d = application.userId) === null || _d === void 0 ? void 0 : _d.bannerImage) || "",
+                email: ((_e = application.userId) === null || _e === void 0 ? void 0 : _e.email) || "",
                 image: application.image,
                 countryId: application.countryId,
                 state: populatedState,

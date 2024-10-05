@@ -308,7 +308,7 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
         productName: application.productId?.name || "", // Populated product name
         userId: application.userId?._id || "", // User ID reference
         userName: application.userId?.name || "",
-        bannerImage: application.userId.bannerImage || "", // Populated user name
+        bannerImage: application.userId?.bannerImage || "", // Populated user name
         email: application.userId?.email || "", // Populated email from userId
         image: application.image,
         countryId: application.countryId,
