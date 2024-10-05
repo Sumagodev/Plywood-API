@@ -1204,7 +1204,7 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                         "$first": "$profileImage",
                     },
                     "stateName": {
-                        "$first": "$stateName"
+                        "$first": { "$arrayElemAt": ["$stateInfo.name", 0] }
                     },
                     "categoryIdArr": {
                         "$addToSet": {
