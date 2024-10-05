@@ -640,6 +640,7 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
 
         ],
       };
+      
     }
 
     let roleArr = ["ADMIN"];
@@ -749,7 +750,7 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
           },
           "stateId": {
             "$first": "$stateId",
-            
+
           },
           "brandArr": {
             "$addToSet": {

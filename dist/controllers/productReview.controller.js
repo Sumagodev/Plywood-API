@@ -72,6 +72,7 @@ const addProductReview = (req, res, next) => __awaiter(void 0, void 0, void 0, f
         // if (ProductReviewNameCheck) throw new Error("You have already added a review for this product");
         console.log(req.body);
         const { userId, name, addedby, rating, message, productId } = req.body;
+        //////////
         if (!userId || typeof userId !== 'string') {
             return res.status(400).json({ message: 'User ID is required and must be a string.', success: false });
         }
