@@ -1311,9 +1311,7 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
               "role": "$productsArr.createdByObj.role",
             },
           },
-          "stateName": {
-            "$first": "$stateInfo.name",
-          },
+         
         },
       },
       {

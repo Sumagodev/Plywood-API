@@ -121,11 +121,8 @@ const addUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
         const UserExistPhoneCheck = yield user_model_1.User.findOne({
             phone: req.body.phone,
         }).exec();
-        // Log the result of the database query
-        console.log("UserExistPhoneCheck:", UserExistPhoneCheck);
-        // If a user with the same phone number exists, throw an error
         if (UserExistPhoneCheck) {
-            throw new Error(`User with this phone number already exists`);
+            throw new Error(`User with this phone Already Exists`);
         }
         const documents = [];
         if (req.body.gstCertificate) {
@@ -1102,18 +1099,18 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                     { "categoryArr.categoryId": { $in: [...categoryArr.map((el) => new mongoose_1.default.Types.ObjectId(el))] } },
                 ] });
         }
-        // if (req.query.locations) {
-        //   let locationArr = `${req.query.locations}`.split(",");
-        //   query = { ...query, "cityId": { $in: [...locationArr] } };
-        // }
+        if (req.query.locations) {
+            let locationArr = `${req.query.locations}`.split(",");
+            query = Object.assign(Object.assign({}, query), { "cityId": { $in: [...locationArr] } });
+        }
         if (req.query.state) {
             let locationArr = `${req.query.state}`.split(",");
             query = Object.assign(Object.assign({}, query), { "stateId": { $in: [...locationArr] } });
         }
-        if (req.query.city) {
-            let locationArr = `${req.query.city}`.split(",");
-            query = Object.assign(Object.assign({}, query), { "cityId": { $in: [...locationArr] } });
-        }
+        // if (req.query.city) {
+        //   let locationArr = `${req.query.city}`.split(",");
+        //   query = { ...query, "state": { $in: [...locationArr] } };
+        // }
         if (req.query.rating) {
             let ratingValue = +req.query.rating;
             query = Object.assign(Object.assign({}, query), { "rating": { $gte: ratingValue } });
@@ -1167,28 +1164,16 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                 },
             },
             {
-                "$lookup": {
-                    "from": "city",
-                    "localField": "cityId",
-                    "foreignField": "_id",
-                    "as": "cityInfo",
-                },
-            },
-            {
                 "$addFields": {
                     "productsCount": {
                         "$size": "$productsArr",
                     },
                     "stateName": {
-                        "$arrayElemAt": ["$stateInfo.name", 0], // Correct for stateName
+                        "$arrayElemAt": "$stateInfo.name",
                     },
-                    "cityName": {
-                        "$arrayElemAt": ["$cityInfo.name", 0], // Correct for cityName
-                    },
-                    "stateData": "$stateInfo",
-                    "cityData": "$cityInfo",
                 },
-            }, {
+            },
+            {
                 "$unwind": {
                     "path": "$productsArr",
                     "preserveNullAndEmptyArrays": true,
@@ -1258,12 +1243,6 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                         "$first": {
                             "role": "$productsArr.createdByObj.role",
                         },
-                    },
-                    "stateName": {
-                        "$first": "$name",
-                    },
-                    "cityName": {
-                        "$first": "$name",
                     },
                 },
             },
