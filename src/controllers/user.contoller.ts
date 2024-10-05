@@ -623,6 +623,7 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
 
     let query: any = {};
 
+    // Build the search regex query
     if (req.query.search) {
       console.log(req.query.search, "req.query.search");
       query = {
@@ -636,8 +637,6 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
           { "productsIdArr.longDescription": new RegExp(`${req.query.search}`, "i") },
           { "brandNames": new RegExp(`${req.query.search}`, "i") },
           { "brandArr.name": new RegExp(`${req.query.search}`, "i") },
-          { "stateId": new RegExp(`${req.query.search}`, "i") },
-          { "categoryId": new RegExp(`${req.query.search}`, "i") }
         ],
       };
     }
@@ -653,6 +652,9 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
           "role": {
             "$nin": roleArr,
           },
+          ...query, // Integrate the search query here
+          ...(req.query.stateId ? { stateId: req.query.stateId } : {}), // Check if stateId exists in query and add to match
+          ...(req.query.categoryId ? { "categoryArr.categoryId": req.query.categoryId } : {}), // Check if categoryId exists in query and add to match
         },
       },
       {
@@ -728,15 +730,6 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
           "stateId": { "$first": "$stateId" },
           "categoryId": { "$first": "$categoryId" },
           "brandArr": { "$addToSet": { "name": "$brandName" } },
-        },
-      },
-      {
-        "$match": {
-          ...query,
-          $or: [
-            { stateId: req.query.stateId },
-            { "categoryArr.categoryId": req.query.categoryId }, // Filtering by categoryId in categoryArr
-          ],
         },
       },
       {

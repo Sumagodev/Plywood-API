@@ -592,6 +592,7 @@ const searchVendor = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
     try {
         console.log(req.query, "query");
         let query = {};
+        // Build the search regex query
         if (req.query.search) {
             console.log(req.query.search, "req.query.search");
             query = {
@@ -605,8 +606,6 @@ const searchVendor = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
                     { "productsIdArr.longDescription": new RegExp(`${req.query.search}`, "i") },
                     { "brandNames": new RegExp(`${req.query.search}`, "i") },
                     { "brandArr.name": new RegExp(`${req.query.search}`, "i") },
-                    { "stateId": new RegExp(`${req.query.search}`, "i") },
-                    { "categoryId": new RegExp(`${req.query.search}`, "i") }
                 ],
             };
         }
@@ -616,11 +615,9 @@ const searchVendor = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         }
         let pipeline = [
             {
-                "$match": {
-                    "role": {
+                "$match": Object.assign(Object.assign(Object.assign({ "role": {
                         "$nin": roleArr,
-                    },
-                },
+                    } }, query), (req.query.stateId ? { stateId: req.query.stateId } : {})), (req.query.categoryId ? { "categoryArr.categoryId": req.query.categoryId } : {})),
             },
             {
                 "$lookup": {
@@ -696,12 +693,6 @@ const searchVendor = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
                     "categoryId": { "$first": "$categoryId" },
                     "brandArr": { "$addToSet": { "name": "$brandName" } },
                 },
-            },
-            {
-                "$match": Object.assign(Object.assign({}, query), { $or: [
-                        { stateId: req.query.stateId },
-                        { "categoryArr.categoryId": req.query.categoryId }, // Filtering by categoryId in categoryArr
-                    ] }),
             },
             {
                 "$project": {
