@@ -275,6 +275,7 @@ const getDealershipApplicationByUserId = (req, res, next) => __awaiter(void 0, v
                 productName: ((_a = application.productId) === null || _a === void 0 ? void 0 : _a.name) || "",
                 userId: ((_b = application.userId) === null || _b === void 0 ? void 0 : _b._id) || "",
                 userName: ((_c = application.userId) === null || _c === void 0 ? void 0 : _c.name) || "",
+                bannerImage: application.userId.bannerImage || "",
                 email: ((_d = application.userId) === null || _d === void 0 ? void 0 : _d.email) || "",
                 image: application.image,
                 countryId: application.countryId,
