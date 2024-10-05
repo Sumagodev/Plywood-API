@@ -249,6 +249,8 @@ export const getDealershipApplicationByUserId = async (req: Request, res: Respon
       return res.status(404).json({ message: "No owners found for the given userId" });
     }
 
+    
+
     // Extract the ownerIds
     const ownerIds = owners.map(owner => owner._id);
 
