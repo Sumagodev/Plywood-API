@@ -1237,12 +1237,23 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
         },
       },
       {
+        "$lookup": {
+          "from": "states",
+          "localField": "stateId",
+          "foreignField": "_id",
+          "as": "scityInfo",
+        },
+      },
+      {
         "$addFields": {
           "productsCount": {
             "$size": "$productsArr",
           },
           "stateName": {
             "$arrayElemAt": ["$stateInfo.name", 0],
+          },
+          "cityName": {
+            "$arrayElemAt": ["$cityInfo.name", 0],
           },
         },
       },
@@ -1318,6 +1329,9 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
             },
           },
           "stateName": {
+            "$first": "$name",
+          },
+          "cityName": {
             "$first": "$name",
           },
         },

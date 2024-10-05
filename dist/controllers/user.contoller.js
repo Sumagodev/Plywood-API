@@ -1167,12 +1167,23 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                 },
             },
             {
+                "$lookup": {
+                    "from": "states",
+                    "localField": "stateId",
+                    "foreignField": "_id",
+                    "as": "scityInfo",
+                },
+            },
+            {
                 "$addFields": {
                     "productsCount": {
                         "$size": "$productsArr",
                     },
                     "stateName": {
                         "$arrayElemAt": ["$stateInfo.name", 0],
+                    },
+                    "cityName": {
+                        "$arrayElemAt": ["$cityInfo.name", 0],
                     },
                 },
             },
@@ -1248,6 +1259,9 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                         },
                     },
                     "stateName": {
+                        "$first": "$name",
+                    },
+                    "cityName": {
                         "$first": "$name",
                     },
                 },
