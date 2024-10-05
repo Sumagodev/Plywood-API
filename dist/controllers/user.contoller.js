@@ -118,12 +118,6 @@ const addUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
         //   throw new Error(`User with this phone number Already Exists`);
         // }
         console.log(req.body, "SSD");
-        // const UserExistPhoneCheck = await User.findOne({
-        //   phone: req.body.phone,
-        // }).exec();
-        // if (UserExistPhoneCheck) {
-        //   throw new Error(`User with this phone Already Exists`);
-        // }
         const documents = [];
         if (req.body.gstCertificate) {
             let gstCertificate = yield (0, fileSystem_1.storeFileAndReturnNameBase64)(req.body.gstCertificate);
@@ -1169,7 +1163,7 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                         "$size": "$productsArr",
                     },
                     "stateName": {
-                        "$ifNull": [{ "$arrayElemAt": ["$stateInfo", 0] }, "Unknown"],
+                        "$arrayElemAt": ["$stateInfo.name", 0],
                     },
                 },
             },
@@ -1244,7 +1238,9 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                             "role": "$productsArr.createdByObj.role",
                         },
                     },
-                    "stateName": { "$first": "$stateName" }, // Directly using the fetched stateName
+                    "stateName": {
+                        "$first": '$stateInfo.name',
+                    },
                 },
             },
             {
