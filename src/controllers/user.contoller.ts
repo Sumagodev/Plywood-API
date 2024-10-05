@@ -21,7 +21,8 @@ import { ValidateEmail, ValidateLandline, ValidatePhone, validMobileNo } from ".
 import { postSpiCrmLead } from "../service/sipCrm.service";
 import { startOfDay, endOfDay } from 'date-fns'; // Use date-fns for date comparison if needed
 import OtpVerifyModel from "../models/OtpVerify.model";
-
+import VerifiedUsers from "../models/VerifiedUser.model";
+ 
 export const webLogin = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const UserExistCheck = await User.findOne({ $or: [{ email: new RegExp(`^${req.body.email}$`) }] }).exec();
@@ -1092,6 +1093,21 @@ export const verifyUserOTP = async (req: Request, res: Response, next: NextFunct
     // Check if OTP exists and is valid
     if (response.length === 0 || otp !== response[0].otp) {
       return res.status(400).json({ result: false, message: "Invalid OTP." });
+    }
+
+    let verifiedUser = await VerifiedUsers.findOne({ phone });
+
+    if (verifiedUser) {
+      verifiedUser.verifiedAt = new Date(); // Update the verification date
+      verifiedUser.status = true; // Set status to true
+      await verifiedUser.save();
+    } else {
+      verifiedUser = new VerifiedUsers({
+        phone,
+        verifiedAt: new Date(),
+        status: true,
+      });
+      await verifiedUser.save();
     }
     // Successful verification response
     return res.status(200).json({ result: true, message: "User verification successful"});

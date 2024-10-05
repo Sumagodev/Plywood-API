@@ -33,6 +33,7 @@ const validiator_1 = require("../helpers/validiator");
 const sipCrm_service_1 = require("../service/sipCrm.service");
 const date_fns_1 = require("date-fns"); // Use date-fns for date comparison if needed
 const OtpVerify_model_1 = __importDefault(require("../models/OtpVerify.model"));
+const VerifiedUser_model_1 = __importDefault(require("../models/VerifiedUser.model"));
 const webLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const UserExistCheck = yield user_model_1.User.findOne({ $or: [{ email: new RegExp(`^${req.body.email}$`) }] }).exec();
@@ -1038,6 +1039,20 @@ const verifyUserOTP = (req, res, next) => __awaiter(void 0, void 0, void 0, func
         // Check if OTP exists and is valid
         if (response.length === 0 || otp !== response[0].otp) {
             return res.status(400).json({ result: false, message: "Invalid OTP." });
+        }
+        let verifiedUser = yield VerifiedUser_model_1.default.findOne({ phone });
+        if (verifiedUser) {
+            verifiedUser.verifiedAt = new Date(); // Update the verification date
+            verifiedUser.status = true; // Set status to true
+            yield verifiedUser.save();
+        }
+        else {
+            verifiedUser = new VerifiedUser_model_1.default({
+                phone,
+                verifiedAt: new Date(),
+                status: true,
+            });
+            yield verifiedUser.save();
         }
         // Successful verification response
         return res.status(200).json({ result: true, message: "User verification successful" });
