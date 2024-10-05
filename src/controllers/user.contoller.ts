@@ -1302,8 +1302,11 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
       },
       {
         "$addFields": {
+          "productsCount": {
+            "$size": "$productsArr",
+          },
           "stateName": {
-            "$arrayElemAt": ["$stateInfo.name", 0], // Extracting state name correctly
+            "$arrayElemAt": ["$stateInfo.name", 0],
           },
         },
       },
@@ -1322,33 +1325,70 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
       {
         "$group": {
           "_id": "$_id",
-          "name": { "$first": "$name" },
-          "phone": { "$first": "$phone" },
-          "address": { "$first": "$address" },
-          "companyName": { "$first": "$companyObj.name" },
-          "bannerImage": { "$first": "$bannerImage" },
-          "productsCount": { "$first": "$productsCount" },
-          "profileImage": { "$first": "$profileImage" },
-          "stateName": { "$first": "$stateName" }, // Accessing state name from previous $addFields
-          "categoryIdArr": {
+          "name": {
+            "$first": "$name",
+          },
+          "phone": {
+            "$first": "$phone",
+          },
+          "address": {
+            "$first": "$address",
+          },
+          "companyName": {
+            "$first": "$companyObj.name",
+          },
+          "bannerImage": {
+            "$first": "$bannerImage",
+          },
+          "productsCount": {
+            "$first": "$productsCount",
+          },
+          "profileImage": {
+            "$first": "$profileImage",
+          },
+          "stateName": {
+
+            // "$first":  {"$arrayElemAt": ["$stateInfo.name", 0]}
             "$addToSet": {
-              "$toString": "$productsArr.categoryArr.categoryId",
+              "stateName": "stateInfo.name",
             },
           },
-          "categoryArr": { "$first": "$categoryArr" },
-          "brandIdArr": {
-            "$addToSet": "$productsArr.brand",
+          "categoryIdArr": {
+            "$addToSet": {
+              "categoryId": {
+                "$toString": "$productsArr.categoryArr.categoryId",
+              },
+            },
           },
-          "countryId": { "$first": "$countryId" },
-          "stateId": { "$first": "$stateId" },
-          "cityId": { "$first": "$cityId" },
-          "role": { "$first": "$role" },
-          "rating": { "$first": "$rating" },
+          "categoryArr": {
+            $first: "$categoryArr",
+          },
+          "brandIdArr": {
+            "$addToSet": {
+              "brandId": "$productsArr.brand",
+            },
+          },
+          "countryId": {
+            "$first": "$countryId",
+          },
+          "stateId": {
+            "$first": "$stateId",
+          },
+          "cityId": {
+            "$first": "$cityId",
+          },
+          "role": {
+            "$first": "$role",
+          },
+          "rating": {
+            "$first": "$rating",
+          },
           "createdByObj": {
             "$first": {
               "role": "$productsArr.createdByObj.role",
             },
           },
+
         },
       },
       {
@@ -1361,7 +1401,6 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
           "name": 1,
         },
       },
-      // Uncomment for pagination
       // {
       //   $skip: (pageValue - 1) * limitValue,
       // },
@@ -1369,7 +1408,7 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
       //   $limit: limitValue,
       // },
     ];
-    
+
     // {
     //   '$match': {
     //     'role': {
