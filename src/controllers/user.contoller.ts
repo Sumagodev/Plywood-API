@@ -1332,7 +1332,7 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
             "$first": "$name",
           },
           "cityName": {
-            "$first": "$name",
+            "$first": "$cityInfo.name",
           },
         },
       },

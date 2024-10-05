@@ -1262,7 +1262,7 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                         "$first": "$name",
                     },
                     "cityName": {
-                        "$first": "$name",
+                        "$first": "$cityInfo.name",
                     },
                 },
             },
