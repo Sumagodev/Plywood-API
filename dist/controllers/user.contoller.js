@@ -1102,10 +1102,10 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                     { "categoryArr.categoryId": { $in: [...categoryArr.map((el) => new mongoose_1.default.Types.ObjectId(el))] } },
                 ] });
         }
-        if (req.query.locations) {
-            let locationArr = `${req.query.locations}`.split(",");
-            query = Object.assign(Object.assign({}, query), { "cityId": { $in: [...locationArr] } });
-        }
+        // if (req.query.locations) {
+        //   let locationArr = `${req.query.locations}`.split(",");
+        //   query = { ...query, "cityId": { $in: [...locationArr] } };
+        // }
         if (req.query.state) {
             let locationArr = `${req.query.state}`.split(",");
             query = Object.assign(Object.assign({}, query), { "stateId": { $in: [...locationArr] } });
@@ -1262,7 +1262,7 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                         "$first": "$name",
                     },
                     "cityName": {
-                        "$first": "$cityInfo.name",
+                        "$first": "$name",
                     },
                 },
             },

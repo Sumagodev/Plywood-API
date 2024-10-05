@@ -1169,10 +1169,10 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
         ],
       };
     }
-    if (req.query.locations) {
-      let locationArr = `${req.query.locations}`.split(",");
-      query = { ...query, "cityId": { $in: [...locationArr] } };
-    }
+    // if (req.query.locations) {
+    //   let locationArr = `${req.query.locations}`.split(",");
+    //   query = { ...query, "cityId": { $in: [...locationArr] } };
+    // }
     if (req.query.state) {
       let locationArr = `${req.query.state}`.split(",");
       query = { ...query, "stateId": { $in: [...locationArr] } };
@@ -1332,7 +1332,7 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
             "$first": "$name",
           },
           "cityName": {
-            "$first": "$cityInfo.name",
+            "$first": "$name",
           },
         },
       },
