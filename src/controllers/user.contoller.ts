@@ -640,7 +640,6 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
           { "categoryId": new RegExp(`${req.query.search}`, "i") }
         ],
       };
-
     }
 
     let roleArr = ["ADMIN"];
@@ -683,17 +682,11 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
             "$cond": {
               "if": {
                 "$and": [
-                  {
-                    "$ifNull": ["$productsArr.brand", false],
-                  },
-                  {
-                    "$ne": ["$productsArr.brand", ""],
-                  },
+                  { "$ifNull": ["$productsArr.brand", false] },
+                  { "$ne": ["$productsArr.brand", ""] },
                 ],
               },
-              "then": {
-                "$toObjectId": "$productsArr.brand",
-              },
+              "then": { "$toObjectId": "$productsArr.brand" },
               "else": null,
             },
           },
@@ -727,44 +720,24 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
       {
         "$group": {
           "_id": "$_id",
-          "name": {
-            "$first": "$name",
-          },
-          "role": {
-            "$first": "$role",
-          },
-          // 'bannerImage': {
-          //   '$first': '$bannerImage'
-          // },
-          // 'profileImage': {
-          //   '$first': '$profileImage'
-          // },
-          "productsIdArr": {
-            "$addToSet": "$productsArr",
-          },
-          "brandNames": {
-            "$addToSet": "$brandNames",
-          },
-          "companyObj": {
-            "$first": "$companyObj",
-          },
-          "stateId": {
-            "$first": "$stateId",
-      
-          },
-          "categoryId": {
-            "$first": "$categoryId",
-            
-          },
-          "brandArr": {
-            "$addToSet": {
-              "name": "$brandName",
-            },
-          },
+          "name": { "$first": "$name" },
+          "role": { "$first": "$role" },
+          "productsIdArr": { "$addToSet": "$productsArr" },
+          "brandNames": { "$addToSet": "$brandNames" },
+          "companyObj": { "$first": "$companyObj" },
+          "stateId": { "$first": "$stateId" },
+          "categoryId": { "$first": "$categoryId" },
+          "brandArr": { "$addToSet": { "name": "$brandName" } },
         },
       },
       {
-        "$match": query,
+        "$match": {
+          ...query,
+          $or: [
+            { stateId: req.query.stateId },
+            { "categoryArr.categoryId": req.query.categoryId }, // Filtering by categoryId in categoryArr
+          ],
+        },
       },
       {
         "$project": {
@@ -779,8 +752,6 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
     console.log(JSON.stringify(pipeline, null, 2), "pipeline");
     let users: any = await User.aggregate(pipeline);
     console.log("USERS", users, "USERS2");
-    // let users: any = await User.find(query).select({ _id: 1, name: 1, companyObj: 1 }).lean()
-    //   .exec();
 
     res.json({
       message: "ALL Users",
@@ -790,6 +761,7 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
     next(error);
   }
 };
+
 
 export const getAllUsersWithSubsciption = async (req: Request, res: Response, next: NextFunction) => {
   try {
