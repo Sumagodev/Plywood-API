@@ -1271,6 +1271,10 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
           "profileImage": {
             "$first": "$profileImage",
           },
+          "stateName": {
+
+            "$first": "$stateName"
+          },
           "categoryIdArr": {
             "$addToSet": {
               "categoryId": {
@@ -1306,20 +1310,7 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
               "role": "$productsArr.createdByObj.role",
             },
           },
-          // "stateName": {
-          //   "$first": {
-          //     "$arrayElemAt": ["$stateInfo.name"]
-          //   },
 
-          // },
-          "stateName": {
-            "$lookup": {
-              "from": "states",
-              "localField": "stateId",
-              "foreignField": "_id",
-              "as": "stateInfo",
-            },
-          },
         },
       },
       {

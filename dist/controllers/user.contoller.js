@@ -1203,6 +1203,9 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                     "profileImage": {
                         "$first": "$profileImage",
                     },
+                    "stateName": {
+                        "$first": "$stateName"
+                    },
                     "categoryIdArr": {
                         "$addToSet": {
                             "categoryId": {
@@ -1236,19 +1239,6 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                     "createdByObj": {
                         "$first": {
                             "role": "$productsArr.createdByObj.role",
-                        },
-                    },
-                    // "stateName": {
-                    //   "$first": {
-                    //     "$arrayElemAt": ["$stateInfo.name"]
-                    //   },
-                    // },
-                    "stateName": {
-                        "$lookup": {
-                            "from": "states",
-                            "localField": "stateId",
-                            "foreignField": "_id",
-                            "as": "stateInfo",
                         },
                     },
                 },
