@@ -1250,14 +1250,13 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
             "$size": "$productsArr",
           },
           "stateName": {
-            "$arrayElemAt": ["$stateInfo.name", 0],
+            "$arrayElemAt": ["$stateInfo.name", 0],  // Correct for stateName
           },
           "cityName": {
-            "$arrayElemAt": ["$cityInfo.name", 0],
+            "$arrayElemAt": ["$cityInfo.name", 0],  // Correct for cityName
           },
         },
-      },
-      {
+      }, {
         "$unwind": {
           "path": "$productsArr",
           "preserveNullAndEmptyArrays": true,
