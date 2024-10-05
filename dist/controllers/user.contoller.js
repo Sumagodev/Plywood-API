@@ -1239,7 +1239,9 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                         },
                     },
                     "stateName": {
-                        "$first": '$stateInfo.name',
+                        "$first": {
+                            "$arrayElemAt": ["$stateInfo.name", 0]
+                        },
                     },
                 },
             },
