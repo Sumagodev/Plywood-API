@@ -1169,7 +1169,7 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                         "$size": "$productsArr",
                     },
                     "stateName": {
-                        "$arrayElemAt": ["$stateInfo.name", 0],
+                        "$ifNull": [{ "$arrayElemAt": ["$stateInfo.name", 0] }, "Unknown"],
                     },
                 },
             },
@@ -1244,9 +1244,7 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
                             "role": "$productsArr.createdByObj.role",
                         },
                     },
-                    "stateName": {
-                        "$first": "$stateName",
-                    },
+                    "stateName": { "$first": "$stateName" }, // Directly using the fetched stateName
                 },
             },
             {
