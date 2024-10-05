@@ -1273,7 +1273,10 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
           },
           "stateName": {
 
-            "$first":  {"$arrayElemAt": ["$stateInfo.name", 0]}
+            // "$first":  {"$arrayElemAt": ["$stateInfo.name", 0]}
+            "$addToSet": {
+              "stateName": "stateInfo.name",
+            },
           },
           "categoryIdArr": {
             "$addToSet": {
