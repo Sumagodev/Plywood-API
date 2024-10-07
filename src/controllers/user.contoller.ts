@@ -118,28 +118,7 @@ export const addUser = async (req: Request, res: Response, next: NextFunction) =
   try {
     const documents = [];
 
-    const phone = req.body.phone;
-
-    // Validate the phone number
-    const phoneRegex = /^[6-9]\d{9}$/; // Regex for 10-digit numbers starting with 6-9
-
-    if (!phone || typeof phone !== 'string' || !phoneRegex.test(phone)) {
-      return res.status(400).json({ result: false, message: "Invalid phone number. It must be a 10-digit number starting with 6-9." });
-    }
-
-    // Check if the phone number exists in the VerifiedUsers collection
-    const verifiedUser = await VerifiedUsers.findOne({ phone });
-
-    if (!verifiedUser || !verifiedUser.status) {
-      console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
-      return res.status(404).json({
-        result: false,
-        message: "User is not verified ",
-      });
-    }else{
-      console.log('yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')
-
-    }
+    
 
     // Store GST Certificate if present
     if (req.body.gstCertificate) {
@@ -279,6 +258,30 @@ export const updateUserById = async (req: Request, res: Response, next: NextFunc
 export const registerUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     console.log(req.body);
+
+    const phone = req.body.phone;
+
+    // Validate the phone number
+    const phoneRegex = /^[6-9]\d{9}$/; // Regex for 10-digit numbers starting with 6-9
+
+    if (!phone || typeof phone !== 'string' || !phoneRegex.test(phone)) {
+      return res.status(400).json({ result: false, message: "Invalid phone number. It must be a 10-digit number starting with 6-9." });
+    }
+
+    // Check if the phone number exists in the VerifiedUsers collection
+    const verifiedUser = await VerifiedUsers.findOne({ phone });
+
+    if (!verifiedUser || !verifiedUser.status) {
+      console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+      return res.status(404).json({
+        result: false,
+        message: "User is not verified ",
+      });
+    }else{
+      console.log('yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')
+
+    }
+    
     // const UserExistEmailCheck = await User.findOne({
     //   email: new RegExp(`^${req.body.email}$`),
     // }).exec();

@@ -115,24 +115,6 @@ exports.appLogin = appLogin;
 const addUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const documents = [];
-        const phone = req.body.phone;
-        // Validate the phone number
-        const phoneRegex = /^[6-9]\d{9}$/; // Regex for 10-digit numbers starting with 6-9
-        if (!phone || typeof phone !== 'string' || !phoneRegex.test(phone)) {
-            return res.status(400).json({ result: false, message: "Invalid phone number. It must be a 10-digit number starting with 6-9." });
-        }
-        // Check if the phone number exists in the VerifiedUsers collection
-        const verifiedUser = yield VerifiedUser_model_1.default.findOne({ phone });
-        if (!verifiedUser || !verifiedUser.status) {
-            console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
-            return res.status(404).json({
-                result: false,
-                message: "User is not verified ",
-            });
-        }
-        else {
-            console.log('yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy');
-        }
         // Store GST Certificate if present
         if (req.body.gstCertificate) {
             let gstCertificate = yield (0, fileSystem_1.storeFileAndReturnNameBase64)(req.body.gstCertificate);
@@ -255,6 +237,24 @@ const registerUser = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
     var _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u;
     try {
         console.log(req.body);
+        const phone = req.body.phone;
+        // Validate the phone number
+        const phoneRegex = /^[6-9]\d{9}$/; // Regex for 10-digit numbers starting with 6-9
+        if (!phone || typeof phone !== 'string' || !phoneRegex.test(phone)) {
+            return res.status(400).json({ result: false, message: "Invalid phone number. It must be a 10-digit number starting with 6-9." });
+        }
+        // Check if the phone number exists in the VerifiedUsers collection
+        const verifiedUser = yield VerifiedUser_model_1.default.findOne({ phone });
+        if (!verifiedUser || !verifiedUser.status) {
+            console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+            return res.status(404).json({
+                result: false,
+                message: "User is not verified ",
+            });
+        }
+        else {
+            console.log('yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy');
+        }
         // const UserExistEmailCheck = await User.findOne({
         //   email: new RegExp(`^${req.body.email}$`),
         // }).exec();
