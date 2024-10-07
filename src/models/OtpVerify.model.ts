@@ -1,5 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { SendVerificationSMS } from '../helpers/sms';
+import { SendSms, SendVerificationSMS } from '../helpers/sms';
 
 interface OtpVerify extends Document {
   phone: string;
@@ -27,7 +27,8 @@ phone: {
 async function sendVerificationSMS(phone: string, otp: string): Promise<void> {
   try {
   
-    await SendVerificationSMS(phone,otp);
+    await SendSms(phone,otp);
+    //SendVerificationSMS
 
   } catch (error) {
     console.log("Error occurred while sending phone: ", error);
