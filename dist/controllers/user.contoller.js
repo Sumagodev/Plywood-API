@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllSalesReport = exports.ChangeAllManufacturerRoles = exports.getSalesUsers = exports.markedAsReadNotificatins = exports.getUserNotifications = exports.registerUserFcmToken = exports.getAllUsersWithAniversaryDate = exports.getTopVendors = exports.getAllUsersForWebsite = exports.checkForValidSubscriptionAndReturnBoolean = exports.checkForValidSubscription = exports.verifyUserOTP = exports.sendOTPForVerify = exports.sentOtp = exports.refreshToken = exports.getAllUsersWithSubsciption = exports.searchVendor = exports.getAllUsers = exports.uploadDocuments = exports.blockUserById = exports.verifyUserById = exports.approveUserById = exports.getUserById = exports.deleteUserById = exports.registerUser = exports.updateUserById = exports.addUser = exports.appLogin = exports.webLogin = void 0;
+exports.getAllSalesReport = exports.ChangeAllManufacturerRoles = exports.getSalesUsers = exports.markedAsReadNotificatins = exports.getUserNotifications = exports.registerUserFcmToken = exports.getAllUsersWithAniversaryDate = exports.getTopVendors = exports.getAllUsersForWebsite = exports.checkForValidSubscriptionAndReturnBoolean = exports.checkForValidSubscription = exports.verifyUserOTP = exports.checkIfUserIsVerified = exports.sendOTPForVerify = exports.sentOtp = exports.refreshToken = exports.getAllUsersWithSubsciption = exports.searchVendor = exports.getAllUsers = exports.uploadDocuments = exports.blockUserById = exports.verifyUserById = exports.approveUserById = exports.getUserById = exports.deleteUserById = exports.registerUser = exports.updateUserById = exports.addUser = exports.appLogin = exports.webLogin = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const bcrypt_1 = require("../helpers/bcrypt");
 const config_1 = require("../helpers/config");
@@ -1038,6 +1038,30 @@ const sendOTPForVerify = (req, res, next) => __awaiter(void 0, void 0, void 0, f
     }
 });
 exports.sendOTPForVerify = sendOTPForVerify;
+const checkIfUserIsVerified = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const phone = req.body.phone;
+        // Validate the phone number
+        const phoneRegex = /^[6-9]\d{9}$/; // Regex for 10-digit numbers starting with 6-9
+        if (!phone || typeof phone !== 'string' || !phoneRegex.test(phone)) {
+            return res.status(400).json({ result: false, message: "Invalid phone number. It must be a 10-digit number starting with 6-9." });
+        }
+        // Check if the phone number exists in the VerifiedUsers collection
+        const verifiedUser = yield VerifiedUser_model_1.default.findOne({ phone });
+        if (!verifiedUser || !verifiedUser.status) {
+            return res.status(404).json({
+                result: false,
+                message: "Phone number not found or user is not verified.",
+            });
+        }
+        res.status(200).json({ result: true, message: `OTP sent to your mobile ${phone}` });
+    }
+    catch (error) {
+        res.status(500).json({ result: false, message: `OTP sending failed` });
+        next(error);
+    }
+});
+exports.checkIfUserIsVerified = checkIfUserIsVerified;
 const verifyUserOTP = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const phone = req.body.phone;
