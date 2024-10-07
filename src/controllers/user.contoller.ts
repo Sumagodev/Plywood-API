@@ -115,52 +115,57 @@ export const appLogin = async (req: Request, res: Response, next: NextFunction) 
 
 export const addUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    console.log(req.body, "Received Request Body");
+    const documents = [];
 
-    // Log the phone number being checked
-    console.log(`Checking if phone ${req.body.phone} is verified`);
+    // Store GST Certificate if present
+    if (req.body.gstCertificate) {
+      let gstCertificate = await storeFileAndReturnNameBase64(req.body.gstCertificate);
+      documents.push({ name: "gstCertificate", image: gstCertificate });
+    }
 
-    // Check if the phone number exists and is verified in VerifiedUsers
-    const verifiedUser = await VerifiedUsers.findOne({ status: true });
+    // Handle base64 profile image
+    if (req.body.profileImage && req.body.profileImage.includes("base64")) {
+      req.body.profileImage = await storeFileAndReturnNameBase64(req.body.profileImage);
+    }
 
-    // Log the result of the verification check
-    console.log("Verified user check result:", verifiedUser);
+    // Handle base64 banner image
+    if (req.body.bannerImage && req.body.bannerImage.includes("base64")) {
+      req.body.bannerImage = await storeFileAndReturnNameBase64(req.body.bannerImage);
+    }
+
+    // If documents were added, include them in the request body
+    if (documents.length > 0) {
+      req.body.documents = documents;
+    }
+
+    // Encrypt password if present
+    if (req.body.password) {
+      req.body.password = await encryptPassword(req.body.password);
+    }
+
+    // Convert salesId to ObjectId if present
+    if (req.body.salesId) {
+      req.body.salesId = new mongoose.Types.ObjectId(req.body.salesId);
+    }
+
+    // Check if phone number is verified in VerifiedUsers collection
+    const verifiedUser = await VerifiedUsers.findOne({ phone: req.body.phone });
+
+    // Add logging to track what verifiedUser returns
+    console.log("verifiedUser result:", verifiedUser);
 
     if (!verifiedUser) {
       console.log("Phone number not verified or not present in VerifiedUsers");
       return res.status(400).json({ message: "Phone number is not verified", success: false });
     }
 
+    // If phone number is verified, proceed with user creation
     console.log("Phone number verified, proceeding with user creation");
 
-    const documents = [];
-    if (req.body.gstCertificate) {
-      let gstCertificate = await storeFileAndReturnNameBase64(req.body.gstCertificate);
-      documents.push({ name: "gstCertificate", image: gstCertificate });
-    }
-
-    if (req.body.profileImage && req.body.profileImage.includes("base64")) {
-      req.body.profileImage = await storeFileAndReturnNameBase64(req.body.profileImage);
-    }
-
-    if (req.body.bannerImage && req.body.bannerImage.includes("base64")) {
-      req.body.bannerImage = await storeFileAndReturnNameBase64(req.body.bannerImage);
-    }
-
-    if (documents.length > 0) {
-      req.body.documents = documents;
-    }
-
-    if (req.body.password) {
-      req.body.password = await encryptPassword(req.body.password);
-    }
-
-    if (req.body.salesId) {
-      req.body.salesId = new mongoose.Types.ObjectId(req.body.salesId);
-    }
-
+    // Create new user
     const user = await new User({ ...req.body, role: req.body.role }).save();
 
+    // Send success response
     res.status(201).json({ message: "User Created", data: user._id, success: true });
   } catch (error) {
     console.log("Error in addUser:", error);

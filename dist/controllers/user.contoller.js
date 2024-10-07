@@ -114,39 +114,45 @@ const appLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
 exports.appLogin = appLogin;
 const addUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        console.log(req.body, "Received Request Body");
-        // Log the phone number being checked
-        console.log(`Checking if phone ${req.body.phone} is verified`);
-        // Check if the phone number exists and is verified in VerifiedUsers
-        const verifiedUser = yield VerifiedUser_model_1.default.findOne({ status: true });
-        // Log the result of the verification check
-        console.log("Verified user check result:", verifiedUser);
-        if (!verifiedUser) {
-            console.log("Phone number not verified or not present in VerifiedUsers");
-            return res.status(400).json({ message: "Phone number is not verified", success: false });
-        }
-        console.log("Phone number verified, proceeding with user creation");
         const documents = [];
+        // Store GST Certificate if present
         if (req.body.gstCertificate) {
             let gstCertificate = yield (0, fileSystem_1.storeFileAndReturnNameBase64)(req.body.gstCertificate);
             documents.push({ name: "gstCertificate", image: gstCertificate });
         }
+        // Handle base64 profile image
         if (req.body.profileImage && req.body.profileImage.includes("base64")) {
             req.body.profileImage = yield (0, fileSystem_1.storeFileAndReturnNameBase64)(req.body.profileImage);
         }
+        // Handle base64 banner image
         if (req.body.bannerImage && req.body.bannerImage.includes("base64")) {
             req.body.bannerImage = yield (0, fileSystem_1.storeFileAndReturnNameBase64)(req.body.bannerImage);
         }
+        // If documents were added, include them in the request body
         if (documents.length > 0) {
             req.body.documents = documents;
         }
+        // Encrypt password if present
         if (req.body.password) {
             req.body.password = yield (0, bcrypt_1.encryptPassword)(req.body.password);
         }
+        // Convert salesId to ObjectId if present
         if (req.body.salesId) {
             req.body.salesId = new mongoose_1.default.Types.ObjectId(req.body.salesId);
         }
+        // Check if phone number is verified in VerifiedUsers collection
+        const verifiedUser = yield VerifiedUser_model_1.default.findOne({ phone: req.body.phone });
+        // Add logging to track what verifiedUser returns
+        console.log("verifiedUser result:", verifiedUser);
+        if (!verifiedUser) {
+            console.log("Phone number not verified or not present in VerifiedUsers");
+            return res.status(400).json({ message: "Phone number is not verified", success: false });
+        }
+        // If phone number is verified, proceed with user creation
+        console.log("Phone number verified, proceeding with user creation");
+        // Create new user
         const user = yield new user_model_1.User(Object.assign(Object.assign({}, req.body), { role: req.body.role })).save();
+        // Send success response
         res.status(201).json({ message: "User Created", data: user._id, success: true });
     }
     catch (error) {
