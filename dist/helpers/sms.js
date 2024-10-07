@@ -40,11 +40,10 @@ const SendVerificationSMS = (mobile, otp) => __awaiter(void 0, void 0, void 0, f
         let config = {
             method: "get",
             maxBodyLength: Infinity,
-            url: `https://www.smsgatewayhub.com/api/mt/SendSMS?APIKey=L59wCvpzuEWiiRDYDNFxWQ&senderid=PLYBZR&channel=2&DCS=0&flashsms=0&number=91${mobile}&text=${otp} is your phone number verification code for "Plywood Bazar.com".&route=31&EntityId=1701168577184897884&dlttemplateid=1707172526863185585`,
+            url: `https://www.smsgatewayhub.com/api/mt/SendSMS?APIKey=L59wCvpzuEWiiRDYDNFxWQ&senderid=PLYBZR&channel=2&DCS=0&flashsms=0&number=91${mobile}&text=${otp} is your phone number verification code for PlywoodBazar&route=31&EntityId=1701168577184897884&dlttemplateid=1707172828593335999`,
             headers: {},
         };
         let { data: res } = yield (0, axios_1.default)(config);
-        console.log('==>', `https://www.smsgatewayhub.com/api/mt/SendSMS?APIKey=L59wCvpzuEWiiRDYDNFxWQ&senderid=PLYBZR&channel=2&DCS=0&flashsms=0&number=91${mobile}&text=${otp} is your phone number verification code for "Plywood Bazar.com".&route=31&EntityId=1701168577184897884&dlttemplateid=1707172526863185585`);
         console.log('==>', res);
         if (res["ErrorCode"] == "000" && res["ErrorMessage"] == "Success") {
             return true;

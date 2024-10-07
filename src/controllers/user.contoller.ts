@@ -22,6 +22,7 @@ import { postSpiCrmLead } from "../service/sipCrm.service";
 import { startOfDay, endOfDay } from 'date-fns'; // Use date-fns for date comparison if needed
 import OtpVerifyModel from "../models/OtpVerify.model";
 import VerifiedUsers from "../models/VerifiedUser.model";
+import { SendVerificationSMS } from "../helpers/sms";
 
 
 
@@ -1080,11 +1081,46 @@ export const sendOTPForVerify = async (req: Request, res: Response, next: NextFu
     const otpPayload = { phone, otp };
     const otpObj = await OtpVerifyModel.create(otpPayload);
     if (otpObj)
-      res.status(200).json({ result: true, message: `OTP sent to your mobile ${phone}` });
-    else
-      res.status(500).json({ result: false, message: `OTP sending failed for your mobile ${phone}` });
+{
+  const result= await SendVerificationSMS(req.body.phone,otp)
+
+  if(result)
+  res.status(200).json({ result: true, message: `OTP sent to your mobile ${phone}` });
+else
+  res.status(500).json({ result: false, message: `OTP sending failed for your mobile ${phone}` });
+}else{
+  res.status(500).json({ result: false, message: `OTP sending failed for your mobile ${phone}` });
+}
+  } catch (error) {
+    res.status(500).json({ result: false, message: `OTP sending failed` });
+    next(error);
+  }
+};
+export const checkIfUserIsVerified = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const phone = req.body.phone;
+
+    // Validate the phone number
+    const phoneRegex = /^[6-9]\d{9}$/; // Regex for 10-digit numbers starting with 6-9
+
+    if (!phone || typeof phone !== 'string' || !phoneRegex.test(phone)) {
+      return res.status(400).json({ result: false, message: "Invalid phone number. It must be a 10-digit number starting with 6-9." });
+    }
+
+    // Check if the phone number exists in the VerifiedUsers collection
+    const verifiedUser = await VerifiedUsers.findOne({ phone });
+
+    if (!verifiedUser || !verifiedUser.status) {
+      return res.status(404).json({
+        result: false,
+        message: "Phone number not found or user is not verified.",
+      });
+    }
+  
+     res.status(200).json({ result: true, message: `OTP sent to your mobile ${phone}` });
 
   } catch (error) {
+    res.status(500).json({ result: false, message: `OTP sending failed` });
     next(error);
   }
 };

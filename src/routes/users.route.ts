@@ -27,7 +27,8 @@ import {
   verifyUserById,
   webLogin,getTopVendors,
   sendOTPForVerify,
-  verifyUserOTP
+  verifyUserOTP,
+  checkIfUserIsVerified
 } from "../controllers/user.contoller";
 import { authorizeJwt } from "../middlewares/auth.middleware";
 import { upload } from "../middlewares/multer.middleware";
@@ -71,6 +72,7 @@ router.post("/upload-documents/:userId", upload.single("file"), uploadDocuments)
 router.post("/sentOtp", sentOtp);
 router.post("/sendOTPForVerify", sendOTPForVerify);
 router.post("/verifyUserOTP", verifyUserOTP);
+router.post("/checkIfUserIsVerified", checkIfUserIsVerified);
  
 router.post("/refresh-token", refreshToken);
 

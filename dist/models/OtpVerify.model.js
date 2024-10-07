@@ -53,7 +53,7 @@ const otpSchema = new mongoose_1.Schema({
 function sendVerificationSMS(phone, otp) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            yield (0, sms_1.SendSms)(phone, otp);
+            yield (0, sms_1.SendVerificationSMS)(phone, otp);
             //SendVerificationSMS
         }
         catch (error) {
@@ -67,7 +67,7 @@ otpSchema.pre('save', function (next) {
         console.log("New document saved to the database");
         // Only send an email when a new document is created
         if (this.isNew) {
-            yield sendVerificationSMS(this.phone, this.otp);
+            // await sendVerificationSMS(this.phone, this.otp);
         }
         next();
     });

@@ -32,6 +32,7 @@ router.post("/upload-documents/:userId", multer_middleware_1.upload.single("file
 router.post("/sentOtp", user_contoller_1.sentOtp);
 router.post("/sendOTPForVerify", user_contoller_1.sendOTPForVerify);
 router.post("/verifyUserOTP", user_contoller_1.verifyUserOTP);
+router.post("/checkIfUserIsVerified", user_contoller_1.checkIfUserIsVerified);
 router.post("/refresh-token", user_contoller_1.refreshToken);
 router.get("/getUserNotifications", user_contoller_1.getUserNotifications);
 router.get("/markedAsRead", user_contoller_1.markedAsReadNotificatins);
