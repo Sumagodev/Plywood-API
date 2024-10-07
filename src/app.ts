@@ -43,6 +43,7 @@ import dealershipOwnerRoutes from './routes/dealershipOwnerRoutes.routes'
 import dealershipUSerRoutes from './routes/dealershipUesrRoutes.routes'
 import notificationRoutes from './routes/notification.routes'
 import VendorReviewRoutes from './routes/vendorReviews.routes'
+import VerifiedUsers from "./routes/verifiedUsers.routes";
 mongoose.connect(CONFIG.MONGOURI, (err) => {
   if (err) {
     console.log(err);
@@ -86,7 +87,7 @@ app.use("/leads", leadRouter);
 app.use("/flashSales", flashSaleRouter);
 app.use("/productReview", productReviewRouter);
 app.use("/vendorReview", VendorReviewRoutes);
-
+app.use("/VerifiedUser",VerifiedUsers );
 app.use("/userRequirement", userRequirementRouter);
 app.use("/quickenqury", quickenqury);
 
