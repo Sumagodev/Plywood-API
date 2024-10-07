@@ -29,9 +29,7 @@ import { SendVerificationSMS } from "../helpers/sms";
 export const addUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
 
-    console.log(req.body, "SSD");
 
-    console.log(req.body, "SSD");
 
     // Check if the phone number is verified
     const verifiedUser = await VerifiedUsers.findOne({ phone: req.body.phone, status: true });

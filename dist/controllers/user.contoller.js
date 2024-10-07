@@ -37,8 +37,6 @@ const VerifiedUser_model_1 = __importDefault(require("../models/VerifiedUser.mod
 const sms_1 = require("../helpers/sms");
 const addUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        console.log(req.body, "SSD");
-        console.log(req.body, "SSD");
         // Check if the phone number is verified
         const verifiedUser = yield VerifiedUser_model_1.default.findOne({ phone: req.body.phone, status: true });
         if (!verifiedUser) {
