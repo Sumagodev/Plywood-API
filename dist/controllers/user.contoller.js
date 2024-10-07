@@ -115,8 +115,12 @@ exports.appLogin = appLogin;
 const addUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         console.log(req.body, "Received Request Body");
+        // Log the phone number being checked
+        console.log(`Checking if phone ${req.body.phone} is verified`);
         // Check if the phone number exists and is verified in VerifiedUsers
         const verifiedUser = yield VerifiedUser_model_1.default.findOne({ phone: req.body.phone, status: true });
+        // Log the result of the verification check
+        console.log("Verified user check result:", verifiedUser);
         if (!verifiedUser) {
             console.log("Phone number not verified or not present in VerifiedUsers");
             return res.status(400).json({ message: "Phone number is not verified", success: false });
@@ -140,12 +144,13 @@ const addUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
             req.body.password = yield (0, bcrypt_1.encryptPassword)(req.body.password);
         }
         if (req.body.salesId) {
-            req.body.salesId = yield new mongoose_1.default.Types.ObjectId(req.body.salesId);
+            req.body.salesId = new mongoose_1.default.Types.ObjectId(req.body.salesId);
         }
         const user = yield new user_model_1.User(Object.assign(Object.assign({}, req.body), { role: req.body.role })).save();
         res.status(201).json({ message: "User Created", data: user._id, success: true });
     }
     catch (error) {
+        console.log("Error in addUser:", error);
         next(error);
     }
 });

@@ -112,13 +112,19 @@ export const appLogin = async (req: Request, res: Response, next: NextFunction) 
   }
 };
 
+
 export const addUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-
     console.log(req.body, "Received Request Body");
+
+    // Log the phone number being checked
+    console.log(`Checking if phone ${req.body.phone} is verified`);
 
     // Check if the phone number exists and is verified in VerifiedUsers
     const verifiedUser = await VerifiedUsers.findOne({ phone: req.body.phone, status: true });
+
+    // Log the result of the verification check
+    console.log("Verified user check result:", verifiedUser);
 
     if (!verifiedUser) {
       console.log("Phone number not verified or not present in VerifiedUsers");
@@ -126,7 +132,6 @@ export const addUser = async (req: Request, res: Response, next: NextFunction) =
     }
 
     console.log("Phone number verified, proceeding with user creation");
-
 
     const documents = [];
     if (req.body.gstCertificate) {
@@ -141,24 +146,28 @@ export const addUser = async (req: Request, res: Response, next: NextFunction) =
     if (req.body.bannerImage && req.body.bannerImage.includes("base64")) {
       req.body.bannerImage = await storeFileAndReturnNameBase64(req.body.bannerImage);
     }
+
     if (documents.length > 0) {
       req.body.documents = documents;
     }
+
     if (req.body.password) {
       req.body.password = await encryptPassword(req.body.password);
     }
 
     if (req.body.salesId) {
-      req.body.salesId = await new mongoose.Types.ObjectId(req.body.salesId);
+      req.body.salesId = new mongoose.Types.ObjectId(req.body.salesId);
     }
 
     const user = await new User({ ...req.body, role: req.body.role }).save();
 
     res.status(201).json({ message: "User Created", data: user._id, success: true });
   } catch (error) {
+    console.log("Error in addUser:", error);
     next(error);
   }
 };
+
 export const updateUserById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // const UserExistEmailCheck = await User.findOne({
