@@ -121,7 +121,7 @@ export const addUser = async (req: Request, res: Response, next: NextFunction) =
     console.log(`Checking if phone ${req.body.phone} is verified`);
 
     // Check if the phone number exists and is verified in VerifiedUsers
-    const verifiedUser = await VerifiedUsers.findOne({ phone: req.body.phone, status: true });
+    const verifiedUser = await VerifiedUsers.findOne({ phone: req.body.phone});
 
     // Log the result of the verification check
     console.log("Verified user check result:", verifiedUser);

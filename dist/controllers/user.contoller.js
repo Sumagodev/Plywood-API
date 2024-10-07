@@ -118,7 +118,7 @@ const addUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
         // Log the phone number being checked
         console.log(`Checking if phone ${req.body.phone} is verified`);
         // Check if the phone number exists and is verified in VerifiedUsers
-        const verifiedUser = yield VerifiedUser_model_1.default.findOne({ phone: req.body.phone, status: true });
+        const verifiedUser = yield VerifiedUser_model_1.default.findOne({ phone: req.body.phone });
         // Log the result of the verification check
         console.log("Verified user check result:", verifiedUser);
         if (!verifiedUser) {
