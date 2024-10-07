@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.storeFileAndReturnNameBase64 = void 0;
 const fs_1 = __importDefault(require("fs"));
 const storeFileAndReturnNameBase64 = (base64) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(base64, "base64");
+    // console.log(base64, "base64")
     const tempBase64 = base64.split(",");
     const extension = tempBase64[0].split("/")[1];
     const filename = new Date().getTime() + `.${extension.split(";")[0]}`;

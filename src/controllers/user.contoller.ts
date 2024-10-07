@@ -24,6 +24,12 @@ import OtpVerifyModel from "../models/OtpVerify.model";
 import VerifiedUsers from "../models/VerifiedUser.model";
 import { SendVerificationSMS } from "../helpers/sms";
 
+
+
+
+
+
+
 export const webLogin = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const UserExistCheck = await User.findOne({ $or: [{ email: new RegExp(`^${req.body.email}$`) }] }).exec();
@@ -106,46 +112,57 @@ export const appLogin = async (req: Request, res: Response, next: NextFunction) 
   }
 };
 
+
 export const addUser = async (req: Request, res: Response, next: NextFunction) => {
+
   try {
-    // const UserExistEmailCheck = await User.findOne({
-    //   phone: new RegExp(`^${req.body.phone}$`),
-    // }).exec();
-
-    // if (UserExistEmailCheck) {
-    //   throw new Error(`User with this phone number Already Exists`);
-    // }
-    console.log(req.body, "SSD");
-
-
     const documents = [];
+
+    
+
+    // Store GST Certificate if present
     if (req.body.gstCertificate) {
       let gstCertificate = await storeFileAndReturnNameBase64(req.body.gstCertificate);
       documents.push({ name: "gstCertificate", image: gstCertificate });
     }
 
+    // Handle base64 profile image
     if (req.body.profileImage && req.body.profileImage.includes("base64")) {
       req.body.profileImage = await storeFileAndReturnNameBase64(req.body.profileImage);
     }
 
+    // Handle base64 banner image
     if (req.body.bannerImage && req.body.bannerImage.includes("base64")) {
       req.body.bannerImage = await storeFileAndReturnNameBase64(req.body.bannerImage);
     }
+
+    // If documents were added, include them in the request body
     if (documents.length > 0) {
       req.body.documents = documents;
     }
+
+    // Encrypt password if present
     if (req.body.password) {
       req.body.password = await encryptPassword(req.body.password);
     }
 
+
+    
+
+    // Convert salesId to ObjectId if present
     if (req.body.salesId) {
-      req.body.salesId = await new mongoose.Types.ObjectId(req.body.salesId);
+      req.body.salesId = new mongoose.Types.ObjectId(req.body.salesId);
     }
 
+    
+
+    // Create new user
     const user = await new User({ ...req.body, role: req.body.role }).save();
 
+    // Send success response
     res.status(201).json({ message: "User Created", data: user._id, success: true });
   } catch (error) {
+    console.log("Error in addUser:", error);
     next(error);
   }
 };
@@ -241,6 +258,30 @@ export const updateUserById = async (req: Request, res: Response, next: NextFunc
 export const registerUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     console.log(req.body);
+
+    const phone = req.body.phone;
+
+    // Validate the phone number
+    const phoneRegex = /^[6-9]\d{9}$/; // Regex for 10-digit numbers starting with 6-9
+
+    if (!phone || typeof phone !== 'string' || !phoneRegex.test(phone)) {
+      return res.status(400).json({ result: false, message: "Invalid phone number. It must be a 10-digit number starting with 6-9." });
+    }
+
+    // Check if the phone number exists in the VerifiedUsers collection
+    const verifiedUser = await VerifiedUsers.findOne({ phone });
+
+    if (!verifiedUser || !verifiedUser.status) {
+      console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+      return res.status(404).json({
+        result: false,
+        message: "User is not verified ",
+      });
+    }else{
+      console.log('yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')
+
+    }
+    
     // const UserExistEmailCheck = await User.findOne({
     //   email: new RegExp(`^${req.body.email}$`),
     // }).exec();
@@ -751,11 +792,11 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
           },
           "stateId": {
             "$first": "$stateId",
-      
+
           },
           "categoryId": {
             "$first": "$categoryId",
-            
+
           },
           "brandArr": {
             "$addToSet": {
@@ -1075,17 +1116,16 @@ export const sendOTPForVerify = async (req: Request, res: Response, next: NextFu
 
     const otpPayload = { phone, otp };
     const otpObj = await OtpVerifyModel.create(otpPayload);
-    if (otpObj)
-{
-  const result= await SendVerificationSMS(req.body.phone,otp)
+    if (otpObj) {
+      const result = await SendVerificationSMS(req.body.phone, otp)
 
-  if(result)
-  res.status(200).json({ result: true, message: `OTP sent to your mobile ${phone}` });
-else
-  res.status(500).json({ result: false, message: `OTP sending failed for your mobile ${phone}` });
-}else{
-  res.status(500).json({ result: false, message: `OTP sending failed for your mobile ${phone}` });
-}
+      if (result)
+        res.status(200).json({ result: true, message: `OTP sent to your mobile ${phone}` });
+      else
+        res.status(500).json({ result: false, message: `OTP sending failed for your mobile ${phone}` });
+    } else {
+      res.status(500).json({ result: false, message: `OTP sending failed for your mobile ${phone}` });
+    }
   } catch (error) {
     res.status(500).json({ result: false, message: `OTP sending failed` });
     next(error);
@@ -1114,7 +1154,7 @@ export const checkIfUserIsVerified = async (req: Request, res: Response, next: N
      res.status(200).json({ result: true, message: `User is already verified` });
 
   } catch (error) {
-    res.status(500).json({ result: false, message: `OTP sending failed` });
+    res.status(500).json({ result: false, message: `Failed to verify user` });
     next(error);
   }
 };
