@@ -1071,17 +1071,13 @@ const checkIfUserIsVerified = (req, res, next) => __awaiter(void 0, void 0, void
         if (!verifiedUser || !verifiedUser.status) {
             return res.status(404).json({
                 result: false,
-<<<<<<< HEAD
                 message: "User is not verified",
-=======
-                message: "User number not found or user is not verified.",
->>>>>>> d30e92200d8e3af851782fba277b4d605fd48ac0
             });
         }
         res.status(200).json({ result: true, message: `User is already verified` });
     }
     catch (error) {
-        res.status(500).json({ result: false, message: `OTP sending failed` });
+        res.status(500).json({ result: false, message: `Failed to verify user` });
         next(error);
     }
 });
