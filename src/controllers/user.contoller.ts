@@ -131,10 +131,14 @@ export const addUser = async (req: Request, res: Response, next: NextFunction) =
     const verifiedUser = await VerifiedUsers.findOne({ phone });
 
     if (!verifiedUser || !verifiedUser.status) {
+      console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
       return res.status(404).json({
         result: false,
         message: "User is not verified ",
       });
+    }else{
+      console.log('yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')
+
     }
 
     // Store GST Certificate if present

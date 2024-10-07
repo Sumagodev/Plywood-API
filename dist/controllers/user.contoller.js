@@ -124,10 +124,14 @@ const addUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
         // Check if the phone number exists in the VerifiedUsers collection
         const verifiedUser = yield VerifiedUser_model_1.default.findOne({ phone });
         if (!verifiedUser || !verifiedUser.status) {
+            console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
             return res.status(404).json({
                 result: false,
                 message: "User is not verified ",
             });
+        }
+        else {
+            console.log('yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy');
         }
         // Store GST Certificate if present
         if (req.body.gstCertificate) {
