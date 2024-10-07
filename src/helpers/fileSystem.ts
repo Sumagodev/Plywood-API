@@ -1,7 +1,7 @@
 import fs from "fs";
 
 export const storeFileAndReturnNameBase64 = async (base64: string) => {
-  console.log(base64, "base64")
+  // console.log(base64, "base64")
   const tempBase64 = base64.split(",");
   const extension = tempBase64[0].split("/")[1];
   const filename = new Date().getTime() + `.${extension.split(";")[0]}`;
