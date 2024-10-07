@@ -114,13 +114,7 @@ const appLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
 exports.appLogin = appLogin;
 const addUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Check if the phone number exists and is verified in VerifiedUsers
-        const verifiedUser = yield VerifiedUser_model_1.default.findOne({ phone: req.body.phone });
         const documents = [];
-        if (!verifiedUser) {
-            console.log("Phone number not verified or not present in VerifiedUsers");
-            return res.status(400).json({ message: "Phone number is not verified", success: false });
-        }
         if (req.body.gstCertificate) {
             let gstCertificate = yield (0, fileSystem_1.storeFileAndReturnNameBase64)(req.body.gstCertificate);
             documents.push({ name: "gstCertificate", image: gstCertificate });
@@ -140,6 +134,12 @@ const addUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
         if (req.body.salesId) {
             req.body.salesId = new mongoose_1.default.Types.ObjectId(req.body.salesId);
         }
+        const verifiedUser = yield VerifiedUser_model_1.default.findOne({ phone: req.body.phone });
+        if (!verifiedUser) {
+            console.log("Phone number not verified or not present in VerifiedUsers");
+            return res.status(400).json({ message: "Phone number is not verified", success: false });
+        }
+        console.log("Phone number verified, proceeding with user creation");
         const user = yield new user_model_1.User(Object.assign(Object.assign({}, req.body), { role: req.body.role })).save();
         res.status(201).json({ message: "User Created", data: user._id, success: true });
     }
