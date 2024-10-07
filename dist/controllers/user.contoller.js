@@ -115,6 +115,20 @@ exports.appLogin = appLogin;
 const addUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const documents = [];
+        const phone = req.body.phone;
+        // Validate the phone number
+        const phoneRegex = /^[6-9]\d{9}$/; // Regex for 10-digit numbers starting with 6-9
+        if (!phone || typeof phone !== 'string' || !phoneRegex.test(phone)) {
+            return res.status(400).json({ result: false, message: "Invalid phone number. It must be a 10-digit number starting with 6-9." });
+        }
+        // Check if the phone number exists in the VerifiedUsers collection
+        const verifiedUser = yield VerifiedUser_model_1.default.findOne({ phone });
+        if (!verifiedUser || !verifiedUser.status) {
+            return res.status(404).json({
+                result: false,
+                message: "User is not verified ",
+            });
+        }
         // Store GST Certificate if present
         if (req.body.gstCertificate) {
             let gstCertificate = yield (0, fileSystem_1.storeFileAndReturnNameBase64)(req.body.gstCertificate);
@@ -140,16 +154,6 @@ const addUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
         if (req.body.salesId) {
             req.body.salesId = new mongoose_1.default.Types.ObjectId(req.body.salesId);
         }
-        // Check if phone number is verified in VerifiedUsers collection
-        const verifiedUser = yield VerifiedUser_model_1.default.findOne({ phone: req.body.phone }).exec();
-        // Add logging to track what verifiedUser returns
-        console.log("verifiedUser result:", verifiedUser);
-        if (!verifiedUser) {
-            console.log("Phone number not verified or not present in VerifiedUsers");
-            return res.status(400).json({ message: "Phone number is not verified", success: false });
-        }
-        // If phone number is verified, proceed with user creation
-        console.log("Phone number verified, proceeding with user creation");
         // Create new user
         const user = yield new user_model_1.User(Object.assign(Object.assign({}, req.body), { role: req.body.role })).save();
         // Send success response
@@ -1063,7 +1067,7 @@ const checkIfUserIsVerified = (req, res, next) => __awaiter(void 0, void 0, void
         if (!verifiedUser || !verifiedUser.status) {
             return res.status(404).json({
                 result: false,
-                message: "Phone number not found or user is not verified.",
+                message: "User number not found or user is not verified.",
             });
         }
         res.status(200).json({ result: true, message: `OTP sent to your mobile ${phone}` });
