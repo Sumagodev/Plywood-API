@@ -623,7 +623,6 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
 
     let query: any = {};
 
-    // Build the search regex query
     if (req.query.search) {
       console.log(req.query.search, "req.query.search");
       query = {
@@ -637,8 +636,11 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
           { "productsIdArr.longDescription": new RegExp(`${req.query.search}`, "i") },
           { "brandNames": new RegExp(`${req.query.search}`, "i") },
           { "brandArr.name": new RegExp(`${req.query.search}`, "i") },
+          { "stateId": new RegExp(`${req.query.search}`, "i") },
+          { "categoryId": new RegExp(`${req.query.search}`, "i") }
         ],
       };
+
     }
 
     let roleArr = ["ADMIN"];
@@ -652,9 +654,6 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
           "role": {
             "$nin": roleArr,
           },
-          ...query, // Integrate the search query here
-          ...(req.query.stateId ? { stateId: req.query.stateId } : {}), // Check if stateId exists in query and add to match
-          ...(req.query.categoryId ? { "categoryArr.categoryId": req.query.categoryId } : {}), // Check if categoryId exists in query and add to match
         },
       },
       {
@@ -684,11 +683,17 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
             "$cond": {
               "if": {
                 "$and": [
-                  { "$ifNull": ["$productsArr.brand", false] },
-                  { "$ne": ["$productsArr.brand", ""] },
+                  {
+                    "$ifNull": ["$productsArr.brand", false],
+                  },
+                  {
+                    "$ne": ["$productsArr.brand", ""],
+                  },
                 ],
               },
-              "then": { "$toObjectId": "$productsArr.brand" },
+              "then": {
+                "$toObjectId": "$productsArr.brand",
+              },
               "else": null,
             },
           },
@@ -722,15 +727,44 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
       {
         "$group": {
           "_id": "$_id",
-          "name": { "$first": "$name" },
-          "role": { "$first": "$role" },
-          "productsIdArr": { "$addToSet": "$productsArr" },
-          "brandNames": { "$addToSet": "$brandNames" },
-          "companyObj": { "$first": "$companyObj" },
-          "stateId": { "$first": "$stateId" },
-          "categoryId": { "$first": "$categoryId" },
-          "brandArr": { "$addToSet": { "name": "$brandName" } },
+          "name": {
+            "$first": "$name",
+          },
+          "role": {
+            "$first": "$role",
+          },
+          // 'bannerImage': {
+          //   '$first': '$bannerImage'
+          // },
+          // 'profileImage': {
+          //   '$first': '$profileImage'
+          // },
+          "productsIdArr": {
+            "$addToSet": "$productsArr",
+          },
+          "brandNames": {
+            "$addToSet": "$brandNames",
+          },
+          "companyObj": {
+            "$first": "$companyObj",
+          },
+          "stateId": {
+            "$first": "$stateId",
+      
+          },
+          "categoryId": {
+            "$first": "$categoryId",
+            
+          },
+          "brandArr": {
+            "$addToSet": {
+              "name": "$brandName",
+            },
+          },
         },
+      },
+      {
+        "$match": query,
       },
       {
         "$project": {
@@ -745,6 +779,8 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
     console.log(JSON.stringify(pipeline, null, 2), "pipeline");
     let users: any = await User.aggregate(pipeline);
     console.log("USERS", users, "USERS2");
+    // let users: any = await User.find(query).select({ _id: 1, name: 1, companyObj: 1 }).lean()
+    //   .exec();
 
     res.json({
       message: "ALL Users",
@@ -754,7 +790,6 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
     next(error);
   }
 };
-
 
 export const getAllUsersWithSubsciption = async (req: Request, res: Response, next: NextFunction) => {
   try {
