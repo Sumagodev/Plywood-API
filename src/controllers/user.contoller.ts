@@ -26,52 +26,7 @@ import { SendVerificationSMS } from "../helpers/sms";
 
 
 
-export const addUser = async (req: Request, res: Response, next: NextFunction) => {
-  try {
 
-
-    console.log(req.body, "Received Request Body");
-
-    // Check if the phone number exists and is verified in VerifiedUsers
-    const verifiedUser = await VerifiedUsers.findOne({ phone: req.body.phone, status: true });
-
-    if (!verifiedUser) {
-      console.log("Phone number not verified or not present in VerifiedUsers");
-      return res.status(400).json({ message: "Phone number is not verified", success: false });
-    }
-
-    console.log("Phone number verified, proceeding with user creation");
-    const documents = [];
-    if (req.body.gstCertificate) {
-      let gstCertificate = await storeFileAndReturnNameBase64(req.body.gstCertificate);
-      documents.push({ name: "gstCertificate", image: gstCertificate });
-    }
-
-    if (req.body.profileImage && req.body.profileImage.includes("base64")) {
-      req.body.profileImage = await storeFileAndReturnNameBase64(req.body.profileImage);
-    }
-
-    if (req.body.bannerImage && req.body.bannerImage.includes("base64")) {
-      req.body.bannerImage = await storeFileAndReturnNameBase64(req.body.bannerImage);
-    }
-    if (documents.length > 0) {
-      req.body.documents = documents;
-    }
-    if (req.body.password) {
-      req.body.password = await encryptPassword(req.body.password);
-    }
-
-    if (req.body.salesId) {
-      req.body.salesId = await new mongoose.Types.ObjectId(req.body.salesId);
-    }
-
-    const user = await new User({ ...req.body, role: req.body.role }).save();
-
-    res.status(201).json({ message: "User Created", data: user._id, success: true });
-  } catch (error) {
-    next(error);
-  }
-};
 
 
 
@@ -152,6 +107,43 @@ export const appLogin = async (req: Request, res: Response, next: NextFunction) 
     const token = await generateAccessJwt(userData);
     const user = await User.findByIdAndUpdate(UserExistCheck._id, { token: token }, { new: true }).exec();
     res.status(200).json({ message: "User Logged In", token: token });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const addUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+
+
+
+    const documents = [];
+    if (req.body.gstCertificate) {
+      let gstCertificate = await storeFileAndReturnNameBase64(req.body.gstCertificate);
+      documents.push({ name: "gstCertificate", image: gstCertificate });
+    }
+
+    if (req.body.profileImage && req.body.profileImage.includes("base64")) {
+      req.body.profileImage = await storeFileAndReturnNameBase64(req.body.profileImage);
+    }
+
+    if (req.body.bannerImage && req.body.bannerImage.includes("base64")) {
+      req.body.bannerImage = await storeFileAndReturnNameBase64(req.body.bannerImage);
+    }
+    if (documents.length > 0) {
+      req.body.documents = documents;
+    }
+    if (req.body.password) {
+      req.body.password = await encryptPassword(req.body.password);
+    }
+
+    if (req.body.salesId) {
+      req.body.salesId = await new mongoose.Types.ObjectId(req.body.salesId);
+    }
+
+    const user = await new User({ ...req.body, role: req.body.role }).save();
+
+    res.status(201).json({ message: "User Created", data: user._id, success: true });
   } catch (error) {
     next(error);
   }
@@ -1081,17 +1073,16 @@ export const sendOTPForVerify = async (req: Request, res: Response, next: NextFu
 
     const otpPayload = { phone, otp };
     const otpObj = await OtpVerifyModel.create(otpPayload);
-    if (otpObj)
-{
-  const result= await SendVerificationSMS(req.body.phone,otp)
+    if (otpObj) {
+      const result = await SendVerificationSMS(req.body.phone, otp)
 
-  if(result)
-  res.status(200).json({ result: true, message: `OTP sent to your mobile ${phone}` });
-else
-  res.status(500).json({ result: false, message: `OTP sending failed for your mobile ${phone}` });
-}else{
-  res.status(500).json({ result: false, message: `OTP sending failed for your mobile ${phone}` });
-}
+      if (result)
+        res.status(200).json({ result: true, message: `OTP sent to your mobile ${phone}` });
+      else
+        res.status(500).json({ result: false, message: `OTP sending failed for your mobile ${phone}` });
+    } else {
+      res.status(500).json({ result: false, message: `OTP sending failed for your mobile ${phone}` });
+    }
   } catch (error) {
     res.status(500).json({ result: false, message: `OTP sending failed` });
     next(error);
@@ -1117,8 +1108,8 @@ export const checkIfUserIsVerified = async (req: Request, res: Response, next: N
         message: "Phone number not found or user is not verified.",
       });
     }
-  
-     res.status(200).json({ result: true, message: `OTP sent to your mobile ${phone}` });
+
+    res.status(200).json({ result: true, message: `OTP sent to your mobile ${phone}` });
 
   } catch (error) {
     res.status(500).json({ result: false, message: `OTP sending failed` });

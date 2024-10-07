@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllSalesReport = exports.ChangeAllManufacturerRoles = exports.getSalesUsers = exports.markedAsReadNotificatins = exports.getUserNotifications = exports.registerUserFcmToken = exports.getAllUsersWithAniversaryDate = exports.getTopVendors = exports.getAllUsersForWebsite = exports.checkForValidSubscriptionAndReturnBoolean = exports.checkForValidSubscription = exports.verifyUserOTP = exports.checkIfUserIsVerified = exports.sendOTPForVerify = exports.sentOtp = exports.refreshToken = exports.getAllUsersWithSubsciption = exports.searchVendor = exports.getAllUsers = exports.uploadDocuments = exports.blockUserById = exports.verifyUserById = exports.approveUserById = exports.getUserById = exports.deleteUserById = exports.registerUser = exports.updateUserById = exports.appLogin = exports.webLogin = exports.addUser = void 0;
+exports.getAllSalesReport = exports.ChangeAllManufacturerRoles = exports.getSalesUsers = exports.markedAsReadNotificatins = exports.getUserNotifications = exports.registerUserFcmToken = exports.getAllUsersWithAniversaryDate = exports.getTopVendors = exports.getAllUsersForWebsite = exports.checkForValidSubscriptionAndReturnBoolean = exports.checkForValidSubscription = exports.verifyUserOTP = exports.checkIfUserIsVerified = exports.sendOTPForVerify = exports.sentOtp = exports.refreshToken = exports.getAllUsersWithSubsciption = exports.searchVendor = exports.getAllUsers = exports.uploadDocuments = exports.blockUserById = exports.verifyUserById = exports.approveUserById = exports.getUserById = exports.deleteUserById = exports.registerUser = exports.updateUserById = exports.addUser = exports.appLogin = exports.webLogin = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const bcrypt_1 = require("../helpers/bcrypt");
 const config_1 = require("../helpers/config");
@@ -35,44 +35,6 @@ const date_fns_1 = require("date-fns"); // Use date-fns for date comparison if n
 const OtpVerify_model_1 = __importDefault(require("../models/OtpVerify.model"));
 const VerifiedUser_model_1 = __importDefault(require("../models/VerifiedUser.model"));
 const sms_1 = require("../helpers/sms");
-const addUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        console.log(req.body, "Received Request Body");
-        // Check if the phone number exists and is verified in VerifiedUsers
-        const verifiedUser = yield VerifiedUser_model_1.default.findOne({ phone: req.body.phone, status: true });
-        if (!verifiedUser) {
-            console.log("Phone number not verified or not present in VerifiedUsers");
-            return res.status(400).json({ message: "Phone number is not verified", success: false });
-        }
-        console.log("Phone number verified, proceeding with user creation");
-        const documents = [];
-        if (req.body.gstCertificate) {
-            let gstCertificate = yield (0, fileSystem_1.storeFileAndReturnNameBase64)(req.body.gstCertificate);
-            documents.push({ name: "gstCertificate", image: gstCertificate });
-        }
-        if (req.body.profileImage && req.body.profileImage.includes("base64")) {
-            req.body.profileImage = yield (0, fileSystem_1.storeFileAndReturnNameBase64)(req.body.profileImage);
-        }
-        if (req.body.bannerImage && req.body.bannerImage.includes("base64")) {
-            req.body.bannerImage = yield (0, fileSystem_1.storeFileAndReturnNameBase64)(req.body.bannerImage);
-        }
-        if (documents.length > 0) {
-            req.body.documents = documents;
-        }
-        if (req.body.password) {
-            req.body.password = yield (0, bcrypt_1.encryptPassword)(req.body.password);
-        }
-        if (req.body.salesId) {
-            req.body.salesId = yield new mongoose_1.default.Types.ObjectId(req.body.salesId);
-        }
-        const user = yield new user_model_1.User(Object.assign(Object.assign({}, req.body), { role: req.body.role })).save();
-        res.status(201).json({ message: "User Created", data: user._id, success: true });
-    }
-    catch (error) {
-        next(error);
-    }
-});
-exports.addUser = addUser;
 const webLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const UserExistCheck = yield user_model_1.User.findOne({ $or: [{ email: new RegExp(`^${req.body.email}$`) }] }).exec();
@@ -150,6 +112,36 @@ const appLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.appLogin = appLogin;
+const addUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const documents = [];
+        if (req.body.gstCertificate) {
+            let gstCertificate = yield (0, fileSystem_1.storeFileAndReturnNameBase64)(req.body.gstCertificate);
+            documents.push({ name: "gstCertificate", image: gstCertificate });
+        }
+        if (req.body.profileImage && req.body.profileImage.includes("base64")) {
+            req.body.profileImage = yield (0, fileSystem_1.storeFileAndReturnNameBase64)(req.body.profileImage);
+        }
+        if (req.body.bannerImage && req.body.bannerImage.includes("base64")) {
+            req.body.bannerImage = yield (0, fileSystem_1.storeFileAndReturnNameBase64)(req.body.bannerImage);
+        }
+        if (documents.length > 0) {
+            req.body.documents = documents;
+        }
+        if (req.body.password) {
+            req.body.password = yield (0, bcrypt_1.encryptPassword)(req.body.password);
+        }
+        if (req.body.salesId) {
+            req.body.salesId = yield new mongoose_1.default.Types.ObjectId(req.body.salesId);
+        }
+        const user = yield new user_model_1.User(Object.assign(Object.assign({}, req.body), { role: req.body.role })).save();
+        res.status(201).json({ message: "User Created", data: user._id, success: true });
+    }
+    catch (error) {
+        next(error);
+    }
+});
+exports.addUser = addUser;
 const updateUserById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d;
     try {
