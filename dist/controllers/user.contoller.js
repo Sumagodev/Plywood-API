@@ -999,7 +999,7 @@ const sentOtp = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
         }
         console.log(UserExistCheck, "UserExistCheck");
         console.log("w");
-        res.status(200).json({ message: "OTP send to your mobile" + req.body.phone });
+        res.status(200).json({ message: "OTP send to your mobile " + req.body.phone });
     }
     catch (error) {
         next(error);

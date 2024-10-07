@@ -53,7 +53,8 @@ const otpSchema = new mongoose_1.Schema({
 function sendVerificationSMS(phone, otp) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            yield (0, sms_1.SendSms)(phone, otp);
+            yield (0, sms_1.SendVerificationSMS)(phone, otp);
+            //SendVerificationSMS
         }
         catch (error) {
             console.log("Error occurred while sending phone: ", error);
