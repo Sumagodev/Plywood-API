@@ -23,6 +23,56 @@ import { startOfDay, endOfDay } from 'date-fns'; // Use date-fns for date compar
 import OtpVerifyModel from "../models/OtpVerify.model";
 import VerifiedUsers from "../models/VerifiedUser.model";
 
+
+
+export const addUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+
+    console.log(req.body, "SSD");
+
+    console.log(req.body, "SSD");
+
+    // Check if the phone number is verified
+    const verifiedUser = await VerifiedUsers.findOne({ phone: req.body.phone, status: true });
+
+    if (!verifiedUser) {
+      return res.status(400).json({ message: "Phone number is not verified", success: false });
+    }
+
+    const documents = [];
+    if (req.body.gstCertificate) {
+      let gstCertificate = await storeFileAndReturnNameBase64(req.body.gstCertificate);
+      documents.push({ name: "gstCertificate", image: gstCertificate });
+    }
+
+    if (req.body.profileImage && req.body.profileImage.includes("base64")) {
+      req.body.profileImage = await storeFileAndReturnNameBase64(req.body.profileImage);
+    }
+
+    if (req.body.bannerImage && req.body.bannerImage.includes("base64")) {
+      req.body.bannerImage = await storeFileAndReturnNameBase64(req.body.bannerImage);
+    }
+    if (documents.length > 0) {
+      req.body.documents = documents;
+    }
+    if (req.body.password) {
+      req.body.password = await encryptPassword(req.body.password);
+    }
+
+    if (req.body.salesId) {
+      req.body.salesId = await new mongoose.Types.ObjectId(req.body.salesId);
+    }
+
+    const user = await new User({ ...req.body, role: req.body.role }).save();
+
+    res.status(201).json({ message: "User Created", data: user._id, success: true });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
 export const webLogin = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const UserExistCheck = await User.findOne({ $or: [{ email: new RegExp(`^${req.body.email}$`) }] }).exec();
@@ -104,51 +154,6 @@ export const appLogin = async (req: Request, res: Response, next: NextFunction) 
     next(error);
   }
 };
-
-export const addUser = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    // const UserExistEmailCheck = await User.findOne({
-    //   phone: new RegExp(`^${req.body.phone}$`),
-    // }).exec();
-
-    // if (UserExistEmailCheck) {
-    //   throw new Error(`User with this phone number Already Exists`);
-    // }
-    console.log(req.body, "SSD");
-
-
-    const documents = [];
-    if (req.body.gstCertificate) {
-      let gstCertificate = await storeFileAndReturnNameBase64(req.body.gstCertificate);
-      documents.push({ name: "gstCertificate", image: gstCertificate });
-    }
-
-    if (req.body.profileImage && req.body.profileImage.includes("base64")) {
-      req.body.profileImage = await storeFileAndReturnNameBase64(req.body.profileImage);
-    }
-
-    if (req.body.bannerImage && req.body.bannerImage.includes("base64")) {
-      req.body.bannerImage = await storeFileAndReturnNameBase64(req.body.bannerImage);
-    }
-    if (documents.length > 0) {
-      req.body.documents = documents;
-    }
-    if (req.body.password) {
-      req.body.password = await encryptPassword(req.body.password);
-    }
-
-    if (req.body.salesId) {
-      req.body.salesId = await new mongoose.Types.ObjectId(req.body.salesId);
-    }
-
-    const user = await new User({ ...req.body, role: req.body.role }).save();
-
-    res.status(201).json({ message: "User Created", data: user._id, success: true });
-  } catch (error) {
-    next(error);
-  }
-};
-
 export const updateUserById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // const UserExistEmailCheck = await User.findOne({
@@ -750,11 +755,11 @@ export const searchVendor = async (req: Request, res: Response, next: NextFuncti
           },
           "stateId": {
             "$first": "$stateId",
-      
+
           },
           "categoryId": {
             "$first": "$categoryId",
-            
+
           },
           "brandArr": {
             "$addToSet": {
