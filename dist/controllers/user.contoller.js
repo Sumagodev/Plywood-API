@@ -114,6 +114,14 @@ const appLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
 exports.appLogin = appLogin;
 const addUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        console.log(req.body, "Received Request Body");
+        // Check if the phone number exists and is verified in VerifiedUsers
+        const verifiedUser = yield VerifiedUser_model_1.default.findOne({ phone: req.body.phone, status: true });
+        if (!verifiedUser) {
+            console.log("Phone number not verified or not present in VerifiedUsers");
+            return res.status(400).json({ message: "Phone number is not verified", success: false });
+        }
+        console.log("Phone number verified, proceeding with user creation");
         const documents = [];
         if (req.body.gstCertificate) {
             let gstCertificate = yield (0, fileSystem_1.storeFileAndReturnNameBase64)(req.body.gstCertificate);
