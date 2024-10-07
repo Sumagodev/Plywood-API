@@ -30,14 +30,17 @@ export const addUser = async (req: Request, res: Response, next: NextFunction) =
   try {
 
 
+    console.log(req.body, "Received Request Body");
 
-    // Check if the phone number is verified
+    // Check if the phone number exists and is verified in VerifiedUsers
     const verifiedUser = await VerifiedUsers.findOne({ phone: req.body.phone, status: true });
 
     if (!verifiedUser) {
+      console.log("Phone number not verified or not present in VerifiedUsers");
       return res.status(400).json({ message: "Phone number is not verified", success: false });
     }
 
+    console.log("Phone number verified, proceeding with user creation");
     const documents = [];
     if (req.body.gstCertificate) {
       let gstCertificate = await storeFileAndReturnNameBase64(req.body.gstCertificate);
