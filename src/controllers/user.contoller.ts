@@ -143,14 +143,16 @@ export const addUser = async (req: Request, res: Response, next: NextFunction) =
       req.body.password = await encryptPassword(req.body.password);
     }
 
+
+    
+
     // Convert salesId to ObjectId if present
     if (req.body.salesId) {
       req.body.salesId = new mongoose.Types.ObjectId(req.body.salesId);
     }
 
     // Check if phone number is verified in VerifiedUsers collection
-    const verifiedUser = await VerifiedUsers.findOne({ phone: req.body.phone });
-
+    const verifiedUser = await VerifiedUsers.findOne({ phone: req.body.phone }).exec();
     // Add logging to track what verifiedUser returns
     console.log("verifiedUser result:", verifiedUser);
 

@@ -141,7 +141,7 @@ const addUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
             req.body.salesId = new mongoose_1.default.Types.ObjectId(req.body.salesId);
         }
         // Check if phone number is verified in VerifiedUsers collection
-        const verifiedUser = yield VerifiedUser_model_1.default.findOne({ phone: req.body.phone });
+        const verifiedUser = yield VerifiedUser_model_1.default.findOne({ phone: req.body.phone }).exec();
         // Add logging to track what verifiedUser returns
         console.log("verifiedUser result:", verifiedUser);
         if (!verifiedUser) {
