@@ -22,6 +22,7 @@ import { postSpiCrmLead } from "../service/sipCrm.service";
 import { startOfDay, endOfDay } from 'date-fns'; // Use date-fns for date comparison if needed
 import OtpVerifyModel from "../models/OtpVerify.model";
 import VerifiedUsers from "../models/VerifiedUser.model";
+import { SendVerificationSMS } from "../helpers/sms";
 
 export const webLogin = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -1075,11 +1076,19 @@ export const sendOTPForVerify = async (req: Request, res: Response, next: NextFu
     const otpPayload = { phone, otp };
     const otpObj = await OtpVerifyModel.create(otpPayload);
     if (otpObj)
-      res.status(200).json({ result: true, message: `OTP sent to your mobile ${phone}` });
-    else
-      res.status(500).json({ result: false, message: `OTP sending failed for your mobile ${phone}` });
+{
+  const result= await SendVerificationSMS(req.body.phone,otp)
 
+  if(result)
+
+  res.status(200).json({ result: true, message: `OTP sent to your mobile ${phone}` });
+else
+  res.status(500).json({ result: false, message: `OTP sending failed for your mobile ${phone}` });
+}else{
+  res.status(500).json({ result: false, message: `OTP sending failed for your mobile ${phone}` });
+}
   } catch (error) {
+    res.status(500).json({ result: false, message: `OTP sending failed` });
     next(error);
   }
 };

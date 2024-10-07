@@ -34,6 +34,7 @@ const sipCrm_service_1 = require("../service/sipCrm.service");
 const date_fns_1 = require("date-fns"); // Use date-fns for date comparison if needed
 const OtpVerify_model_1 = __importDefault(require("../models/OtpVerify.model"));
 const VerifiedUser_model_1 = __importDefault(require("../models/VerifiedUser.model"));
+const sms_1 = require("../helpers/sms");
 const webLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const UserExistCheck = yield user_model_1.User.findOne({ $or: [{ email: new RegExp(`^${req.body.email}$`) }] }).exec();
@@ -1020,12 +1021,19 @@ const sendOTPForVerify = (req, res, next) => __awaiter(void 0, void 0, void 0, f
         }
         const otpPayload = { phone, otp };
         const otpObj = yield OtpVerify_model_1.default.create(otpPayload);
-        if (otpObj)
-            res.status(200).json({ result: true, message: `OTP sent to your mobile ${phone}` });
-        else
+        if (otpObj) {
+            const result = yield (0, sms_1.SendVerificationSMS)(req.body.phone, otp);
+            if (result)
+                res.status(200).json({ result: true, message: `OTP sent to your mobile ${phone}` });
+            else
+                res.status(500).json({ result: false, message: `OTP sending failed for your mobile ${phone}` });
+        }
+        else {
             res.status(500).json({ result: false, message: `OTP sending failed for your mobile ${phone}` });
+        }
     }
     catch (error) {
+        res.status(500).json({ result: false, message: `OTP sending failed` });
         next(error);
     }
 });

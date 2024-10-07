@@ -27,7 +27,7 @@ phone: {
 async function sendVerificationSMS(phone: string, otp: string): Promise<void> {
   try {
   
-    await SendSms(phone,otp);
+    await SendVerificationSMS(phone,otp);
     //SendVerificationSMS
 
   } catch (error) {
@@ -40,7 +40,7 @@ otpSchema.pre<OtpVerify>('save', async function (this: OtpVerify, next) {
   console.log("New document saved to the database");
   // Only send an email when a new document is created
   if (this.isNew) {
-    await sendVerificationSMS(this.phone, this.otp);
+   // await sendVerificationSMS(this.phone, this.otp);
   }
   next();
 });
