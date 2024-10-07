@@ -27,7 +27,7 @@ phone: {
 async function sendVerificationSMS(phone: string, otp: string): Promise<void> {
   try {
   
-    await SendSms(phone,otp);
+    await SendVerificationSMS(phone,otp);
     //SendVerificationSMS
 
   } catch (error) {
