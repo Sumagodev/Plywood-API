@@ -18,19 +18,21 @@ const validiator_1 = require("../helpers/validiator");
 const sipCrm_service_1 = require("../service/sipCrm.service");
 const addVerifiedUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        if (!req.body.userId) {
+        const { userId, phone } = req.body;
+        if (!userId) {
+            return res.status(400).json({ message: "UserId is required", success: false });
         }
-        if (!(0, validiator_1.ValidatePhone)(req.body.phone)) {
-            throw new Error("Phone number is not valid !!!!");
+        if (!(0, validiator_1.ValidatePhone)(phone)) {
+            throw new Error("Phone number is not valid!");
         }
-        let userRequestObj = yield new VerifiedUser_model_1.default(req.body).save();
-        let crmObj = {
+        const userRequestObj = yield new VerifiedUser_model_1.default(req.body).save();
+        const crmObj = {
             status: userRequestObj === null || userRequestObj === void 0 ? void 0 : userRequestObj.status,
             MobileNo: userRequestObj === null || userRequestObj === void 0 ? void 0 : userRequestObj.phone,
-            verifiedAt: userRequestObj === null || userRequestObj === void 0 ? void 0 : userRequestObj.verifiedAt
+            verifiedAt: userRequestObj === null || userRequestObj === void 0 ? void 0 : userRequestObj.verifiedAt,
         };
         yield (0, sipCrm_service_1.postSpiCrmLead)(crmObj);
-        res.status(200).json({ message: " VerifiedUser Sucessfully Created", success: true });
+        res.status(200).json({ message: "VerifiedUser successfully created", success: true });
     }
     catch (err) {
         next(err);
@@ -39,17 +41,25 @@ const addVerifiedUser = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
 exports.addVerifiedUser = addVerifiedUser;
 const getVerifiedUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        let userRequestArr = [];
         let query = {};
-        let totalCounts = yield VerifiedUser_model_1.default.find(query).countDocuments();
-        let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
-        let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 10;
-        userRequestArr = yield VerifiedUser_model_1.default.find(query)
+        const totalCounts = yield VerifiedUser_model_1.default.find(query).countDocuments();
+        const pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
+        const limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 10;
+        const totalPages = Math.ceil(totalCounts / limitValue);
+        const userRequestArr = yield VerifiedUser_model_1.default.find(query)
             .skip((pageValue - 1) * limitValue)
             .limit(limitValue)
             .lean()
             .exec();
-        res.status(200).json({ message: "getState", data: userRequestArr, totalCounts: totalCounts, success: true });
+        res.status(200).json({
+            message: "Verified users fetched successfully",
+            data: userRequestArr,
+            totalCounts,
+            page: pageValue,
+            limit: limitValue,
+            totalPages,
+            success: true,
+        });
     }
     catch (err) {
         next(err);
@@ -58,12 +68,12 @@ const getVerifiedUser = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
 exports.getVerifiedUser = getVerifiedUser;
 const getById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        let userRequestObj = yield VerifiedUser_model_1.default.findById(req.params.id).exec();
+        const userRequestObj = yield VerifiedUser_model_1.default.findById(req.params.id).exec();
         if (!userRequestObj) {
-            throw new Error("User Request not found");
+            return res.status(404).json({ message: "User not found", success: false });
         }
-        yield VerifiedUser_model_1.default.findByIdAndUpdate(req.params.id, req.body).exec();
-        res.status(200).json({ message: "State Found", data: userRequestObj, success: true });
+        const updatedUser = yield VerifiedUser_model_1.default.findByIdAndUpdate(req.params.id, req.body, { new: true }).exec();
+        res.status(200).json({ message: "User updated successfully", data: updatedUser, success: true });
     }
     catch (err) {
         next(err);
@@ -72,10 +82,11 @@ const getById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
 exports.getById = getById;
 const deleteById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const TopupObj = yield VerifiedUser_model_1.default.findByIdAndDelete(req.params.id).exec();
-        if (!TopupObj)
-            throw { status: 400, message: "VerifiedUser Not Found" };
-        res.status(200).json({ message: "VerifiedUser Deleted", success: true });
+        const deletedUser = yield VerifiedUser_model_1.default.findByIdAndDelete(req.params.id).exec();
+        if (!deletedUser) {
+            return res.status(404).json({ message: "VerifiedUser not found", success: false });
+        }
+        res.status(200).json({ message: "VerifiedUser deleted", success: true });
     }
     catch (err) {
         next(err);

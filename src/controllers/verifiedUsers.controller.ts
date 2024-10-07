@@ -2,49 +2,59 @@ import { NextFunction, Request, Response } from "express";
 import VerifiedUsers from "../models/VerifiedUser.model";
 import { ValidatePhone } from "../helpers/validiator";
 import { postSpiCrmLead } from "../service/sipCrm.service";
+
 export const addVerifiedUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    if (!req.body.userId) {
+    const { userId, phone } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ message: "UserId is required", success: false });
     }
 
-    if (!ValidatePhone(req.body.phone)) {
-      throw new Error("Phone number is not valid !!!!");
+    if (!ValidatePhone(phone)) {
+      throw new Error("Phone number is not valid!");
     }
 
-    let userRequestObj = await new VerifiedUsers(req.body).save();
+    const userRequestObj = await new VerifiedUsers(req.body).save();
 
-    let crmObj = {
+    const crmObj = {
       status: userRequestObj?.status,
       MobileNo: userRequestObj?.phone,
-      verifiedAt : userRequestObj?.verifiedAt
-
+      verifiedAt: userRequestObj?.verifiedAt,
     };
 
-
     await postSpiCrmLead(crmObj);
-    res.status(200).json({ message: " VerifiedUser Sucessfully Created", success: true });
+
+    res.status(200).json({ message: "VerifiedUser successfully created", success: true });
   } catch (err) {
     next(err);
   }
 };
+
 export const getVerifiedUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    let userRequestArr: any = [];
     let query: any = {};
+    const totalCounts = await VerifiedUsers.find(query).countDocuments();
+    
+    const pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
+    const limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 10;
+    const totalPages = Math.ceil(totalCounts / limitValue);
 
-
-    let totalCounts = await VerifiedUsers.find(query).countDocuments();
-
-    let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
-    let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 10;
-
-    userRequestArr = await VerifiedUsers.find(query)
+    const userRequestArr = await VerifiedUsers.find(query)
       .skip((pageValue - 1) * limitValue)
       .limit(limitValue)
       .lean()
       .exec();
 
-    res.status(200).json({ message: "getState", data: userRequestArr, totalCounts: totalCounts, success: true });
+    res.status(200).json({
+      message: "Verified users fetched successfully",
+      data: userRequestArr,
+      totalCounts,
+      page: pageValue,
+      limit: limitValue,
+      totalPages,
+      success: true,
+    });
   } catch (err) {
     next(err);
   }
@@ -52,14 +62,14 @@ export const getVerifiedUser = async (req: Request, res: Response, next: NextFun
 
 export const getById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    let userRequestObj = await VerifiedUsers.findById(req.params.id).exec();
+    const userRequestObj = await VerifiedUsers.findById(req.params.id).exec();
     if (!userRequestObj) {
-      throw new Error("User Request not found");
+      return res.status(404).json({ message: "User not found", success: false });
     }
 
-    await VerifiedUsers.findByIdAndUpdate(req.params.id, req.body).exec();
+    const updatedUser = await VerifiedUsers.findByIdAndUpdate(req.params.id, req.body, { new: true }).exec();
 
-    res.status(200).json({ message: "State Found", data: userRequestObj, success: true });
+    res.status(200).json({ message: "User updated successfully", data: updatedUser, success: true });
   } catch (err) {
     next(err);
   }
@@ -67,9 +77,12 @@ export const getById = async (req: Request, res: Response, next: NextFunction) =
 
 export const deleteById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const TopupObj = await VerifiedUsers.findByIdAndDelete(req.params.id).exec();
-    if (!TopupObj) throw { status: 400, message: "VerifiedUser Not Found" };
-    res.status(200).json({ message: "VerifiedUser Deleted", success: true });
+    const deletedUser = await VerifiedUsers.findByIdAndDelete(req.params.id).exec();
+    if (!deletedUser) {
+      return res.status(404).json({ message: "VerifiedUser not found", success: false });
+    }
+
+    res.status(200).json({ message: "VerifiedUser deleted", success: true });
   } catch (err) {
     next(err);
   }
