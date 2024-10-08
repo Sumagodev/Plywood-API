@@ -122,7 +122,10 @@ export const getNotificationsForUser = async (userId: string): Promise<(INotific
     ...notification,
     isRead: readStatusMap.has(notification._id.toString()), // This will reflect the actual read status
     readAt: readStatusMap.get(notification._id.toString()) // Optional: get the read timestamp
-  })).filter(notification => !notification.isRead); // Filter out read notifications
+  }))
+  .filter(notification => !notification.isRead)
+  .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()); // Sort in descending order based on `createdAt`
+
 
 };
 export const getUserNotificationsController = async (req: Request, res: Response, next: NextFunction) => {
