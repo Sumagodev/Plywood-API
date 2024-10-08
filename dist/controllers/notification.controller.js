@@ -113,6 +113,40 @@ const getNotificationsForUser = (userId) => __awaiter(void 0, void 0, void 0, fu
         .sort((a, b) => b.lastAccessTime.getTime() - a.lastAccessTime.getTime()); // Sort in descending order based on `createdAt`
 });
 exports.getNotificationsForUser = getNotificationsForUser;
+const getNotificationsForUserPaginated = (userId, page = 1, pageSize = 10) => __awaiter(void 0, void 0, void 0, function* () {
+    // Fetch read statuses for this user
+    const readStatuses = yield NotificationReadStatus_model_1.NotificationReadStatus.find({ userId }).lean();
+    // Create a set of read notification IDs for faster lookups
+    const readNotificationIds = new Set(readStatuses.map((status) => status.notificationId.toString()));
+    // Query to fetch unread notifications (both user-specific and "all" reach) directly from DB
+    const query = {
+        $or: [
+            { userId },
+            { reach: 'all' }, // Fetch notifications with reach to "all"
+        ],
+        _id: { $nin: [...readNotificationIds] }, // Exclude already read notifications
+    };
+    // Calculate total unread notifications for pagination
+    const totalItems = yield Notifications_model_1.Notifications.countDocuments(query);
+    // Calculate total pages
+    const totalPages = Math.ceil(totalItems / pageSize);
+    // Adjust the current page if it's out of range
+    const adjustedPage = Math.max(1, Math.min(page, totalPages));
+    // Fetch paginated unread notifications directly from the database
+    const paginatedNotifications = yield Notifications_model_1.Notifications.find(query)
+        .sort({ lastAccessTime: -1 }) // Sort by last access time in descending order
+        .skip((adjustedPage - 1) * pageSize) // Skip to the correct page
+        .limit(pageSize) // Limit results to pageSize
+        .lean(); // Return plain JS objects
+    // Return paginated results
+    return {
+        items: paginatedNotifications,
+        currentPage: adjustedPage,
+        totalPages: totalPages,
+        pageSize: pageSize,
+        totalItems: totalItems,
+    };
+});
 const getUserNotificationsController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.body.userId; // Assume you're sending userId in the request body

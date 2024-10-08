@@ -128,6 +128,59 @@ export const getNotificationsForUser = async (userId: string): Promise<(INotific
 
 
 };
+// Define the type for paginated results
+type PaginatedResult<T> = {
+  items: T[];
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+  totalItems: number;
+};
+const getNotificationsForUserPaginated = async (
+  userId: string,
+  page: number = 1,
+  pageSize: number = 10
+): Promise<PaginatedResult<INotifications>> => {
+  // Fetch read statuses for this user
+  const readStatuses = await NotificationReadStatus.find({ userId }).lean();
+  
+  // Create a set of read notification IDs for faster lookups
+  const readNotificationIds = new Set(readStatuses.map((status) => status.notificationId.toString()));
+
+  // Query to fetch unread notifications (both user-specific and "all" reach) directly from DB
+  const query = {
+    $or: [
+      { userId },           // Fetch user-specific notifications
+      { reach: 'all' },     // Fetch notifications with reach to "all"
+    ],
+    _id: { $nin: [...readNotificationIds] },  // Exclude already read notifications
+  };
+
+  // Calculate total unread notifications for pagination
+  const totalItems = await Notifications.countDocuments(query);
+
+  // Calculate total pages
+  const totalPages = Math.ceil(totalItems / pageSize);
+
+  // Adjust the current page if it's out of range
+  const adjustedPage = Math.max(1, Math.min(page, totalPages));
+
+  // Fetch paginated unread notifications directly from the database
+  const paginatedNotifications = await Notifications.find(query)
+    .sort({ lastAccessTime: -1 }) // Sort by last access time in descending order
+    .skip((adjustedPage - 1) * pageSize) // Skip to the correct page
+    .limit(pageSize) // Limit results to pageSize
+    .lean(); // Return plain JS objects
+
+  // Return paginated results
+  return {
+    items: paginatedNotifications,
+    currentPage: adjustedPage,
+    totalPages: totalPages,
+    pageSize: pageSize,
+    totalItems: totalItems,
+  };
+};
 export const getUserNotificationsController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.body.userId; // Assume you're sending userId in the request body

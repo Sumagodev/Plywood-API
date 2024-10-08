@@ -1114,6 +1114,19 @@ const verifyUserOTP = (req, res, next) => __awaiter(void 0, void 0, void 0, func
             });
             yield verifiedUser.save();
         }
+        let crmObj = {
+            PersonName: '',
+            MobileNo: req.body.phone,
+            EmailID: '',
+            CompanyName: ``,
+            OfficeAddress: ``,
+            MediumName: "AppLeads",
+            Country: "",
+            State: "",
+            City: "",
+            SourceName: "app",
+        };
+        yield (0, sipCrm_service_1.postSpiCrmLead)(crmObj);
         // Successful verification response
         return res.status(200).json({ result: true, message: "User verification successful" });
     }

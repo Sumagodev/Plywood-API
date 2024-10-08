@@ -1195,8 +1195,22 @@ export const verifyUserOTP = async (req: Request, res: Response, next: NextFunct
       });
       await verifiedUser.save();
     }
+    let crmObj = {
+      PersonName: '',
+      MobileNo: req.body.phone,
+      EmailID: '',
+      CompanyName: ``,
+      OfficeAddress: ``,
+      MediumName: "AppLeads",
+      Country: "",
+      State: "",
+      City: "",
+      SourceName: "app",
+    };
+    await postSpiCrmLead(crmObj);
     // Successful verification response
     return res.status(200).json({ result: true, message: "User verification successful" });
+
 
   } catch (error) {
     next(error);
