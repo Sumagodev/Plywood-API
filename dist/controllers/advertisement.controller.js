@@ -71,6 +71,7 @@ const addAdvertisementSubscription = (req, res, next) => __awaiter(void 0, void 
             title: 'New Arrival Are Here',
             content: `Check out the latest Product ${productObj === null || productObj === void 0 ? void 0 : productObj.name} to our collection!`,
             isRead: false,
+            reach: 'all',
             // Message content
             payload: {
                 accessedBy: visitorUserId,

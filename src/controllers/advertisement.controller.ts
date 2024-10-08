@@ -70,6 +70,7 @@ export const addAdvertisementSubscription = async (req: Request, res: Response, 
       title: 'New Arrival Are Here',   // Title of the notification
       content: `Check out the latest Product ${productObj?.name} to our collection!`, 
       isRead:false,
+      reach:'all',
       // Message content
       payload: {                            // Dynamic payload data
           accessedBy: visitorUserId,
