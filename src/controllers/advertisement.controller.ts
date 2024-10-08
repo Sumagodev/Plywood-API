@@ -71,6 +71,7 @@ export const addAdvertisementSubscription = async (req: Request, res: Response, 
       content: `Check out the latest Product ${productObj?.name} to our collection!`, 
       isRead:false,
       reach:'all',
+      lastAccessTime: new Date(),
       // Message content
       payload: {                            // Dynamic payload data
           accessedBy: visitorUserId,

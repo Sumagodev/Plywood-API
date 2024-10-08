@@ -110,7 +110,7 @@ const getNotificationsForUser = (userId) => __awaiter(void 0, void 0, void 0, fu
     return combinedNotifications.map(notification => (Object.assign(Object.assign({}, notification), { isRead: readStatusMap.has(notification._id.toString()), readAt: readStatusMap.get(notification._id.toString()) // Optional: get the read timestamp
      })))
         .filter(notification => !notification.isRead)
-        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()); // Sort in descending order based on `createdAt`
+        .sort((a, b) => b.lastAccessTime.getTime() - a.lastAccessTime.getTime()); // Sort in descending order based on `createdAt`
 });
 exports.getNotificationsForUser = getNotificationsForUser;
 const getUserNotificationsController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {

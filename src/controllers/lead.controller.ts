@@ -106,6 +106,7 @@ export const addLead = async (req: Request, res: Response, next: NextFunction) =
       title: 'Someone tried to contact you',   // Title of the notification
       content: `Someone tried to contact you  => user ${visitorUserId}`, // Message content
       isRead:false,
+      lastAccessTime: new Date(),
       payload: {                            // Dynamic payload data
           accessedBy: visitorUserId,
           accessTime: new Date(),

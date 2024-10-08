@@ -111,6 +111,7 @@ const addLead = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
             title: 'Someone tried to contact you',
             content: `Someone tried to contact you  => user ${visitorUserId}`,
             isRead: false,
+            lastAccessTime: new Date(),
             payload: {
                 accessedBy: visitorUserId,
                 accessTime: new Date(),

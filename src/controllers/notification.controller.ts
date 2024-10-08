@@ -124,7 +124,7 @@ export const getNotificationsForUser = async (userId: string): Promise<(INotific
     readAt: readStatusMap.get(notification._id.toString()) // Optional: get the read timestamp
   }))
   .filter(notification => !notification.isRead)
-  .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()); // Sort in descending order based on `createdAt`
+  .sort((a, b) => b.lastAccessTime.getTime() - a.lastAccessTime.getTime()); // Sort in descending order based on `createdAt`
 
 
 };
