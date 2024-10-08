@@ -13,4 +13,6 @@ router.get("/getAllSubscriptionbyUserId", usersubsctiption_controller_1.getAllSu
 router.get("/getByUserId/:id", usersubsctiption_controller_1.getById);
 router.get("/sendMailById/:id", usersubsctiption_controller_1.sendMailById);
 router.post("/phonepePaymentStatusCheck/:orderId", usersubsctiption_controller_1.phonepePaymentStatusCheck);
+router.post("/initiateJuspayPayment", usersubsctiption_controller_1.phonepePaymentStatusCheck);
+router.post("/handleJuspayResponse", usersubsctiption_controller_1.phonepePaymentStatusCheck);
 exports.default = router;

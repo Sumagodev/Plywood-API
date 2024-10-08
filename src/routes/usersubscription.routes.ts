@@ -10,6 +10,9 @@ router.get("/getAllSubscriptionbyUserId", getAllSubscriptionbyUserId);
 router.get("/getByUserId/:id", getById);
 router.get("/sendMailById/:id", sendMailById);
 router.post("/phonepePaymentStatusCheck/:orderId", phonepePaymentStatusCheck);
+router.post("/initiateJuspayPayment", phonepePaymentStatusCheck);
+router.post("/handleJuspayResponse", phonepePaymentStatusCheck);
+
 
 
 export default router;

@@ -252,7 +252,7 @@ export const getUnreadNotificationsCount = async (req: Request, res: Response, n
     }
 
     // Get the notifications that are either specific to the user or for all users
-    const userSpecificNotifications = await Notifications.find({ userId, isRead: false }).lean();
+    const userSpecificNotifications = await Notifications.find({ userId}).lean();
     const globalNotifications = await Notifications.find({ reach: "all" }).lean();
 
     // Fetch the read statuses for this user

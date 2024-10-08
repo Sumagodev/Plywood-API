@@ -210,7 +210,7 @@ const getUnreadNotificationsCount = (req, res, next) => __awaiter(void 0, void 0
             return res.status(400).json({ message: "User ID is required", success: false });
         }
         // Get the notifications that are either specific to the user or for all users
-        const userSpecificNotifications = yield Notifications_model_1.Notifications.find({ userId, isRead: false }).lean();
+        const userSpecificNotifications = yield Notifications_model_1.Notifications.find({ userId }).lean();
         const globalNotifications = yield Notifications_model_1.Notifications.find({ reach: "all" }).lean();
         // Fetch the read statuses for this user
         const readStatuses = yield NotificationReadStatus_model_1.NotificationReadStatus.find({ userId }).lean();
