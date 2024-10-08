@@ -1196,10 +1196,10 @@ export const verifyUserOTP = async (req: Request, res: Response, next: NextFunct
       await verifiedUser.save();
     }
     let crmObj = {
-      PersonName: '',
+      PersonName: 'AppLeads',
       MobileNo: req.body.phone,
       EmailID: '',
-      CompanyName: ``,
+      CompanyName: `PlywoodBazar`,
       OfficeAddress: ``,
       MediumName: "AppLeads",
       Country: "",
