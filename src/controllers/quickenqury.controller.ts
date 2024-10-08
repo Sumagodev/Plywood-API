@@ -13,16 +13,31 @@ export const addquickenquiry = async (req: Request, res: Response, next: NextFun
 
     let userRequestObj = await new quickenquiry(req.body).save();
 
+    // let crmObj = {
+    //   PersonName: userRequestObj?.name,
+    //   MobileNo: userRequestObj?.phone,
+    //   OfficeAddress: `${userRequestObj?.meassage}`,
+
+    // };
+
+  
+    // await postSpiCrmLead(crmObj);
+
     let crmObj = {
       PersonName: userRequestObj?.name,
       MobileNo: userRequestObj?.phone,
-      OfficeAddress: `${userRequestObj?.meassage}`,
-
+      EmailID: '',
+      CompanyName: ``,
+      OfficeAddress: ``,
+      MediumName: "QuickEnquiry",
+      Country: "",
+      State: "",
+      City: "",
+      SourceName: "website",
+      InitialRemarks:`${userRequestObj?.meassage}`,
     };
-
-  
     await postSpiCrmLead(crmObj);
-    res.status(200).json({ message: " quickenquiry Sucessfully Created", success: true });
+    res.status(200).json({ message: " Quick Enquiry Sucessfully Created", success: true });
   } catch (err) {
     next(err);
   }

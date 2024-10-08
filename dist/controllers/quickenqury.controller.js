@@ -21,13 +21,27 @@ const addquickenquiry = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             throw new Error("Phone number is not valid !!!!");
         }
         let userRequestObj = yield new quickenquiry_model_1.quickenquiry(req.body).save();
+        // let crmObj = {
+        //   PersonName: userRequestObj?.name,
+        //   MobileNo: userRequestObj?.phone,
+        //   OfficeAddress: `${userRequestObj?.meassage}`,
+        // };
+        // await postSpiCrmLead(crmObj);
         let crmObj = {
             PersonName: userRequestObj === null || userRequestObj === void 0 ? void 0 : userRequestObj.name,
             MobileNo: userRequestObj === null || userRequestObj === void 0 ? void 0 : userRequestObj.phone,
-            OfficeAddress: `${userRequestObj === null || userRequestObj === void 0 ? void 0 : userRequestObj.meassage}`,
+            EmailID: '',
+            CompanyName: ``,
+            OfficeAddress: ``,
+            MediumName: "QuickEnquiry",
+            Country: "",
+            State: "",
+            City: "",
+            SourceName: "website",
+            InitialRemarks: `${userRequestObj === null || userRequestObj === void 0 ? void 0 : userRequestObj.meassage}`,
         };
         yield (0, sipCrm_service_1.postSpiCrmLead)(crmObj);
-        res.status(200).json({ message: " quickenquiry Sucessfully Created", success: true });
+        res.status(200).json({ message: " Quick Enquiry Sucessfully Created", success: true });
     }
     catch (err) {
         next(err);
