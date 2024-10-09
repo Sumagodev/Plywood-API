@@ -98,7 +98,7 @@ exports.getUserNotificationCount = getUserNotificationCount;
 const getNotificationsForUser = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     // Fetch notifications for the specific user
     const userNotifications = yield Notifications_model_1.Notifications.find({ userId }).lean();
-    // Fetch notifications that reach "all" and are not read
+    // Fetch notifications that reach "all"
     const allNotifications = yield Notifications_model_1.Notifications.find({ reach: "all" }).lean();
     // Fetch read statuses for this user
     const readStatuses = yield NotificationReadStatus_model_1.NotificationReadStatus.find({ userId }).lean();
@@ -106,10 +106,9 @@ const getNotificationsForUser = (userId) => __awaiter(void 0, void 0, void 0, fu
     const readStatusMap = new Map(readStatuses.map(status => [status.notificationId.toString(), status.readAt]));
     // Combine user-specific notifications with notifications for all users
     const combinedNotifications = [...userNotifications, ...allNotifications];
-    // Add isRead property and return the notifications
-    return combinedNotifications.map(notification => (Object.assign(Object.assign({}, notification), { isRead: readStatusMap.has(notification._id.toString()), readAt: readStatusMap.get(notification._id.toString()) // Optional: get the read timestamp
+    // Add isRead and readAt properties, and return all notifications
+    return combinedNotifications.map(notification => (Object.assign(Object.assign({}, notification), { isRead: readStatusMap.has(notification._id.toString()), readAt: readStatusMap.get(notification._id.toString()) // Include the read timestamp if available
      })))
-        .filter(notification => !notification.isRead)
         .sort((a, b) => b.lastAccessTime.getTime() - a.lastAccessTime.getTime()); // Sort in descending order based on `createdAt`
 });
 exports.getNotificationsForUser = getNotificationsForUser;

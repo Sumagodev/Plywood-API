@@ -101,14 +101,14 @@ export const getUserNotificationCount = async (req: Request, res: Response, next
 // The function to get notifications for a user
 export const getNotificationsForUser = async (userId: string): Promise<(INotifications & { isRead: boolean; readAt?: Date })[]> => {
   // Fetch notifications for the specific user
-  const userNotifications: INotifications[] = await Notifications.find({ userId}).lean();
-  
-  // Fetch notifications that reach "all" and are not read
+  const userNotifications: INotifications[] = await Notifications.find({ userId }).lean();
+
+  // Fetch notifications that reach "all"
   const allNotifications: INotifications[] = await Notifications.find({ reach: "all" }).lean();
 
   // Fetch read statuses for this user
   const readStatuses = await NotificationReadStatus.find({ userId }).lean();
-  
+
   // Create a map of notificationId to readAt date for quick lookup
   const readStatusMap = new Map<string, Date>(
     readStatuses.map(status => [status.notificationId.toString(), status.readAt])
@@ -117,17 +117,15 @@ export const getNotificationsForUser = async (userId: string): Promise<(INotific
   // Combine user-specific notifications with notifications for all users
   const combinedNotifications = [...userNotifications, ...allNotifications];
 
-  // Add isRead property and return the notifications
+  // Add isRead and readAt properties, and return all notifications
   return combinedNotifications.map(notification => ({
     ...notification,
-    isRead: readStatusMap.has(notification._id.toString()), // This will reflect the actual read status
-    readAt: readStatusMap.get(notification._id.toString()) // Optional: get the read timestamp
+    isRead: readStatusMap.has(notification._id.toString()), // Check if the notification was read
+    readAt: readStatusMap.get(notification._id.toString()) // Include the read timestamp if available
   }))
-  .filter(notification => !notification.isRead)
   .sort((a, b) => b.lastAccessTime.getTime() - a.lastAccessTime.getTime()); // Sort in descending order based on `createdAt`
-
-
 };
+
 // Define the type for paginated results
 type PaginatedResult<T> = {
   items: T[];
