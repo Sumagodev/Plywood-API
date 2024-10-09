@@ -7,6 +7,8 @@ import { UserFcmToken } from "../models/UserFcmTokens.model";
 import { Notifications } from "../models/Notifications.model";
 import { fcmMulticastNotify } from "../helpers/fcmNotify";
 import { notification_text } from "../helpers/constant";
+import mongoose, { model, Schema, Types } from 'mongoose';
+
 // export const addProductReview = async (req: Request, res: Response, next: NextFunction) => {
 //     try {
 
@@ -243,7 +245,38 @@ export const addProductReview = async (req: Request, res: Response, next: NextFu
 //     next(err);
 //   }
 // };
+export interface IProductReview {
+  userId: string; // ID of the user who added the review
+  rating: number; // Rating given by the user
+  message: string; // Review message
+  productId: Types.ObjectId; // Reference to the product
+  displayOnProductPage: boolean; // Whether to display the review on the product page
+  status: string; // Status of the review
+  name: string; // Name of the user
+  createdAt: Date; // Creation date
+  updatedAt: Date; // Update date
+  addedBy: string; // Additional field for tracking
+  productIdExtra: string; // Extra product ID field
+}
 
+// Define the ProductReview schema
+const productReviewSchema = new Schema<IProductReview>(
+  {
+      userId: String,
+      name: String,
+      rating: { type: Number, default: 0 },
+      message: String,
+      productId: {
+          type: Schema.Types.ObjectId,
+          ref: 'product', // Reference to the product model
+      },
+      displayOnProductPage: { type: Boolean, default: false },
+      status: String,
+      addedBy: String,
+      productIdExtra: String,
+  },
+  { timestamps: true } // Automatically manage createdAt and updatedAt
+);
 export const getProductReview = async (req: Request, res: Response, next: NextFunction) => {
   try {
     let query: any = {};
@@ -283,26 +316,35 @@ export const getProductReview = async (req: Request, res: Response, next: NextFu
         select: "profileImage companyObj.name name email phone", // Fetch user's profileImage, name, company details, email, and phone
         model: User, // Specify the User model
       })
-      .populate({
-        path: "addedby", // Populate user details
-        select: "profileImage companyObj.name name", // Fetch the user's profileImage and name
-        model: User, // Specify the User model
-      })
       .skip((pageValue - 1) * limitValue)
       .sort({ createdAt: -1 })
       .limit(limitValue)
       .lean()
       .exec();
 
+      const transformedReviews = ProductReviewArr.map(review => {
+        const { userId, ...rest } = review; // Destructure to separate userId
+        return {
+            ...rest,
+            addedby: userId, // Rename userId to addedby
+        };
+    });
+
     // Respond with the product reviews and the populated data
     res.status(200).json({
-      message: "getProductReview",
-      data: ProductReviewArr,
-      count: categoryCount,
-      success: true,
+        message: "getProductReview",
+        data: transformedReviews,
+        count: categoryCount,
+        success: true,
     });
-  } catch (err) {
-    next(err);
+} catch (error) {
+    console.error("Error fetching product reviews:", error);
+    res.status(500).json({
+        message: "Error fetching product reviews",
+        success: false,
+    });
+
+    next(error);
   }
 };
 
