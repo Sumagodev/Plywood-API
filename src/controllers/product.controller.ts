@@ -438,6 +438,7 @@ export const getProductById = async (req: Request, res: Response, next: NextFunc
   
       console.log('Product Creator ID:', ProductObj.createdById.toString());
       console.log('Visitor User ID:', visitorUserId);
+
   
       if(ProductObj.createdById.toString()===visitorUserId)
         {

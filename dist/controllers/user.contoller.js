@@ -437,55 +437,57 @@ const getUserById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
             console.log('Visitor User ID:', visitorUserId);
             console.log('Start of Today:', startOfToday);
             console.log('End of Today:', endOfToday);
-            if (visitorUserId === req.params.userId) {
+            if (visitorUserId === (user === null || user === void 0 ? void 0 : user._id)) {
                 return;
             }
-            // Check if a notification already exists for the same user and day
-            let existingNotification = yield Notifications_model_1.Notifications.findOne({
-                userId: req.params.userId,
-                type: 'profile_view',
-                createdAt: {
-                    $gte: startOfToday,
-                    $lte: endOfToday // Less than or equal to the end of the day
-                },
-                'payload.accessedBy': visitorUserId // Check for the accessedBy field
-            });
-            console.log('Existing Notification:', existingNotification);
-            if (existingNotification) {
-                // If a notification exists, increment the view count and update the last access time
-                yield Notifications_model_1.Notifications.updateOne({ _id: existingNotification._id }, {
-                    $inc: { viewCount: 1 },
-                    $set: {
-                        lastAccessTime: new Date(),
-                        isRead: false,
-                    } // Update lastAccessTime to current time
-                });
-                console.log('Notification updated with incremented view count and updated last access time');
-            }
             else {
-                // If no notification exists, create a new one
-                const newNotification = new Notifications_model_1.Notifications({
+                // Check if a notification already exists for the same user and day
+                let existingNotification = yield Notifications_model_1.Notifications.findOne({
                     userId: req.params.userId,
                     type: 'profile_view',
-                    title: 'Your profile was accessed',
-                    content: `Your profile was accessed by user ${visitorUserId}`,
-                    sourceId: visitorUserId,
-                    isRead: false,
-                    viewCount: 1,
-                    lastAccessTime: new Date(),
-                    payload: {
-                        accessedBy: visitorUserId,
-                        accessTime: new Date(),
-                        organizationName: ((_v = leadUser === null || leadUser === void 0 ? void 0 : leadUser.companyObj) === null || _v === void 0 ? void 0 : _v.name) || 'Unknown' // Safely access company name
-                    }
+                    createdAt: {
+                        $gte: startOfToday,
+                        $lte: endOfToday // Less than or equal to the end of the day
+                    },
+                    'payload.accessedBy': visitorUserId // Check for the accessedBy field
                 });
-                // Save the new notification to the database
-                try {
-                    yield newNotification.save();
-                    console.log('New notification created with viewCount and lastAccessTime');
+                console.log('Existing Notification:', existingNotification);
+                if (existingNotification) {
+                    // If a notification exists, increment the view count and update the last access time
+                    yield Notifications_model_1.Notifications.updateOne({ _id: existingNotification._id }, {
+                        $inc: { viewCount: 1 },
+                        $set: {
+                            lastAccessTime: new Date(),
+                            isRead: false,
+                        } // Update lastAccessTime to current time
+                    });
+                    console.log('Notification updated with incremented view count and updated last access time');
                 }
-                catch (error) {
-                    console.error('Error saving new notification:', error);
+                else {
+                    // If no notification exists, create a new one
+                    const newNotification = new Notifications_model_1.Notifications({
+                        userId: req.params.userId,
+                        type: 'profile_view',
+                        title: 'Your profile was accessed',
+                        content: `Your profile was accessed by user ${visitorUserId}`,
+                        sourceId: visitorUserId,
+                        isRead: false,
+                        viewCount: 1,
+                        lastAccessTime: new Date(),
+                        payload: {
+                            accessedBy: visitorUserId,
+                            accessTime: new Date(),
+                            organizationName: ((_v = leadUser === null || leadUser === void 0 ? void 0 : leadUser.companyObj) === null || _v === void 0 ? void 0 : _v.name) || 'Unknown' // Safely access company name
+                        }
+                    });
+                    // Save the new notification to the database
+                    try {
+                        yield newNotification.save();
+                        console.log('New notification created with viewCount and lastAccessTime');
+                    }
+                    catch (error) {
+                        console.error('Error saving new notification:', error);
+                    }
                 }
             }
         }
