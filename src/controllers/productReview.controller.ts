@@ -283,6 +283,11 @@ export const getProductReview = async (req: Request, res: Response, next: NextFu
         select: "profileImage companyObj.name name email phone", // Fetch user's profileImage, name, company details, email, and phone
         model: User, // Specify the User model
       })
+      .populate({
+        path: "addedby", // Populate user details
+        select: "profileImage companyObj.name name", // Fetch the user's profileImage and name
+        model: User, // Specify the User model
+      })
       .skip((pageValue - 1) * limitValue)
       .sort({ createdAt: -1 })
       .limit(limitValue)
