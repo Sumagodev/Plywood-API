@@ -144,7 +144,10 @@ export const addProductReview = async (req: Request, res: Response, next: NextFu
 
       
 
-      await fcmMulticastNotify(obj)
+    // try{
+    //   await fcmMulticastNotify(obj)
+    // }catch(err){
+    //   console.log(err)    }
 
 
 

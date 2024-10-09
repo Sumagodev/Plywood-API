@@ -16,7 +16,6 @@ const product_model_1 = require("../models/product.model");
 const user_model_1 = require("../models/user.model");
 const UserFcmTokens_model_1 = require("../models/UserFcmTokens.model");
 const Notifications_model_1 = require("../models/Notifications.model");
-const fcmNotify_1 = require("../helpers/fcmNotify");
 const constant_1 = require("../helpers/constant");
 // export const addProductReview = async (req: Request, res: Response, next: NextFunction) => {
 //     try {
@@ -121,7 +120,10 @@ const addProductReview = (req, res, next) => __awaiter(void 0, void 0, void 0, f
         // }
         // await new Notifications(saveNotificationObj).save()
         // console.log(saveNotificationObj, "NOTIFICATION OBJ")
-        yield (0, fcmNotify_1.fcmMulticastNotify)(obj);
+        // try{
+        //   await fcmMulticastNotify(obj)
+        // }catch(err){
+        //   console.log(err)    }
         res.status(200).json({ message: "Review Successfully Created", success: true });
         let reviewerObj = yield user_model_1.User.findById(addedby);
         let prodctObj = yield product_model_1.Product.findById(productId);
