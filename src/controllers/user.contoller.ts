@@ -475,6 +475,11 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
       console.log('Visitor User ID:', visitorUserId);
       console.log('Start of Today:', startOfToday);
       console.log('End of Today:', endOfToday);
+
+      if(visitorUserId===req.params.userId)
+      {
+        return ;
+      }
       // Check if a notification already exists for the same user and day
       let existingNotification = await Notifications.findOne({
         userId: req.params.userId,                  // Profile owner
