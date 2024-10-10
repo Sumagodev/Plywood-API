@@ -56,6 +56,7 @@ const webLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
                 email: UserExistCheck.email,
                 phone: UserExistCheck.phone,
                 _id: UserExistCheck._id,
+                role: UserExistCheck.role,
             },
         };
         const token = yield (0, jwt_1.generateAccessJwt)(userData);
@@ -101,6 +102,7 @@ const appLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
                 email: UserExistCheck.email,
                 phone: UserExistCheck.phone,
                 _id: UserExistCheck._id,
+                role: UserExistCheck.role,
             },
         };
         const token = yield (0, jwt_1.generateAccessJwt)(userData);

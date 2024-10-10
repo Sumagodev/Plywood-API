@@ -54,6 +54,7 @@ export const webLogin = async (req: Request, res: Response, next: NextFunction) 
         email: UserExistCheck.email,
         phone: UserExistCheck.phone,
         _id: UserExistCheck._id,
+        role: UserExistCheck.role,
       },
     };
     const token = await generateAccessJwt(userData);
@@ -102,6 +103,7 @@ export const appLogin = async (req: Request, res: Response, next: NextFunction) 
         email: UserExistCheck.email,
         phone: UserExistCheck.phone,
         _id: UserExistCheck._id,
+        role: UserExistCheck.role,
       },
     };
     const token = await generateAccessJwt(userData);
