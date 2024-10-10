@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendMailById = exports.getById = exports.getAllSubscriptionbyUserId = exports.getSubscriptionSubscribedbyUserId = exports.getSubscription = exports.phonepePaymentStatusCheck = exports.buySubscription = void 0;
+exports.handleJuspayPaymentForSubcription = exports.initiateJuspayPaymentForSubcription = exports.sendMailById = exports.getById = exports.getAllSubscriptionbyUserId = exports.getSubscriptionSubscribedbyUserId = exports.getSubscription = exports.phonepePaymentStatusCheck = exports.buySubscription = void 0;
 const userSubscription_model_1 = require("../models/userSubscription.model");
 const user_model_1 = require("../models/user.model");
 const moment_1 = __importDefault(require("moment"));
@@ -24,6 +24,8 @@ const State_model_1 = require("../models/State.model");
 const City_model_1 = require("../models/City.model");
 const sipCrm_service_1 = require("../service/sipCrm.service");
 const constant_1 = require("../helpers/constant");
+const expresscheckout_nodejs_1 = require("expresscheckout-nodejs");
+const hdfcConfig_1 = require("../helpers/hdfcConfig");
 const buySubscription = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
     try {
@@ -408,3 +410,130 @@ const sendMailById = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
     }
 });
 exports.sendMailById = sendMailById;
+// // Type definitions for the config object
+// interface Config {
+//   PUBLIC_KEY_PATH: string;
+//   PRIVATE_KEY_PATH: string;
+//   PAYMENT_PAGE_CLIENT_ID: string;
+//   MERCHANT_ID: string;
+//   KEY_UUID: string;
+// }
+// // Type assertion for config to ensure it matches our interface
+// const typedConfig = config as Config;
+// // Read public and private keys from file system
+// const publicKey = fs.readFileSync(typedConfig.PUBLIC_KEY_PATH, 'utf8');
+// const privateKey = fs.readFileSync(typedConfig.PRIVATE_KEY_PATH, 'utf8');
+// // Use the PAYMENT_PAGE_CLIENT_ID for your operations
+// const paymentPageClientId = typedConfig.PAYMENT_PAGE_CLIENT_ID;
+// // Assuming Juspay is a class or library and should be imported
+// // Example: import Juspay from 'juspay';  (Assuming Juspay is a package)
+// // Uncomment the next line after installing the correct Juspay package
+// // import Juspay from 'juspay';
+// // Example Juspay constructor call (with TypeScript types)
+// interface JuspayConfig {
+//   merchantId: string;
+//   baseUrl: string;
+//   jweAuth: {
+//     keyId: string;
+//     publicKey: string;
+//     privateKey: string;
+//   };
+// }
+// // Define base URL
+// const SANDBOX_BASE_URL = "https://smartgatewayuat.hdfcbank.com"
+// const PRODUCTION_BASE_URL = "https://smartgateway.hdfcbank.com"
+// // Example instantiation of Juspay
+// const juspay = new Juspay({
+//   merchantId: typedConfig.MERCHANT_ID,
+//   baseUrl: SANDBOX_BASE_URL,
+//   jweAuth: {
+//     keyId: typedConfig.KEY_UUID,
+//     publicKey,
+//     privateKey
+//   }
+// } as JuspayConfig);
+const initiateJuspayPaymentForSubcription = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const paymentPageClientId = hdfcConfig_1.hdfcConfig.PAYMENT_PAGE_CLIENT_ID;
+    const orderId = `order_${Date.now()}`;
+    const amount = 1 + Math.random() * 100 | 0;
+    // makes return url
+    const returnUrl = `${req.protocol}://${req.hostname}:${process.env.PORT}/usersubscription/handleJuspayPaymentForSubcription`;
+    //const returnUrl='https://api.plywoodbazar.com/test/usersubscription/handleJuspayPaymentForSubcription'
+    try {
+        const sessionResponse = yield hdfcConfig_1.juspayConfig.orderSession.create({
+            order_id: orderId,
+            amount: amount,
+            payment_page_client_id: paymentPageClientId,
+            customer_id: 'hdfc-testing-customer-one',
+            action: 'paymentPage',
+            return_url: returnUrl,
+            currency: 'INR' // [optional] default is INR
+        });
+        // removes http field from response, typically you won't send entire structure as response
+        return res.json(makeJuspayResponse(sessionResponse));
+    }
+    catch (error) {
+        if (error instanceof expresscheckout_nodejs_1.APIError) {
+            // handle errors comming from juspay's api
+            return res.json(makeError(error.message));
+        }
+        return res.json(makeError());
+    }
+});
+exports.initiateJuspayPaymentForSubcription = initiateJuspayPaymentForSubcription;
+const handleJuspayPaymentForSubcription = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log('yyyyy', req);
+    // Get orderId from request body
+    const orderId = req.body.order_id || req.body.orderId;
+    if (orderId === undefined) {
+        return res.json(makeError('order_id not present or cannot be empty'));
+    }
+    try {
+        // Call Juspay API to get order status
+        const statusResponse = yield hdfcConfig_1.juspayConfig.order.status(orderId);
+        const orderStatus = statusResponse.status;
+        let message = '';
+        // Handle different order statuses
+        switch (orderStatus) {
+            case "CHARGED":
+                message = "order payment done successfully";
+                break;
+            case "PENDING":
+            case "PENDING_VBV":
+                message = "order payment pending";
+                break;
+            case "AUTHORIZATION_FAILED":
+                message = "order payment authorization failed";
+                break;
+            case "AUTHENTICATION_FAILED":
+                message = "order payment authentication failed";
+                break;
+            default:
+                message = `order status ${orderStatus}`;
+                break;
+        }
+        // Remove unnecessary fields from the response
+        return res.send(makeJuspayResponse(statusResponse));
+    }
+    catch (error) {
+        if (error instanceof expresscheckout_nodejs_1.APIError) {
+            // Handle Juspay API errors
+            return res.json(makeError(error.message));
+        }
+        return res.json(makeError());
+    }
+});
+exports.handleJuspayPaymentForSubcription = handleJuspayPaymentForSubcription;
+// Utility functions
+function makeError(message) {
+    return {
+        message: message || 'Something went wrong'
+    };
+}
+function makeJuspayResponse(successRspFromJuspay) {
+    if (!successRspFromJuspay)
+        return successRspFromJuspay;
+    if (successRspFromJuspay.http !== undefined)
+        delete successRspFromJuspay.http;
+    return successRspFromJuspay;
+}

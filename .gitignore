@@ -58,6 +58,9 @@ typings/
 # dotenv environment variables file
 .env
 
+config.json
+privateKey.pem
+key_c37cd028ffa54c78a41331d13e756dd4.pem
 # next.js build output
 .next
 
