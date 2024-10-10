@@ -27,19 +27,19 @@ const constant_1 = require("../helpers/constant");
 const expresscheckout_nodejs_1 = require("expresscheckout-nodejs");
 const hdfcConfig_1 = require("../helpers/hdfcConfig");
 const buySubscription = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
     try {
-        let existsCheck = yield userSubscription_model_1.UserSubscription.findOne({ userId: (_a = req === null || req === void 0 ? void 0 : req.user) === null || _a === void 0 ? void 0 : _a.userId }).sort({ endDate: -1 }).exec();
+        let existsCheck = yield userSubscription_model_1.UserSubscription.findOne({ userId: req === null || req === void 0 ? void 0 : req.body.userId }).sort({ endDate: -1 }).exec();
         console.log(existsCheck, "existsCheck");
         let tempStartDate = new Date();
         let tempEndDate = new Date();
-        if (((_b = req.body) === null || _b === void 0 ? void 0 : _b.noOfMonth) > 0) {
+        if (((_a = req.body) === null || _a === void 0 ? void 0 : _a.noOfMonth) > 0) {
             if (existsCheck && existsCheck.endDate) {
                 tempStartDate = new Date(existsCheck.endDate);
-                tempEndDate = (0, moment_1.default)(existsCheck.endDate).add({ months: (_c = req.body) === null || _c === void 0 ? void 0 : _c.noOfMonth });
+                tempEndDate = (0, moment_1.default)(existsCheck.endDate).add({ months: (_b = req.body) === null || _b === void 0 ? void 0 : _b.noOfMonth });
             }
             else {
-                tempEndDate = (0, moment_1.default)(tempEndDate).add({ months: (_d = req.body) === null || _d === void 0 ? void 0 : _d.noOfMonth });
+                tempEndDate = (0, moment_1.default)(tempEndDate).add({ months: (_c = req.body) === null || _c === void 0 ? void 0 : _c.noOfMonth });
             }
         }
         else if (existsCheck && existsCheck.endDate) {
@@ -49,23 +49,23 @@ const buySubscription = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             tempEndDate = undefined;
         }
         let obj = {
-            userId: (_e = req === null || req === void 0 ? void 0 : req.user) === null || _e === void 0 ? void 0 : _e.userId,
+            userId: (_d = req === null || req === void 0 ? void 0 : req.body) === null || _d === void 0 ? void 0 : _d.userId,
             subscriptionId: req.body._id,
-            name: (_f = req.body) === null || _f === void 0 ? void 0 : _f.name,
-            description: (_g = req.body) === null || _g === void 0 ? void 0 : _g.description,
-            price: (_h = req.body) === null || _h === void 0 ? void 0 : _h.price,
+            name: (_e = req.body) === null || _e === void 0 ? void 0 : _e.name,
+            description: (_f = req.body) === null || _f === void 0 ? void 0 : _f.description,
+            price: (_g = req.body) === null || _g === void 0 ? void 0 : _g.price,
             startDate: tempStartDate,
-            numberOfSales: ((_j = req === null || req === void 0 ? void 0 : req.body) === null || _j === void 0 ? void 0 : _j.numberOfSales) ? (_k = req === null || req === void 0 ? void 0 : req.body) === null || _k === void 0 ? void 0 : _k.numberOfSales : 0,
-            saleDays: ((_l = req === null || req === void 0 ? void 0 : req.body) === null || _l === void 0 ? void 0 : _l.saleDays) ? (_m = req === null || req === void 0 ? void 0 : req.body) === null || _m === void 0 ? void 0 : _m.saleDays : 0,
-            numberOfAdvertisement: ((_o = req === null || req === void 0 ? void 0 : req.body) === null || _o === void 0 ? void 0 : _o.numberOfAdvertisement) ? (_p = req === null || req === void 0 ? void 0 : req.body) === null || _p === void 0 ? void 0 : _p.numberOfAdvertisement : 0,
-            advertisementDays: ((_q = req === null || req === void 0 ? void 0 : req.body) === null || _q === void 0 ? void 0 : _q.advertisementDays) ? (_r = req === null || req === void 0 ? void 0 : req.body) === null || _r === void 0 ? void 0 : _r.advertisementDays : 0,
+            numberOfSales: ((_h = req === null || req === void 0 ? void 0 : req.body) === null || _h === void 0 ? void 0 : _h.numberOfSales) ? (_j = req === null || req === void 0 ? void 0 : req.body) === null || _j === void 0 ? void 0 : _j.numberOfSales : 0,
+            saleDays: ((_k = req === null || req === void 0 ? void 0 : req.body) === null || _k === void 0 ? void 0 : _k.saleDays) ? (_l = req === null || req === void 0 ? void 0 : req.body) === null || _l === void 0 ? void 0 : _l.saleDays : 0,
+            numberOfAdvertisement: ((_m = req === null || req === void 0 ? void 0 : req.body) === null || _m === void 0 ? void 0 : _m.numberOfAdvertisement) ? (_o = req === null || req === void 0 ? void 0 : req.body) === null || _o === void 0 ? void 0 : _o.numberOfAdvertisement : 0,
+            advertisementDays: ((_p = req === null || req === void 0 ? void 0 : req.body) === null || _p === void 0 ? void 0 : _p.advertisementDays) ? (_q = req === null || req === void 0 ? void 0 : req.body) === null || _q === void 0 ? void 0 : _q.advertisementDays : 0,
             isExpired: false,
             endDate: null,
         };
         if (tempEndDate) {
             obj.endDate = tempEndDate;
         }
-        let userObj = yield user_model_1.User.findById((_s = req === null || req === void 0 ? void 0 : req.user) === null || _s === void 0 ? void 0 : _s.userId).exec();
+        let userObj = yield user_model_1.User.findById((_r = req === null || req === void 0 ? void 0 : req.user) === null || _r === void 0 ? void 0 : _r.userId).exec();
         if (!(userObj || userObj._id)) {
             throw new Error("Could not find user please contact admin !!!");
         }
@@ -112,7 +112,7 @@ const buySubscription = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
 });
 exports.buySubscription = buySubscription;
 const phonepePaymentStatusCheck = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _t, _u, _v, _w, _x, _y, _z;
+    var _s, _t, _u, _v, _w, _x, _y;
     try {
         console.log(req.body, "-------------------------------------------------");
         // const userObj = await User.findById(req.user.userId).lean().exec();
@@ -135,20 +135,20 @@ const phonepePaymentStatusCheck = (req, res, next) => __awaiter(void 0, void 0, 
         if (checkPaymentStatus && !(checkPaymentStatus === null || checkPaymentStatus === void 0 ? void 0 : checkPaymentStatus.sucess)) {
             throw new Error("Please Contact to Admin for payment is failed");
         }
-        phoneObj.paymentInstrument = (_t = checkPaymentStatus === null || checkPaymentStatus === void 0 ? void 0 : checkPaymentStatus.data) === null || _t === void 0 ? void 0 : _t.paymentInstrument;
+        phoneObj.paymentInstrument = (_s = checkPaymentStatus === null || checkPaymentStatus === void 0 ? void 0 : checkPaymentStatus.data) === null || _s === void 0 ? void 0 : _s.paymentInstrument;
         orderObj = yield Payment_model_1.Payment.findByIdAndUpdate(req.params.orderId, {
             "paymentChk": 1,
             "gatwayPaymentObj": phoneObj,
         })
             .lean()
             .exec();
-        let userObj = yield user_model_1.User.findById((_u = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj) === null || _u === void 0 ? void 0 : _u.userId).exec();
+        let userObj = yield user_model_1.User.findById((_t = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj) === null || _t === void 0 ? void 0 : _t.userId).exec();
         let patObj = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj;
         let totalSubscription = yield userSubscription_model_1.UserSubscription.countDocuments({});
         let invoiceId = (0, constant_1.getSubscriptionSequence)(totalSubscription + 1);
         patObj.orderId = invoiceId;
         console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxpatObj', patObj);
-        yield user_model_1.User.findByIdAndUpdate((_v = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj) === null || _v === void 0 ? void 0 : _v.userId, {
+        yield user_model_1.User.findByIdAndUpdate((_u = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj) === null || _u === void 0 ? void 0 : _u.userId, {
             $inc: {
                 numberOfSales: patObj.numberOfSales,
                 saleDays: patObj === null || patObj === void 0 ? void 0 : patObj.saleDays,
@@ -159,7 +159,7 @@ const phonepePaymentStatusCheck = (req, res, next) => __awaiter(void 0, void 0, 
         }).exec();
         orderObj = yield new userSubscription_model_1.UserSubscription(patObj).save();
         console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxorderObj', orderObj);
-        let email = (userObj === null || userObj === void 0 ? void 0 : userObj.email) ? userObj === null || userObj === void 0 ? void 0 : userObj.email : (_w = userObj === null || userObj === void 0 ? void 0 : userObj.companyObj) === null || _w === void 0 ? void 0 : _w.email;
+        let email = (userObj === null || userObj === void 0 ? void 0 : userObj.email) ? userObj === null || userObj === void 0 ? void 0 : userObj.email : (_v = userObj === null || userObj === void 0 ? void 0 : userObj.companyObj) === null || _v === void 0 ? void 0 : _v.email;
         let name = userObj === null || userObj === void 0 ? void 0 : userObj.name;
         let orderId = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderId;
         let emailArr = [
@@ -183,7 +183,7 @@ const phonepePaymentStatusCheck = (req, res, next) => __awaiter(void 0, void 0, 
             PersonName: userObj === null || userObj === void 0 ? void 0 : userObj.name,
             MobileNo: userObj === null || userObj === void 0 ? void 0 : userObj.phone,
             EmailID: userObj === null || userObj === void 0 ? void 0 : userObj.email,
-            CompanyName: `${(_x = userObj === null || userObj === void 0 ? void 0 : userObj.companyObj) === null || _x === void 0 ? void 0 : _x.name}`,
+            CompanyName: `${(_w = userObj === null || userObj === void 0 ? void 0 : userObj.companyObj) === null || _w === void 0 ? void 0 : _w.name}`,
             OfficeAddress: `${userObj === null || userObj === void 0 ? void 0 : userObj.address}`,
             MediumName: "Subscribed",
             CampaignName: orderObj === null || orderObj === void 0 ? void 0 : orderObj.name,
@@ -193,8 +193,8 @@ const phonepePaymentStatusCheck = (req, res, next) => __awaiter(void 0, void 0, 
             SourceName: "app",
             InitialRemarks: `Start Date  : ${orderObj === null || orderObj === void 0 ? void 0 : orderObj.startDate}, End Date : ${orderObj === null || orderObj === void 0 ? void 0 : orderObj.endDate}`,
         };
-        if ((_y = req.body) === null || _y === void 0 ? void 0 : _y.SourceName) {
-            crmObj.SourceName = (_z = req.body) === null || _z === void 0 ? void 0 : _z.SourceName;
+        if ((_x = req.body) === null || _x === void 0 ? void 0 : _x.SourceName) {
+            crmObj.SourceName = (_y = req.body) === null || _y === void 0 ? void 0 : _y.SourceName;
         }
         if (userObj.countryId) {
             let countryObj = yield country_model_1.Country.findById(userObj.countryId).exec();
@@ -320,7 +320,7 @@ const getSubscriptionSubscribedbyUserId = (req, res, next) => __awaiter(void 0, 
 });
 exports.getSubscriptionSubscribedbyUserId = getSubscriptionSubscribedbyUserId;
 const getAllSubscriptionbyUserId = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _0, _1, _2, _3;
+    var _z, _0, _1, _2;
     try {
         let SubscriptionArr = [];
         // let query: any = {}
@@ -335,10 +335,10 @@ const getAllSubscriptionbyUserId = (req, res, next) => __awaiter(void 0, void 0,
         let pageValue = req.query.currentPage ? parseInt(`${req.query.currentPage}`) : 1;
         let limitValue = req.query.rowsPerPage ? parseInt(`${req.query.rowsPerPage}`) : 10;
         const totalCount = yield userSubscription_model_1.UserSubscription.find({
-            $or: [{ userId: (_0 = req.user) === null || _0 === void 0 ? void 0 : _0.userId }, { userId: (_1 = req.query) === null || _1 === void 0 ? void 0 : _1.userId }],
+            $or: [{ userId: (_z = req.user) === null || _z === void 0 ? void 0 : _z.userId }, { userId: (_0 = req.query) === null || _0 === void 0 ? void 0 : _0.userId }],
         }).countDocuments();
         SubscriptionArr = yield userSubscription_model_1.UserSubscription.find({
-            $or: [{ userId: (_2 = req.user) === null || _2 === void 0 ? void 0 : _2.userId }, { userId: (_3 = req.query) === null || _3 === void 0 ? void 0 : _3.userId }],
+            $or: [{ userId: (_1 = req.user) === null || _1 === void 0 ? void 0 : _1.userId }, { userId: (_2 = req.query) === null || _2 === void 0 ? void 0 : _2.userId }],
         })
             .skip((pageValue - 1) * limitValue)
             .limit(limitValue)
@@ -374,7 +374,7 @@ const getById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
 });
 exports.getById = getById;
 const sendMailById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _4;
+    var _3;
     try {
         // let SubscriptionObj: any = await UserSubscription.findById(req.params.id).lean().exec();
         // if (!SubscriptionObj) throw { status: 400, message: "UserSubscription Not Found" };
@@ -383,7 +383,7 @@ const sendMailById = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         if (!userOrderObj)
             throw new Error("Order Not Found");
         let userObj = yield user_model_1.User.findById(userOrderObj === null || userOrderObj === void 0 ? void 0 : userOrderObj.userId).exec();
-        let email = (userObj === null || userObj === void 0 ? void 0 : userObj.email) ? userObj === null || userObj === void 0 ? void 0 : userObj.email : (_4 = userObj === null || userObj === void 0 ? void 0 : userObj.companyObj) === null || _4 === void 0 ? void 0 : _4.email;
+        let email = (userObj === null || userObj === void 0 ? void 0 : userObj.email) ? userObj === null || userObj === void 0 ? void 0 : userObj.email : (_3 = userObj === null || userObj === void 0 ? void 0 : userObj.companyObj) === null || _3 === void 0 ? void 0 : _3.email;
         let name = userObj === null || userObj === void 0 ? void 0 : userObj.name;
         let orderId = userOrderObj === null || userOrderObj === void 0 ? void 0 : userOrderObj._id;
         let emailArr = [
@@ -410,49 +410,68 @@ const sendMailById = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
     }
 });
 exports.sendMailById = sendMailById;
-// // Type definitions for the config object
-// interface Config {
-//   PUBLIC_KEY_PATH: string;
-//   PRIVATE_KEY_PATH: string;
-//   PAYMENT_PAGE_CLIENT_ID: string;
-//   MERCHANT_ID: string;
-//   KEY_UUID: string;
-// }
-// // Type assertion for config to ensure it matches our interface
-// const typedConfig = config as Config;
-// // Read public and private keys from file system
-// const publicKey = fs.readFileSync(typedConfig.PUBLIC_KEY_PATH, 'utf8');
-// const privateKey = fs.readFileSync(typedConfig.PRIVATE_KEY_PATH, 'utf8');
-// // Use the PAYMENT_PAGE_CLIENT_ID for your operations
-// const paymentPageClientId = typedConfig.PAYMENT_PAGE_CLIENT_ID;
-// // Assuming Juspay is a class or library and should be imported
-// // Example: import Juspay from 'juspay';  (Assuming Juspay is a package)
-// // Uncomment the next line after installing the correct Juspay package
-// // import Juspay from 'juspay';
-// // Example Juspay constructor call (with TypeScript types)
-// interface JuspayConfig {
-//   merchantId: string;
-//   baseUrl: string;
-//   jweAuth: {
-//     keyId: string;
-//     publicKey: string;
-//     privateKey: string;
-//   };
-// }
-// // Define base URL
-// const SANDBOX_BASE_URL = "https://smartgatewayuat.hdfcbank.com"
-// const PRODUCTION_BASE_URL = "https://smartgateway.hdfcbank.com"
-// // Example instantiation of Juspay
-// const juspay = new Juspay({
-//   merchantId: typedConfig.MERCHANT_ID,
-//   baseUrl: SANDBOX_BASE_URL,
-//   jweAuth: {
-//     keyId: typedConfig.KEY_UUID,
-//     publicKey,
-//     privateKey
-//   }
-// } as JuspayConfig);
 const initiateJuspayPaymentForSubcription = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20;
+    let existsCheck = yield userSubscription_model_1.UserSubscription.findOne({ userId: (_4 = req === null || req === void 0 ? void 0 : req.user) === null || _4 === void 0 ? void 0 : _4.userId }).sort({ endDate: -1 }).exec();
+    console.log(existsCheck, "existsCheck");
+    let tempStartDate = new Date();
+    let tempEndDate = new Date();
+    if (((_5 = req.body) === null || _5 === void 0 ? void 0 : _5.noOfMonth) > 0) {
+        if (existsCheck && existsCheck.endDate) {
+            tempStartDate = new Date(existsCheck.endDate);
+            tempEndDate = (0, moment_1.default)(existsCheck.endDate).add({ months: (_6 = req.body) === null || _6 === void 0 ? void 0 : _6.noOfMonth });
+        }
+        else {
+            tempEndDate = (0, moment_1.default)(tempEndDate).add({ months: (_7 = req.body) === null || _7 === void 0 ? void 0 : _7.noOfMonth });
+        }
+    }
+    else if (existsCheck && existsCheck.endDate) {
+        tempEndDate = existsCheck.endDate;
+    }
+    else {
+        tempEndDate = undefined;
+    }
+    let obj = {
+        userId: (_8 = req === null || req === void 0 ? void 0 : req.user) === null || _8 === void 0 ? void 0 : _8.userId,
+        subscriptionId: req.body._id,
+        name: (_9 = req.body) === null || _9 === void 0 ? void 0 : _9.name,
+        description: (_10 = req.body) === null || _10 === void 0 ? void 0 : _10.description,
+        price: (_11 = req.body) === null || _11 === void 0 ? void 0 : _11.price,
+        startDate: tempStartDate,
+        numberOfSales: ((_12 = req === null || req === void 0 ? void 0 : req.body) === null || _12 === void 0 ? void 0 : _12.numberOfSales) ? (_13 = req === null || req === void 0 ? void 0 : req.body) === null || _13 === void 0 ? void 0 : _13.numberOfSales : 0,
+        saleDays: ((_14 = req === null || req === void 0 ? void 0 : req.body) === null || _14 === void 0 ? void 0 : _14.saleDays) ? (_15 = req === null || req === void 0 ? void 0 : req.body) === null || _15 === void 0 ? void 0 : _15.saleDays : 0,
+        numberOfAdvertisement: ((_16 = req === null || req === void 0 ? void 0 : req.body) === null || _16 === void 0 ? void 0 : _16.numberOfAdvertisement) ? (_17 = req === null || req === void 0 ? void 0 : req.body) === null || _17 === void 0 ? void 0 : _17.numberOfAdvertisement : 0,
+        advertisementDays: ((_18 = req === null || req === void 0 ? void 0 : req.body) === null || _18 === void 0 ? void 0 : _18.advertisementDays) ? (_19 = req === null || req === void 0 ? void 0 : req.body) === null || _19 === void 0 ? void 0 : _19.advertisementDays : 0,
+        isExpired: false,
+        endDate: null,
+    };
+    if (tempEndDate) {
+        obj.endDate = tempEndDate;
+    }
+    let userObj = yield user_model_1.User.findById((_20 = req === null || req === void 0 ? void 0 : req.user) === null || _20 === void 0 ? void 0 : _20.userId).exec();
+    if (!(userObj || userObj._id)) {
+        throw new Error("Could not find user please contact admin !!!");
+    }
+    // Add GST
+    obj.price = obj.price + Math.round(obj.price * 0.18);
+    let options = {
+        amount: obj.price * 100,
+        currency: "INR",
+        receipt: new Date().getTime(),
+    };
+    let paymentObj = {
+        amount: obj.price,
+        orderObj: obj,
+        paymentChk: 0,
+    };
+    let paymentObjResponse = yield new Payment_model_1.Payment(paymentObj).save();
+    options.orderId = paymentObjResponse._id;
+    options.mobile = userObj === null || userObj === void 0 ? void 0 : userObj.phone;
+    options.userId = userObj === null || userObj === void 0 ? void 0 : userObj._id;
+    options.email = userObj === null || userObj === void 0 ? void 0 : userObj.email;
+    options.subscriptionId = existsCheck._id;
+    options.successUrl = `${process.env.BASE_URL}/usersubscription/phonepePaymentStatusCheck/` + paymentObjResponse._id;
+    options.payfrom = req.body.patfrom;
     const paymentPageClientId = hdfcConfig_1.hdfcConfig.PAYMENT_PAGE_CLIENT_ID;
     const orderId = `order_${Date.now()}`;
     const amount = 1 + Math.random() * 100 | 0;
@@ -461,14 +480,27 @@ const initiateJuspayPaymentForSubcription = (req, res, next) => __awaiter(void 0
     //const returnUrl='https://api.plywoodbazar.com/test/usersubscription/handleJuspayPaymentForSubcription'
     try {
         const sessionResponse = yield hdfcConfig_1.juspayConfig.orderSession.create({
-            order_id: orderId,
-            amount: amount,
+            order_id: options.orderId,
+            amount: options.amount,
             payment_page_client_id: paymentPageClientId,
-            customer_id: 'hdfc-testing-customer-one',
+            customer_id: options.userId,
             action: 'paymentPage',
             return_url: returnUrl,
-            currency: 'INR' // [optional] default is INR
+            customer_phone: options.mobile,
+            customer_email: options.email,
+            currency: 'INR',
+            description: '',
+            udf6: options.subscriptionId // [optional] default is INR
         });
+        if (sessionResponse && !(sessionResponse === null || sessionResponse === void 0 ? void 0 : sessionResponse.sucess)) {
+            throw new Error(`Phonepe is not working.Please Try Some another Payment Method`);
+        }
+        let orderPaymentObj = sessionResponse === null || sessionResponse === void 0 ? void 0 : sessionResponse.data;
+        let obj1 = yield Payment_model_1.Payment.findByIdAndUpdate(paymentObjResponse._id, {
+            "gatwayPaymentObj": orderPaymentObj,
+        })
+            .lean()
+            .exec();
         // removes http field from response, typically you won't send entire structure as response
         return res.json(makeJuspayResponse(sessionResponse));
     }
@@ -483,7 +515,6 @@ const initiateJuspayPaymentForSubcription = (req, res, next) => __awaiter(void 0
 exports.initiateJuspayPaymentForSubcription = initiateJuspayPaymentForSubcription;
 const handleJuspayPaymentForSubcription = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     console.log('yyyyy', req);
-    // Get orderId from request body
     const orderId = req.body.order_id || req.body.orderId;
     if (orderId === undefined) {
         return res.json(makeError('order_id not present or cannot be empty'));
@@ -497,6 +528,7 @@ const handleJuspayPaymentForSubcription = (req, res, next) => __awaiter(void 0, 
         switch (orderStatus) {
             case "CHARGED":
                 message = "order payment done successfully";
+                console.log('xxxxx', 'order payment done successfully');
                 break;
             case "PENDING":
             case "PENDING_VBV":

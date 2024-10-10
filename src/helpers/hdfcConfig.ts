@@ -3,10 +3,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // Import JSON config file
-import config from '../../config.json';
+import config from '../config.json';
 import "dotenv/config";
 
-
+/////
 // Type definitions for the config object
 interface Config {
     PUBLIC_KEY_PATH: string;

@@ -19,7 +19,7 @@ import { hdfcConfig, juspayConfig } from "../helpers/hdfcConfig";
 
 export const buySubscription = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    let existsCheck: any = await UserSubscription.findOne({ userId: req?.user?.userId }).sort({ endDate: -1 }).exec();
+    let existsCheck: any = await UserSubscription.findOne({ userId: req?.body.userId }).sort({ endDate: -1 }).exec();
     console.log(existsCheck, "existsCheck");
     let tempStartDate: any = new Date();
     let tempEndDate: any = new Date();
@@ -38,7 +38,7 @@ export const buySubscription = async (req: Request, res: Response, next: NextFun
     }
 
     let obj = {
-      userId: req?.user?.userId,
+      userId: req?.body?.userId,
       subscriptionId: req.body._id,
       name: req.body?.name,
       description: req.body?.description,
@@ -415,63 +415,86 @@ export const sendMailById = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-// // Type definitions for the config object
-// interface Config {
-//   PUBLIC_KEY_PATH: string;
-//   PRIVATE_KEY_PATH: string;
-//   PAYMENT_PAGE_CLIENT_ID: string;
-//   MERCHANT_ID: string;
-//   KEY_UUID: string;
-// }
-
-// // Type assertion for config to ensure it matches our interface
-// const typedConfig = config as Config;
-
-// // Read public and private keys from file system
-// const publicKey = fs.readFileSync(typedConfig.PUBLIC_KEY_PATH, 'utf8');
-// const privateKey = fs.readFileSync(typedConfig.PRIVATE_KEY_PATH, 'utf8');
-
-// // Use the PAYMENT_PAGE_CLIENT_ID for your operations
-// const paymentPageClientId = typedConfig.PAYMENT_PAGE_CLIENT_ID;
-
-// // Assuming Juspay is a class or library and should be imported
-// // Example: import Juspay from 'juspay';  (Assuming Juspay is a package)
-// // Uncomment the next line after installing the correct Juspay package
-// // import Juspay from 'juspay';
-
-// // Example Juspay constructor call (with TypeScript types)
-// interface JuspayConfig {
-//   merchantId: string;
-//   baseUrl: string;
-//   jweAuth: {
-//     keyId: string;
-//     publicKey: string;
-//     privateKey: string;
-//   };
-// }
-
-// // Define base URL
-// const SANDBOX_BASE_URL = "https://smartgatewayuat.hdfcbank.com"
-// const PRODUCTION_BASE_URL = "https://smartgateway.hdfcbank.com"
-
-// // Example instantiation of Juspay
-// const juspay = new Juspay({
-//   merchantId: typedConfig.MERCHANT_ID,
-//   baseUrl: SANDBOX_BASE_URL,
-//   jweAuth: {
-//     keyId: typedConfig.KEY_UUID,
-//     publicKey,
-//     privateKey
-//   }
-// } as JuspayConfig);
 
 
 export const initiateJuspayPaymentForSubcription = async (req: Request, res: Response, next: NextFunction) => {
 
 
+
+  let existsCheck: any = await UserSubscription.findOne({ userId: req?.user?.userId }).sort({ endDate: -1 }).exec();
+    console.log(existsCheck, "existsCheck");
+    let tempStartDate: any = new Date();
+    let tempEndDate: any = new Date();
+
+    if (req.body?.noOfMonth > 0) {
+      if (existsCheck && existsCheck.endDate) {
+        tempStartDate = new Date(existsCheck.endDate);
+        tempEndDate = moment(existsCheck.endDate).add({ months: req.body?.noOfMonth });
+      } else {
+        tempEndDate = moment(tempEndDate).add({ months: req.body?.noOfMonth });
+      }
+    } else if (existsCheck && existsCheck.endDate) {
+      tempEndDate = existsCheck.endDate;
+    } else {
+      tempEndDate = undefined;
+    }
+
+    let obj = {
+      userId: req?.user?.userId,
+      subscriptionId: req.body._id,
+      name: req.body?.name,
+      description: req.body?.description,
+      price: req.body?.price,
+      startDate: tempStartDate,
+      numberOfSales: req?.body?.numberOfSales ? req?.body?.numberOfSales : 0,
+      saleDays: req?.body?.saleDays ? req?.body?.saleDays : 0,
+      numberOfAdvertisement: req?.body?.numberOfAdvertisement ? req?.body?.numberOfAdvertisement : 0,
+      advertisementDays: req?.body?.advertisementDays ? req?.body?.advertisementDays : 0,
+      isExpired: false,
+      endDate: null,
+    };
+
+    if (tempEndDate) {
+      obj.endDate = tempEndDate;
+    }
+    let userObj: any = await User.findById(req?.user?.userId).exec();
+    if (!(userObj || userObj._id)) {
+      throw new Error("Could not find user please contact admin !!!");
+    }
+
+    // Add GST
+
+    obj.price = obj.price + Math.round(obj.price * 0.18);
+
+    let options: any = {
+      amount: obj.price * 100,
+      currency: "INR",
+      receipt: new Date().getTime(),
+    };
+
+    let paymentObj = {
+      amount: obj.price,
+      orderObj: obj, // razorpay
+      paymentChk: 0,
+    };
+
+    let paymentObjResponse = await new Payment(paymentObj).save();
+
+    options.orderId = paymentObjResponse._id;
+    options.mobile = userObj?.phone;
+    options.userId = userObj?._id;
+    options.email = userObj?.email;
+    options.subscriptionId = existsCheck._id;
+    options.successUrl = `${process.env.BASE_URL}/usersubscription/phonepePaymentStatusCheck/` + paymentObjResponse._id;
+    options.payfrom = req.body.patfrom;
+    
+
+
+
+
   const paymentPageClientId=hdfcConfig.PAYMENT_PAGE_CLIENT_ID;
   const orderId = `order_${Date.now()}`
-    const amount = 1 + Math.random() * 100 | 0
+  const amount = 1 + Math.random() * 100 | 0
 
     // makes return url
     const returnUrl = `${req.protocol}://${req.hostname}:${process.env.PORT}/usersubscription/handleJuspayPaymentForSubcription`
@@ -480,15 +503,30 @@ export const initiateJuspayPaymentForSubcription = async (req: Request, res: Res
 
     try {
         const sessionResponse = await juspayConfig.orderSession.create({
-            order_id: orderId,
-            amount: amount,
+            order_id: options.orderId,
+            amount: options.amount,
             payment_page_client_id: paymentPageClientId,                    // [required] shared with you, in config.json
-            customer_id: 'hdfc-testing-customer-one',                       // [optional] your customer id here
+            customer_id: options.userId,                       // [optional] your customer id here
             action: 'paymentPage',                                          // [optional] default is paymentPage
             return_url: returnUrl,                                          // [optional] default is value given from dashboard
-            currency: 'INR'                                                 // [optional] default is INR
+            customer_phone: options.mobile,                                          // [optional] default is value given from dashboard
+            customer_email: options.email,                                          // [optional] default is value given from dashboard
+            currency: 'INR',
+            description:'',
+            udf6:options.subscriptionId                                                 // [optional] default is INR
         })
 
+        
+    if (sessionResponse && !sessionResponse?.sucess) {
+      throw new Error(`Phonepe is not working.Please Try Some another Payment Method`);
+    }
+
+    let orderPaymentObj: any = sessionResponse?.data;
+    let obj1 = await Payment.findByIdAndUpdate(paymentObjResponse._id, {
+      "gatwayPaymentObj": orderPaymentObj,
+    })
+      .lean()
+      .exec();
         // removes http field from response, typically you won't send entire structure as response
         return res.json(makeJuspayResponse(sessionResponse))
     } catch (error) {
@@ -498,21 +536,15 @@ export const initiateJuspayPaymentForSubcription = async (req: Request, res: Res
         }
         return res.json(makeError())
     }
-
-
-
 }
 
 export const handleJuspayPaymentForSubcription = async (req: Request, res: Response, next: NextFunction) => {
 
   console.log('yyyyy',req);
-  // Get orderId from request body
   const orderId: string | undefined = req.body.order_id || req.body.orderId;
-
   if (orderId === undefined) {
       return res.json(makeError('order_id not present or cannot be empty'));
   }
-
   try {
       // Call Juspay API to get order status
       const statusResponse = await juspayConfig.order.status(orderId);
@@ -522,6 +554,7 @@ export const handleJuspayPaymentForSubcription = async (req: Request, res: Respo
       switch (orderStatus) {
           case "CHARGED":
               message = "order payment done successfully";
+              console.log('xxxxx','order payment done successfully');
               break;
           case "PENDING":
           case "PENDING_VBV":
@@ -547,16 +580,14 @@ export const handleJuspayPaymentForSubcription = async (req: Request, res: Respo
       }
       return res.json(makeError());
   }
-  
-}
 
+}
 // Utility functions
 function makeError(message?: string) {
   return {
       message: message || 'Something went wrong'
   };
 }
-
 function makeJuspayResponse(successRspFromJuspay: Record<string, any>) {
   if (!successRspFromJuspay) return successRspFromJuspay;
   if (successRspFromJuspay.http !== undefined) delete successRspFromJuspay.http;

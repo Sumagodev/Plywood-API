@@ -30,7 +30,7 @@ exports.juspayConfig = exports.hdfcConfig = void 0;
 const expresscheckout_nodejs_1 = require("expresscheckout-nodejs");
 const fs = __importStar(require("fs"));
 // Import JSON config file
-const config_json_1 = __importDefault(require("../../config.json"));
+const config_json_1 = __importDefault(require("../config.json"));
 require("dotenv/config");
 // Type assertion for config to ensure it matches our interface
 const typedConfig = config_json_1.default;

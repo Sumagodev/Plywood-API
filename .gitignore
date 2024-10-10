@@ -61,6 +61,15 @@ typings/
 config.json
 privateKey.pem
 key_c37cd028ffa54c78a41331d13e756dd4.pem
+
+src/config.json
+src/privateKey.pem
+src/key_c37cd028ffa54c78a41331d13e756dd4.pem
+
+/src/config.json
+/src/privateKey.pem
+/src/key_c37cd028ffa54c78a41331d13e756dd4.pem
+
 # next.js build output
 .next
 
