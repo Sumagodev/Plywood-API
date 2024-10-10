@@ -411,18 +411,18 @@ const sendMailById = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
 });
 exports.sendMailById = sendMailById;
 const initiateJuspayPaymentForSubcription = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20;
-    let existsCheck = yield userSubscription_model_1.UserSubscription.findOne({ userId: (_4 = req === null || req === void 0 ? void 0 : req.user) === null || _4 === void 0 ? void 0 : _4.userId }).sort({ endDate: -1 }).exec();
+    var _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19;
+    let existsCheck = yield userSubscription_model_1.UserSubscription.findOne({ userId: req === null || req === void 0 ? void 0 : req.body.userId }).sort({ endDate: -1 }).exec();
     console.log(existsCheck, "existsCheck");
     let tempStartDate = new Date();
     let tempEndDate = new Date();
-    if (((_5 = req.body) === null || _5 === void 0 ? void 0 : _5.noOfMonth) > 0) {
+    if (((_4 = req.body) === null || _4 === void 0 ? void 0 : _4.noOfMonth) > 0) {
         if (existsCheck && existsCheck.endDate) {
             tempStartDate = new Date(existsCheck.endDate);
-            tempEndDate = (0, moment_1.default)(existsCheck.endDate).add({ months: (_6 = req.body) === null || _6 === void 0 ? void 0 : _6.noOfMonth });
+            tempEndDate = (0, moment_1.default)(existsCheck.endDate).add({ months: (_5 = req.body) === null || _5 === void 0 ? void 0 : _5.noOfMonth });
         }
         else {
-            tempEndDate = (0, moment_1.default)(tempEndDate).add({ months: (_7 = req.body) === null || _7 === void 0 ? void 0 : _7.noOfMonth });
+            tempEndDate = (0, moment_1.default)(tempEndDate).add({ months: (_6 = req.body) === null || _6 === void 0 ? void 0 : _6.noOfMonth });
         }
     }
     else if (existsCheck && existsCheck.endDate) {
@@ -432,23 +432,23 @@ const initiateJuspayPaymentForSubcription = (req, res, next) => __awaiter(void 0
         tempEndDate = undefined;
     }
     let obj = {
-        userId: (_8 = req === null || req === void 0 ? void 0 : req.user) === null || _8 === void 0 ? void 0 : _8.userId,
+        userId: (_7 = req === null || req === void 0 ? void 0 : req.user) === null || _7 === void 0 ? void 0 : _7.userId,
         subscriptionId: req.body._id,
-        name: (_9 = req.body) === null || _9 === void 0 ? void 0 : _9.name,
-        description: (_10 = req.body) === null || _10 === void 0 ? void 0 : _10.description,
-        price: (_11 = req.body) === null || _11 === void 0 ? void 0 : _11.price,
+        name: (_8 = req.body) === null || _8 === void 0 ? void 0 : _8.name,
+        description: (_9 = req.body) === null || _9 === void 0 ? void 0 : _9.description,
+        price: (_10 = req.body) === null || _10 === void 0 ? void 0 : _10.price,
         startDate: tempStartDate,
-        numberOfSales: ((_12 = req === null || req === void 0 ? void 0 : req.body) === null || _12 === void 0 ? void 0 : _12.numberOfSales) ? (_13 = req === null || req === void 0 ? void 0 : req.body) === null || _13 === void 0 ? void 0 : _13.numberOfSales : 0,
-        saleDays: ((_14 = req === null || req === void 0 ? void 0 : req.body) === null || _14 === void 0 ? void 0 : _14.saleDays) ? (_15 = req === null || req === void 0 ? void 0 : req.body) === null || _15 === void 0 ? void 0 : _15.saleDays : 0,
-        numberOfAdvertisement: ((_16 = req === null || req === void 0 ? void 0 : req.body) === null || _16 === void 0 ? void 0 : _16.numberOfAdvertisement) ? (_17 = req === null || req === void 0 ? void 0 : req.body) === null || _17 === void 0 ? void 0 : _17.numberOfAdvertisement : 0,
-        advertisementDays: ((_18 = req === null || req === void 0 ? void 0 : req.body) === null || _18 === void 0 ? void 0 : _18.advertisementDays) ? (_19 = req === null || req === void 0 ? void 0 : req.body) === null || _19 === void 0 ? void 0 : _19.advertisementDays : 0,
+        numberOfSales: ((_11 = req === null || req === void 0 ? void 0 : req.body) === null || _11 === void 0 ? void 0 : _11.numberOfSales) ? (_12 = req === null || req === void 0 ? void 0 : req.body) === null || _12 === void 0 ? void 0 : _12.numberOfSales : 0,
+        saleDays: ((_13 = req === null || req === void 0 ? void 0 : req.body) === null || _13 === void 0 ? void 0 : _13.saleDays) ? (_14 = req === null || req === void 0 ? void 0 : req.body) === null || _14 === void 0 ? void 0 : _14.saleDays : 0,
+        numberOfAdvertisement: ((_15 = req === null || req === void 0 ? void 0 : req.body) === null || _15 === void 0 ? void 0 : _15.numberOfAdvertisement) ? (_16 = req === null || req === void 0 ? void 0 : req.body) === null || _16 === void 0 ? void 0 : _16.numberOfAdvertisement : 0,
+        advertisementDays: ((_17 = req === null || req === void 0 ? void 0 : req.body) === null || _17 === void 0 ? void 0 : _17.advertisementDays) ? (_18 = req === null || req === void 0 ? void 0 : req.body) === null || _18 === void 0 ? void 0 : _18.advertisementDays : 0,
         isExpired: false,
         endDate: null,
     };
     if (tempEndDate) {
         obj.endDate = tempEndDate;
     }
-    let userObj = yield user_model_1.User.findById((_20 = req === null || req === void 0 ? void 0 : req.user) === null || _20 === void 0 ? void 0 : _20.userId).exec();
+    let userObj = yield user_model_1.User.findById((_19 = req === null || req === void 0 ? void 0 : req.user) === null || _19 === void 0 ? void 0 : _19.userId).exec();
     if (!(userObj || userObj._id)) {
         throw new Error("Could not find user please contact admin !!!");
     }
@@ -493,7 +493,7 @@ const initiateJuspayPaymentForSubcription = (req, res, next) => __awaiter(void 0
             udf6: options.subscriptionId // [optional] default is INR
         });
         if (sessionResponse && !(sessionResponse === null || sessionResponse === void 0 ? void 0 : sessionResponse.sucess)) {
-            throw new Error(`Phonepe is not working.Please Try Some another Payment Method`);
+            throw new Error(`Payment system in not working try again`);
         }
         let orderPaymentObj = sessionResponse === null || sessionResponse === void 0 ? void 0 : sessionResponse.data;
         let obj1 = yield Payment_model_1.Payment.findByIdAndUpdate(paymentObjResponse._id, {

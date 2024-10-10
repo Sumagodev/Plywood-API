@@ -421,23 +421,24 @@ export const initiateJuspayPaymentForSubcription = async (req: Request, res: Res
 
 
 
-  let existsCheck: any = await UserSubscription.findOne({ userId: req?.user?.userId }).sort({ endDate: -1 }).exec();
-    console.log(existsCheck, "existsCheck");
-    let tempStartDate: any = new Date();
-    let tempEndDate: any = new Date();
+  let existsCheck: any = await UserSubscription.findOne({ userId: req?.body.userId }).sort({ endDate: -1 }).exec();
+  console.log(existsCheck, "existsCheck");
+  let tempStartDate: any = new Date();
+  let tempEndDate: any = new Date();
 
-    if (req.body?.noOfMonth > 0) {
-      if (existsCheck && existsCheck.endDate) {
-        tempStartDate = new Date(existsCheck.endDate);
-        tempEndDate = moment(existsCheck.endDate).add({ months: req.body?.noOfMonth });
-      } else {
-        tempEndDate = moment(tempEndDate).add({ months: req.body?.noOfMonth });
-      }
-    } else if (existsCheck && existsCheck.endDate) {
-      tempEndDate = existsCheck.endDate;
+  if (req.body?.noOfMonth > 0) {
+    if (existsCheck && existsCheck.endDate) {
+      tempStartDate = new Date(existsCheck.endDate);
+      tempEndDate = moment(existsCheck.endDate).add({ months: req.body?.noOfMonth });
     } else {
-      tempEndDate = undefined;
+      tempEndDate = moment(tempEndDate).add({ months: req.body?.noOfMonth });
     }
+  } else if (existsCheck && existsCheck.endDate) {
+    tempEndDate = existsCheck.endDate;
+  } else {
+    tempEndDate = undefined;
+  }
+
 
     let obj = {
       userId: req?.user?.userId,
@@ -518,7 +519,7 @@ export const initiateJuspayPaymentForSubcription = async (req: Request, res: Res
 
         
     if (sessionResponse && !sessionResponse?.sucess) {
-      throw new Error(`Phonepe is not working.Please Try Some another Payment Method`);
+      throw new Error(`Payment system in not working try again`);
     }
 
     let orderPaymentObj: any = sessionResponse?.data;
