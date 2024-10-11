@@ -277,6 +277,78 @@ const productReviewSchema = new Schema<IProductReview>(
   },
   { timestamps: true } // Automatically manage createdAt and updatedAt
 );
+// export const getProductReview = async (req: Request, res: Response, next: NextFunction) => {
+//   try {
+//     let query: any = {};
+
+//     // Build the query based on the request query parameters
+//     if (req.query.productId) {
+//       query = { ...query, productId: req.query.productId };
+//     }
+//     if (req.query.userId) {
+//       query = { ...query, userId: req.query.userId };
+//     }
+//     if (req.query.startDate && req.query.endDate) {
+//       query = {
+//         ...query,
+//         createdAt: {
+//           $gte: new Date(req.query.startDate as string),
+//           $lte: new Date(req.query.endDate as string),
+//         },
+//       };
+//     }
+//     if (req.query.q) {
+//       query = { ...query, name: new RegExp(`${req.query.q}`, "i") };
+//     }
+
+//     // Get total count of matching product reviews
+//     let categoryCount = await ProductReview.find(query).countDocuments();
+
+//     // Pagination settings
+//     let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
+//     let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
+
+//     // Fetch the reviews, populating both product and user details (including full user details like in VendorReview)
+//     let ProductReviewArr = await ProductReview.find(query)
+//       .populate("productId") // Populate product details
+//       .populate({
+//         path: "userId", // Populate full user details who added the review
+//         select: "profileImage companyObj.name name email phone", // Fetch user's profileImage, name, company details, email, and phone
+//         model: User, // Specify the User model
+//       })
+//       .skip((pageValue - 1) * limitValue)
+//       .sort({ createdAt: -1 })
+//       .limit(limitValue)
+//       .lean()
+//       .exec();
+
+//       const transformedReviews = ProductReviewArr.map(review => {
+//         const { userId, ...rest } = review; // Destructure to separate userId
+//         return {
+//             ...rest,
+//             addedby: userId, // Rename userId to addedby
+//         };
+//     });
+
+//     // Respond with the product reviews and the populated data
+//     res.status(200).json({
+//         message: "getProductReview",
+//         data: transformedReviews,
+//         count: categoryCount,
+//         success: true,
+//     });
+// } catch (error) {
+//     console.error("Error fetching product reviews:", error);
+//     res.status(500).json({
+//         message: "Error fetching product reviews",
+//         success: false,
+//     });
+
+//     next(error);
+//   }
+// };
+
+
 export const getProductReview = async (req: Request, res: Response, next: NextFunction) => {
   try {
     let query: any = {};
@@ -347,9 +419,6 @@ export const getProductReview = async (req: Request, res: Response, next: NextFu
     next(error);
   }
 };
-
-
-
 export const updateById = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const ProductReviewObj = await ProductReview.findById(req.params.id).lean().exec();
