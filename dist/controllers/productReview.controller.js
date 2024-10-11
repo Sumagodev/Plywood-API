@@ -8,6 +8,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getById = exports.deleteById = exports.updateById = exports.getProductReview = exports.addProductReview = void 0;
 const country_model_1 = require("../models/country.model");
@@ -64,30 +75,90 @@ const addProductReview = (req, res, next) => __awaiter(void 0, void 0, void 0, f
     }
 });
 exports.addProductReview = addProductReview;
+// export const getProductReview = async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         let query = {}
+//         if (req.query.productId) {
+//             query = { ...query, productId: req.query.productId }
+//         }
+//         if (req.query.userId) {
+//             query = { ...query, userId: req.query.userId }
+//         }
+//           if (req.query.startDate) {
+//               query = { ...query, createdAt: { $gte: req.query.startDate,$lte: req.query.endDate  } };
+//         }
+//         if (req.query.q) {
+//           query = { ...query, name: new RegExp(`${req.query.q}`, 'i') }
+//         }
+//         let categoryCount = await ProductReview.find(query).countDocuments()
+//         let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
+//         let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
+//         let ProductReviewArr: any = [];
+//         ProductReviewArr = await ProductReview.find(query).populate('productId').skip((pageValue - 1) * limitValue).sort({createdAt:-1}).limit(limitValue).lean().exec();
+//         res.status(200).json({ message: "getProductReview", data: ProductReviewArr, count: categoryCount, success: true });
+//     } catch (err) {
+//         next(err);
+//     }
+// };
 const getProductReview = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let query = {};
+        // Build the query based on the request query parameters
         if (req.query.productId) {
-            query = Object.assign(Object.assign({}, query), { productId: req.query.productId });
+            query.productId = req.query.productId;
         }
         if (req.query.userId) {
-            query = Object.assign(Object.assign({}, query), { userId: req.query.userId });
+            query.userId = req.query.userId;
         }
-        if (req.query.startDate) {
-            query = Object.assign(Object.assign({}, query), { createdAt: { $gte: req.query.startDate, $lte: req.query.endDate } });
+        if (req.query.startDate && req.query.endDate) {
+            const startDate = new Date(req.query.startDate);
+            const endDate = new Date(req.query.endDate);
+            if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+                query.createdAt = { $gte: startDate, $lte: endDate };
+            }
         }
         if (req.query.q) {
-            query = Object.assign(Object.assign({}, query), { name: new RegExp(`${req.query.q}`, 'i') });
+            query.name = new RegExp(`${req.query.q}`, "i");
         }
-        let categoryCount = yield productReview_model_1.ProductReview.find(query).countDocuments();
-        let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
-        let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
-        let ProductReviewArr = [];
-        ProductReviewArr = yield productReview_model_1.ProductReview.find(query).populate('productId').skip((pageValue - 1) * limitValue).sort({ createdAt: -1 }).limit(limitValue).lean().exec();
-        res.status(200).json({ message: "getProductReview", data: ProductReviewArr, count: categoryCount, success: true });
+        // Get total count of matching product reviews
+        const categoryCount = yield productReview_model_1.ProductReview.find(query).countDocuments();
+        // Pagination settings
+        const pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
+        const limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
+        // Fetch the reviews, populating both product and user details
+        const ProductReviewArr = yield productReview_model_1.ProductReview.find(query)
+            .populate("productId") // Populate product details
+            .populate({
+            path: "userId",
+            select: "profileImage companyObj.name name email phone",
+            model: user_model_1.User, // Specify the User model
+        })
+            .skip((pageValue - 1) * limitValue)
+            .sort({ createdAt: -1 })
+            .limit(limitValue)
+            .lean()
+            .exec();
+        // Transform the review data by renaming userId to addedby
+        const transformedReviews = ProductReviewArr.map((review) => {
+            const { userId } = review, rest = __rest(review, ["userId"]);
+            return Object.assign(Object.assign({}, rest), { addedby: userId });
+        });
+        // Respond with the product reviews and the populated data
+        res.status(200).json({
+            message: "getProductReview",
+            data: transformedReviews,
+            count: categoryCount,
+            success: true,
+        });
     }
-    catch (err) {
-        next(err);
+    catch (error) {
+        console.error("Error fetching product reviews:", error);
+        res.status(500).json({
+            message: "Error fetching product reviews",
+            error: error,
+            success: false,
+        });
+        next(error);
     }
 });
 exports.getProductReview = getProductReview;

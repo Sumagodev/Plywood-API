@@ -64,43 +64,112 @@ export const addProductReview = async (req: Request, res: Response, next: NextFu
         next(err);
     }
 };
+// export const getProductReview = async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         let query = {}
+
+//         if (req.query.productId) {
+//             query = { ...query, productId: req.query.productId }
+//         }
+//         if (req.query.userId) {
+//             query = { ...query, userId: req.query.userId }
+//         }
+
+//           if (req.query.startDate) {
+//               query = { ...query, createdAt: { $gte: req.query.startDate,$lte: req.query.endDate  } };
+//         }
+
+
+//         if (req.query.q) {
+//           query = { ...query, name: new RegExp(`${req.query.q}`, 'i') }
+//         }
+    
+//         let categoryCount = await ProductReview.find(query).countDocuments()
+    
+    
+//         let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
+//         let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
+    
+    
+//         let ProductReviewArr: any = [];
+//         ProductReviewArr = await ProductReview.find(query).populate('productId').skip((pageValue - 1) * limitValue).sort({createdAt:-1}).limit(limitValue).lean().exec();
+//         res.status(200).json({ message: "getProductReview", data: ProductReviewArr, count: categoryCount, success: true });
+//     } catch (err) {
+//         next(err);
+//     }
+// };
+
+
 export const getProductReview = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        let query = {}
+  try {
+    let query: any = {};
 
-        if (req.query.productId) {
-            query = { ...query, productId: req.query.productId }
-        }
-        if (req.query.userId) {
-            query = { ...query, userId: req.query.userId }
-        }
-
-          if (req.query.startDate) {
-              query = { ...query, createdAt: { $gte: req.query.startDate,$lte: req.query.endDate  } };
-        }
-
-
-        if (req.query.q) {
-          query = { ...query, name: new RegExp(`${req.query.q}`, 'i') }
-        }
-    
-        let categoryCount = await ProductReview.find(query).countDocuments()
-    
-    
-        let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
-        let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
-    
-    
-        let ProductReviewArr: any = [];
-        ProductReviewArr = await ProductReview.find(query).populate('productId').skip((pageValue - 1) * limitValue).sort({createdAt:-1}).limit(limitValue).lean().exec();
-        res.status(200).json({ message: "getProductReview", data: ProductReviewArr, count: categoryCount, success: true });
-    } catch (err) {
-        next(err);
+    // Build the query based on the request query parameters
+    if (req.query.productId) {
+      query.productId = req.query.productId;
     }
+    if (req.query.userId) {
+      query.userId = req.query.userId;
+    }
+    if (req.query.startDate && req.query.endDate) {
+      const startDate = new Date(req.query.startDate as string);
+      const endDate = new Date(req.query.endDate as string);
+      if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+        query.createdAt = { $gte: startDate, $lte: endDate };
+      }
+    }
+    if (req.query.q) {
+      query.name = new RegExp(`${req.query.q}`, "i");
+    }
+
+    // Get total count of matching product reviews
+    const categoryCount = await ProductReview.find(query).countDocuments();
+
+    // Pagination settings
+    const pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
+    const limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
+
+    // Fetch the reviews, populating both product and user details
+    const ProductReviewArr = await ProductReview.find(query)
+      .populate("productId") // Populate product details
+      .populate({
+        path: "userId", // Populate full user details who added the review
+        select: "profileImage companyObj.name name email phone", // Fetch specific user fields
+        model: User, // Specify the User model
+      })
+      .skip((pageValue - 1) * limitValue)
+      .sort({ createdAt: -1 })
+      .limit(limitValue)
+      .lean()
+      .exec();
+
+    // Transform the review data by renaming userId to addedby
+    const transformedReviews = ProductReviewArr.map((review) => {
+      const { userId, ...rest } = review;
+      return {
+        ...rest,
+        addedby: userId, // Rename userId to addedby
+      };
+    });
+
+    // Respond with the product reviews and the populated data
+    res.status(200).json({
+      message: "getProductReview",
+      data: transformedReviews,
+      count: categoryCount,
+      success: true,
+    });
+  } catch (error) {
+    console.error("Error fetching product reviews:", error);
+    res.status(500).json({
+      message: "Error fetching product reviews",
+      error: error, // Optionally return the error message for debugging
+      success: false,
+    });
+
+    next(error);
+  }
 };
-
-
-
 export const updateById = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const ProductReviewObj = await ProductReview.findById(req.params.id).lean().exec();
