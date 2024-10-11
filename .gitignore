@@ -70,6 +70,15 @@ src/key_c37cd028ffa54c78a41331d13e756dd4.pem
 /src/privateKey.pem
 /src/key_c37cd028ffa54c78a41331d13e756dd4.pem
 
+
+dist/config.json
+dist/privateKey.pem
+dist/key_c37cd028ffa54c78a41331d13e756dd4.pem
+
+/dist/config.json
+/dist/privateKey.pem
+/dist/key_c37cd028ffa54c78a41331d13e756dd4.pem
+
 # next.js build output
 .next
 

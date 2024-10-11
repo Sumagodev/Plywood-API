@@ -13,4 +13,6 @@ router.get("/", userTopup_controller_1.getTopup);
 router.get("/getTopupSubscribedbyUserId/:id", userTopup_controller_1.getTopupSubscribedbyUserId);
 router.get("/getAllTopupbyUserId", userTopup_controller_1.getAllTopupbyUserId);
 router.get("/getByUserId/:id", userTopup_controller_1.getById);
+router.post("/initiateJuspayPaymentForTopup", auth_middleware_1.authorizeJwt, userTopup_controller_1.initiateJuspayPaymentForTopup);
+router.post("/handleJuspayPaymentForTopup", userTopup_controller_1.handleJuspayPaymentForTopup);
 exports.default = router;
