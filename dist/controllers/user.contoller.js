@@ -1165,12 +1165,14 @@ const checkForValidSubscription = (req, res, next) => __awaiter(void 0, void 0, 
 exports.checkForValidSubscription = checkForValidSubscription;
 const checkForValidSubscriptionAndReturnBoolean = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        console.log("in.....");
+        
         let validSubscription = false;
         const userObj = yield user_model_1.User.findOne({ _id: req.params.id }).exec();
         if (!userObj) {
             throw new Error(`User Does Not Exist`);
         }
-        console.log(userObj, "checkForValidSubscriptionAndReturnBoolean");
+        console.log("userObj.subscriptionEndDate", userObj.subscriptionEndDate);
         let subscriptionEndDate = new Date(userObj === null || userObj === void 0 ? void 0 : userObj.subscriptionEndDate);
         let currentDate = new Date();
         if (subscriptionEndDate.getTime() > currentDate.getTime()) {

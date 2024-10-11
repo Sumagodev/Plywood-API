@@ -6,6 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 src/helpers/plywoodbazar-86c65-firebase-adminsdk-tvcb6-43ef393b0d.json
 dist/helpers/plywoodbazar-86c65-firebase-adminsdk-tvcb6-43ef393b0d.json
+src/plywoodbazar-86c65-firebase-adminsdk-tvcb6-43ef393b0d.json
 # Runtime data
 pids
 *.pid

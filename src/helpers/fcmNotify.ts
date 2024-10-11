@@ -1,6 +1,6 @@
 
 import admin, { ServiceAccount } from "firebase-admin";
-import serviceAccount from './plywoodbazar-86c65-firebase-adminsdk-tvcb6-43ef393b0d.json';
+import serviceAccount from '../../src/helpers/plywoodbazar-86c65-firebase-adminsdk-tvcb6-43ef393b0d.json';
 // var serviceAccount = require('./plywoodbazar-86c65-firebase-adminsdk-tvcb6-43ef393b0d.json')
 
 admin.initializeApp({

@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.fcmMulticastNotify = void 0;
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
-const plywoodbazar_86c65_firebase_adminsdk_tvcb6_43ef393b0d_json_1 = __importDefault(require("./plywoodbazar-86c65-firebase-adminsdk-tvcb6-43ef393b0d.json"));
+const plywoodbazar_86c65_firebase_adminsdk_tvcb6_43ef393b0d_json_1 = __importDefault(require("../../src/helpers/plywoodbazar-86c65-firebase-adminsdk-tvcb6-43ef393b0d.json"));
 // var serviceAccount = require('./plywoodbazar-86c65-firebase-adminsdk-tvcb6-43ef393b0d.json')
 firebase_admin_1.default.initializeApp({
     credential: firebase_admin_1.default.credential.cert(plywoodbazar_86c65_firebase_adminsdk_tvcb6_43ef393b0d_json_1.default),
