@@ -1165,14 +1165,12 @@ const checkForValidSubscription = (req, res, next) => __awaiter(void 0, void 0, 
 exports.checkForValidSubscription = checkForValidSubscription;
 const checkForValidSubscriptionAndReturnBoolean = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        console.log("in.....");
-        
         let validSubscription = false;
         const userObj = yield user_model_1.User.findOne({ _id: req.params.id }).exec();
         if (!userObj) {
             throw new Error(`User Does Not Exist`);
         }
-        console.log("userObj.subscriptionEndDate", userObj.subscriptionEndDate);
+        console.log(userObj, "checkForValidSubscriptionAndReturnBoolean");
         let subscriptionEndDate = new Date(userObj === null || userObj === void 0 ? void 0 : userObj.subscriptionEndDate);
         let currentDate = new Date();
         if (subscriptionEndDate.getTime() > currentDate.getTime()) {
@@ -1409,33 +1407,32 @@ const getAllUsersForWebsite = (req, res, next) => __awaiter(void 0, void 0, void
             //   $limit: limitValue,
             // },
         ];
-        // {
-        //   '$match': {
-        //     'role': {
-        //       '$ne': 'ADMIN'
-        //     },
-        //     ...query,
-        //   }
-        // },
-        // let query: any = { $and: [{ role: { $ne: ROLES.ADMIN } }] };
-        let totalPipeline = [...pipeline];
-        totalPipeline.push({
-            $count: "count",
+        const profiles = yield user_model_1.User.aggregate(pipeline);
+        // Step 1: Extract cityIds and stateIds from the profiles
+        const cityIds = profiles
+            .map((profile) => profile.cityId)
+            .filter((id) => id); // Ensure no null or undefined values
+        const stateIds = profiles
+            .map((profile) => profile.stateId)
+            .filter((id) => id); // Ensure no null or undefined values
+        // Step 2: Fetch city and state details
+        const cityDetails = yield City_model_1.City.find({ _id: { $in: cityIds } }).select("name _id");
+        const stateDetails = yield State_model_1.State.find({ _id: { $in: stateIds } }).select("name _id");
+        // Step 3: Merge city and state details into the profiles
+        const finalProfiles = profiles.map((profile) => {
+            const city = cityDetails.find((c) => c._id.toString() === (profile.cityId || '').toString());
+            const state = stateDetails.find((s) => s._id.toString() === (profile.stateId || '').toString());
+            return Object.assign(Object.assign({}, profile), { cityName: city ? city.name : null, stateName: state ? state.name : null });
         });
-        pipeline.push({
-            $skip: (pageValue - 1) * limitValue,
-        });
-        pipeline.push({
-            $limit: limitValue,
-        });
-        let users = yield user_model_1.User.aggregate(pipeline);
-        console.log(JSON.stringify(totalPipeline, null, 2), "asd");
-        let totalUsers = yield user_model_1.User.aggregate(totalPipeline);
-        console.log(totalUsers, "totalUsers");
-        totalUsers = totalUsers.length > 0 ? totalUsers[0].count : 0;
-        const totalPages = Math.ceil(totalUsers / limitValue);
-        // console.log(JSON.stringify(users, null, 2))
-        res.json({ message: "ALL Users", data: users, total: totalPages });
+        // Get total profiles count for pagination
+        const totalPipeline = [
+            { "$match": Object.assign({}, query) },
+            { "$count": "count" },
+        ];
+        const totalProfiles = yield user_model_1.User.aggregate(totalPipeline);
+        const total = totalProfiles.length > 0 ? totalProfiles[0].count : 0;
+        const totalPages = Math.ceil(total / limitValue);
+        res.json({ message: "getALLuserforwebsite", data: finalProfiles, total: totalPages });
     }
     catch (error) {
         next(error);

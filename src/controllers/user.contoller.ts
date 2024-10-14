@@ -120,7 +120,7 @@ export const addUser = async (req: Request, res: Response, next: NextFunction) =
   try {
     const documents = [];
 
-    
+
 
     // Store GST Certificate if present
     if (req.body.gstCertificate) {
@@ -149,14 +149,14 @@ export const addUser = async (req: Request, res: Response, next: NextFunction) =
     }
 
 
-    
+
 
     // Convert salesId to ObjectId if present
     if (req.body.salesId) {
       req.body.salesId = new mongoose.Types.ObjectId(req.body.salesId);
     }
 
-    
+
 
     // Create new user
     const user = await new User({ ...req.body, role: req.body.role }).save();
@@ -279,11 +279,11 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
         result: false,
         message: "User is not verified ",
       });
-    }else{
+    } else {
       console.log('yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')
 
     }
-    
+
     // const UserExistEmailCheck = await User.findOne({
     //   email: new RegExp(`^${req.body.email}$`),
     // }).exec();
@@ -478,60 +478,59 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
       console.log('Start of Today:', startOfToday);
       console.log('End of Today:', endOfToday);
 
-      if(visitorUserId===user?._id)
-      {
+      if (visitorUserId === user?._id) {
         return;
-      }else{
-// Check if a notification already exists for the same user and day
-let existingNotification = await Notifications.findOne({
-  userId: req.params.userId,                  // Profile owner
-  type: 'profile_view',
-  createdAt: {                                // Created today
-    $gte: startOfToday,                     // Greater than or equal to the start of the day
-    $lte: endOfToday                        // Less than or equal to the end of the day
-  },
-  'payload.accessedBy': visitorUserId // Check for the accessedBy field
-});
-console.log('Existing Notification:', existingNotification);
-if (existingNotification) {
-  // If a notification exists, increment the view count and update the last access time
-  await Notifications.updateOne(
-    { _id: existingNotification._id },
-    {
-      $inc: { viewCount: 1 },            // Increment viewCount by 1
-      $set: {
-        lastAccessTime: new Date(),
-        isRead: false,
-      } // Update lastAccessTime to current time
-    }
-  );
-  console.log('Notification updated with incremented view count and updated last access time');
-} else {
-  // If no notification exists, create a new one
-  const newNotification = new Notifications({
-    userId: req.params.userId,            // ID of the user related to the notification
-    type: 'profile_view',                 // Type of notification
-    title: 'Your profile was accessed',   // Title of the notification
-    content: `Your profile was accessed by user ${visitorUserId}`, // Message content
-    sourceId: visitorUserId,              // ID of the user who accessed the profile
-    isRead: false,                        // Notification status
-    viewCount: 1,                         // Initialize viewCount to 1
-    lastAccessTime: new Date(),           // Set initial last access time
-    payload: {                            // Dynamic payload data
-      accessedBy: visitorUserId,
-      accessTime: new Date(),
-      organizationName: leadUser?.companyObj?.name || 'Unknown' // Safely access company name
-    }
-  });
-  // Save the new notification to the database
-  try {
-    await newNotification.save();
-    console.log('New notification created with viewCount and lastAccessTime');
-  } catch (error) {
-    console.error('Error saving new notification:', error);
-  }
-      }
-      
+      } else {
+        // Check if a notification already exists for the same user and day
+        let existingNotification = await Notifications.findOne({
+          userId: req.params.userId,                  // Profile owner
+          type: 'profile_view',
+          createdAt: {                                // Created today
+            $gte: startOfToday,                     // Greater than or equal to the start of the day
+            $lte: endOfToday                        // Less than or equal to the end of the day
+          },
+          'payload.accessedBy': visitorUserId // Check for the accessedBy field
+        });
+        console.log('Existing Notification:', existingNotification);
+        if (existingNotification) {
+          // If a notification exists, increment the view count and update the last access time
+          await Notifications.updateOne(
+            { _id: existingNotification._id },
+            {
+              $inc: { viewCount: 1 },            // Increment viewCount by 1
+              $set: {
+                lastAccessTime: new Date(),
+                isRead: false,
+              } // Update lastAccessTime to current time
+            }
+          );
+          console.log('Notification updated with incremented view count and updated last access time');
+        } else {
+          // If no notification exists, create a new one
+          const newNotification = new Notifications({
+            userId: req.params.userId,            // ID of the user related to the notification
+            type: 'profile_view',                 // Type of notification
+            title: 'Your profile was accessed',   // Title of the notification
+            content: `Your profile was accessed by user ${visitorUserId}`, // Message content
+            sourceId: visitorUserId,              // ID of the user who accessed the profile
+            isRead: false,                        // Notification status
+            viewCount: 1,                         // Initialize viewCount to 1
+            lastAccessTime: new Date(),           // Set initial last access time
+            payload: {                            // Dynamic payload data
+              accessedBy: visitorUserId,
+              accessTime: new Date(),
+              organizationName: leadUser?.companyObj?.name || 'Unknown' // Safely access company name
+            }
+          });
+          // Save the new notification to the database
+          try {
+            await newNotification.save();
+            console.log('New notification created with viewCount and lastAccessTime');
+          } catch (error) {
+            console.error('Error saving new notification:', error);
+          }
+        }
+
       }
     } else {
       console.error('Invalid Visitor User ID:', visitorUserId);
@@ -1160,7 +1159,7 @@ export const checkIfUserIsVerified = async (req: Request, res: Response, next: N
         message: "User is not verified",
       });
     }
-     res.status(200).json({ result: true, message: `User is already verified` });
+    res.status(200).json({ result: true, message: `User is already verified` });
 
   } catch (error) {
     res.status(500).json({ result: false, message: `Failed to verify user` });
@@ -1518,36 +1517,43 @@ export const getAllUsersForWebsite = async (req: Request, res: Response, next: N
       // },
     ];
 
-    // {
-    //   '$match': {
-    //     'role': {
-    //       '$ne': 'ADMIN'
-    //     },
-    //     ...query,
-    //   }
-    // },
+    const profiles = await User.aggregate(pipeline);
 
-    // let query: any = { $and: [{ role: { $ne: ROLES.ADMIN } }] };
-    let totalPipeline = [...pipeline];
-    totalPipeline.push({
-      $count: "count",
-    });
-    pipeline.push({
-      $skip: (pageValue - 1) * limitValue,
-    });
-    pipeline.push({
-      $limit: limitValue,
-    });
-    let users: any = await User.aggregate(pipeline);
+    // Step 1: Extract cityIds and stateIds from the profiles
+    const cityIds = profiles
+      .map((profile: any) => profile.cityId)
+      .filter((id: any) => id); // Ensure no null or undefined values
+    const stateIds = profiles
+      .map((profile: any) => profile.stateId)
+      .filter((id: any) => id); // Ensure no null or undefined values
 
-    console.log(JSON.stringify(totalPipeline, null, 2), "asd");
+    // Step 2: Fetch city and state details
+    const cityDetails = await City.find({ _id: { $in: cityIds } }).select("name _id");
+    const stateDetails = await State.find({ _id: { $in: stateIds } }).select("name _id");
 
-    let totalUsers: any = await User.aggregate(totalPipeline);
-    console.log(totalUsers, "totalUsers");
-    totalUsers = totalUsers.length > 0 ? totalUsers[0].count : 0;
-    const totalPages = Math.ceil(totalUsers / limitValue);
-    // console.log(JSON.stringify(users, null, 2))
-    res.json({ message: "ALL Users", data: users, total: totalPages });
+    // Step 3: Merge city and state details into the profiles
+    const finalProfiles = profiles.map((profile: any) => {
+      const city = cityDetails.find((c: any) => c._id.toString() === (profile.cityId || '').toString());
+      const state = stateDetails.find((s: any) => s._id.toString() === (profile.stateId || '').toString());
+
+      return {
+        ...profile,
+        cityName: city ? city.name : null,
+        stateName: state ? state.name : null,
+      };
+    });
+
+    // Get total profiles count for pagination
+    const totalPipeline = [
+      { "$match": { ...query } },
+      { "$count": "count" },
+    ];
+
+    const totalProfiles: any = await User.aggregate(totalPipeline);
+    const total = totalProfiles.length > 0 ? totalProfiles[0].count : 0;
+    const totalPages = Math.ceil(total / limitValue);
+
+    res.json({ message: "getALLuserforwebsite", data: finalProfiles, total: totalPages });
   } catch (error) {
     next(error);
   }
