@@ -614,14 +614,15 @@ const handleJuspayPaymentForSubcription = (req, res, next) => __awaiter(void 0, 
     var _22, _23, _24, _25, _26, _27, _28, _29;
     const orderId = req.body.order_id || req.body.orderId;
     if (orderId === undefined) {
-        return res.json(makeError('order_id not present or cannot be empty'));
+        return res.status(400).json(makeError('order_id not present or cannot be empty'));
     }
     // const userObj = await User.findById(req.user.userId).lean().exec();
     //let orderObj: any = await Payment.findById({orderIdx}).exec();
     let orderObj = yield Payment_model_1.Payment.findOne({ 'gatwayPaymentObj.order_id': orderId }).exec();
     console.log('qazxc', orderObj);
-    if (!orderObj)
-        throw new Error("Order Not Found");
+    if (!orderObj) {
+        return res.status(400).json(makeError('order not found'));
+    }
     if ((orderObj === null || orderObj === void 0 ? void 0 : orderObj.paymentChk) == 1) {
         // throw new Error("Payment is already Done");
         console.log(req.body, "Payment is already Done");
@@ -633,41 +634,28 @@ const handleJuspayPaymentForSubcription = (req, res, next) => __awaiter(void 0, 
         // Call Juspay API to get order status
         const statusResponse = yield hdfcConfig_1.juspayConfig.order.status(orderId);
         const orderStatus = statusResponse.status;
+        console.log('qwerty', statusResponse);
         let message = '';
-        // Handle different order statuses
-        // switch (orderStatus) {
-        //     case "CHARGED":
-        //         message = "order payment done successfully";              
-        //         break;
-        //     case "PENDING":
-        //     case "PENDING_VBV":
-        //         message = "order payment pending";
-        //         break;
-        //     case "AUTHORIZATION_FAILED":
-        //         message = "order payment authorization failed";
-        //         break;
-        //     case "AUTHENTICATION_FAILED":
-        //         message = "order payment authentication failed";
-        //         break;
-        //     default:
-        //         message = `order status ${orderStatus}`;
-        //         break;
-        // }
+        let obj1 = yield Payment_model_1.Payment.findByIdAndUpdate(orderObj._id, {
+            "statusResponse": statusResponse,
+        })
+            .lean()
+            .exec();
         if (orderStatus === "PENDING") {
             message = "order payment pending";
-            return res.status(201).send(makeJuspayResponse(statusResponse));
+            res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${orderId}&orderStatus=${orderStatus}`);
         }
         if (orderStatus === "PENDING_VBV") {
             message = "order payment pending";
-            return res.status(201).send(makeJuspayResponse(statusResponse));
+            res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${orderId}`);
         }
         if (orderStatus === "AUTHORIZATION_FAILED") {
             message = "order payment authorization failed";
-            return res.status(400).send(makeError(message));
+            res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${orderId}`);
         }
         if (orderStatus === "AUTHENTICATION_FAILED") {
             message = "order payment authentication failed";
-            return res.status(400).send(makeError(message));
+            res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${orderId}`);
         }
         let orderIdForBlock = orderId;
         if (orderStatus === "CHARGED") {
