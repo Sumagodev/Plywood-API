@@ -6,6 +6,7 @@ import { Payment } from "../models/Payment.model";
 import { checkStatusPhonePaymentOrder, createPhonePaymentOrder } from "../helpers/phonepay";
 import { sendMail } from "../helpers/mailer";
 import { getTopUpOrderIdSequence } from "../helpers/constant";
+import { hdfcConfig, juspayConfig } from "../helpers/hdfcConfig";
 export const buyTopup = async (req: Request, res: Response, next: NextFunction) => {
   try {
     console.log(req.body, req.user);
@@ -372,6 +373,7 @@ export const initiateJuspayPaymentForTopup = async (req: Request, res: Response,
 
       },
     }).exec();
+
     let options: any = {
       amount: obj.price * 100,
       currency: "INR",
@@ -388,25 +390,36 @@ export const initiateJuspayPaymentForTopup = async (req: Request, res: Response,
 
     options.orderId = paymentObjResponse._id;
     options.mobile = userObj?.phone;
-    options.successUrl = `${process.env.BASE_URL}/userTopup/phonepePaymentStatusCheck/` + paymentObjResponse._id;
-    options.payfrom = req.body.patfrom;
-    let phoResone = await createPhonePaymentOrder(options);
-    if (phoResone && !phoResone?.sucess) {
-      throw new Error(`Phonepe is not working.Please Try Some another Payment Method`);
-    }
-    let orderPaymentObj: any = phoResone?.data;
-    let obj1 = await Payment.findByIdAndUpdate(paymentObjResponse._id, {
-      "gatwayPaymentObj": orderPaymentObj,
-    })
-      .lean()
-      .exec();
 
-    res.status(200).json({
-      message: "UserTopup Successfully Created",
-      data: orderPaymentObj,
-      orderId: paymentObjResponse._id,
-      success: true,
-    });
+    
+  const paymentPageClientId=hdfcConfig.PAYMENT_PAGE_CLIENT_ID;
+  const orderId = `order_${Date.now()}`
+    // makes return url
+      const returnUrl = `${process.env.BASE_URL}/userTopup/handleJuspayPaymentForTopup`
+      const sessionResponse = await juspayConfig.orderSession.create({
+          order_id: orderId,
+          amount: options.amount,
+          payment_page_client_id: paymentPageClientId,                    // [required] shared with you, in config.json
+          customer_id: options.userId,                       // [optional] your customer id here
+          action: 'paymentPage',                                          // [optional] default is paymentPage
+          return_url: returnUrl,                                          // [optional] default is value given from dashboard
+          currency: 'INR',
+          customer_phone:options.email,                                                 // [optional] default is INR
+          customer_email:options.mobile,
+          udf6:options. req.body._id                                                 // [optional] default is INR
+      })
+
+      let orderPaymentObj: any = sessionResponse;
+      let obj1 = await Payment.findByIdAndUpdate(paymentObjResponse._id, {
+        "gatwayPaymentObj": orderPaymentObj,
+      })
+        .lean()
+        .exec();
+
+        console.log('upadtedx',obj1);
+        sessionResponse.orderIdx=paymentObjResponse._id;
+      // removes http field from response, typically you won't send entire structure as response
+      return res.json(makeJuspayResponse(sessionResponse))
   } catch (err) {
     next(err);
   }
@@ -415,7 +428,11 @@ export const initiateJuspayPaymentForTopup = async (req: Request, res: Response,
 
 export const handleJuspayPaymentForTopup = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    
+    const orderId: string | undefined = req.body.order_id || req.body.orderId;
+
+  if (orderId === undefined) {
+      return res.status(400).json(makeError('order_id not present or cannot be empty'));
+  }
     // const userObj = await User.findById(req.user.userId).lean().exec();
     let orderObj: any = await Payment.findById(req.params.orderId).exec();
     if (!orderObj) throw new Error("Order Not Found");
@@ -424,23 +441,57 @@ export const handleJuspayPaymentForTopup = async (req: Request, res: Response, n
       res.json({ message: "Payment is already Done ", success: true, orderId: orderObj._id, data: orderObj });
       return;
     }
-    let phoneObj = orderObj?.gatwayPaymentObj;
-    let options = {
-      merchantId: phoneObj?.merchantId,
-      merchantTransactionId: phoneObj?.merchantTransactionId,
-    };
-    let checkPaymentStatus = await checkStatusPhonePaymentOrder(options);
-    if (checkPaymentStatus && !checkPaymentStatus?.sucess) {
-      throw new Error("Please Contact to Admin for payment is failed");
-    }
 
-    phoneObj.paymentInstrument = checkPaymentStatus?.data?.paymentInstrument;
-    orderObj = await Payment.findByIdAndUpdate(req.params.orderId, {
-      "paymentChk": 1,
-      "gatwayPaymentObj": phoneObj,
-    })
-      .lean()
-      .exec();
+    
+     // Call Juspay API to get order status
+     const statusResponse = await juspayConfig.order.status(orderId);
+     const orderStatus: string = statusResponse.status;
+     console.log('qwerty',statusResponse)
+     let message: string = '';
+     let obj1 = await Payment.findByIdAndUpdate(orderObj._id, {
+       "statusResponse": statusResponse,
+     })
+       .lean()
+       .exec();
+
+     if(orderStatus === "PENDING") {
+       message = "order payment pending";
+       res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${orderId}&orderStatus=${orderStatus}&txn_id=${statusResponse.txn_id}&effective_amount=${statusResponse.effective_amount}&txn_uuid=${statusResponse.txn_uuid}&type=topup`);
+   }
+   
+   if(orderStatus === "PENDING_VBV") {
+       message = "order payment pending";
+       res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${orderId}&orderStatus=${orderStatus}&txn_id=${statusResponse.txn_id}&effective_amount=${statusResponse.effective_amount}&txn_uuid=${statusResponse.txn_uuid}&type=topup`);
+   }
+   
+   if(orderStatus === "AUTHORIZATION_FAILED") {
+       message = "order payment authorization failed";
+       res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${orderId}&orderStatus=${orderStatus}&txn_id=${statusResponse.txn_id}&effective_amount=${statusResponse.effective_amount}&txn_uuid=${statusResponse.txn_uuid}&type=topup`);
+   }
+   
+   if(orderStatus === "AUTHENTICATION_FAILED") {
+       message = "order payment authentication failed";
+       res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${orderId}&orderStatus=${orderStatus}&txn_id=${statusResponse.txn_id}&effective_amount=${statusResponse.effective_amount}&txn_uuid=${statusResponse.txn_uuid}&type=topup`);
+   }
+     let orderIdForBlock=orderId
+     if(orderStatus==="CHARGED"){
+
+       const updatedPayment = await Payment.findOneAndUpdate(
+         { 'gatwayPaymentObj.order_id': orderIdForBlock }, // Find payment by order_id in gatwayPaymentObj
+         { $set: {  "paymentChk": 1,
+           "gatwayPaymentObj": statusResponse}
+          }, // Update order_id
+         { new: true } // Return the updated document
+       ).exec();
+   
+       if (updatedPayment) {
+         console.log('Updated Payment:', updatedPayment);
+       } else {
+         console.log('No payment found with the given order_id.');
+       }
+       
+
+         orderObj=updatedPayment
 
     let userObj: any = await User.findById(orderObj?.orderObj?.userId).exec();
     let patObj = orderObj?.orderObj;
@@ -465,27 +516,38 @@ export const handleJuspayPaymentForTopup = async (req: Request, res: Response, n
 
     let email = userObj?.email ? userObj?.email : userObj?.companyObj?.email;
     let name = userObj?.name;
-    let orderId = orderObj?.orderId;
+    let orderIdForScope = orderObj?.orderId;
     let emailArr = [
       {
         name,
         email,
       },
     ];
-    let customerTitle = `Topup has been confirmed ${orderId}`;
-    let adminTitle = `New Topup ${orderId} -  ${name}`;
+    let customerTitle = `Topup has been confirmed ${orderIdForScope}`;
+    let adminTitle = `New Topup ${orderIdForScope} -  ${name}`;
 
     let obj3 = { ...orderObj };
     console.log(obj3);
-    obj3.order_id = orderId;
+    obj3.order_id = orderIdForScope;
     obj3.createdAtDate2 = new Date(orderObj.createdAt).toDateString();
     await sendMail(emailArr, orderObj._id, customerTitle, orderObj);
     let emailAr2 = [{ name: "Plywood Bazar", email: "admin@plywoodbazar.com" }];
     await sendMail(emailAr2, orderObj._id, adminTitle, orderObj);
     console.log("asdsadad", process.env.APP_URL);
-    res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}`);
-    // res.json({ message: "Payment Successfull", success: true, orderId: orderObj._id, data: phoneObj });
+
+        res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?orderStatus=${orderStatus}&txn_id=${statusResponse.txn_id}&effective_amount=${statusResponse.effective_amount}&txn_uuid=${statusResponse.txn_uuid}&type=topup`);
+  }
   } catch (err) {
     next(err);
   }
 };
+function makeError(message?: string) {
+  return {
+      message: message || 'Something went wrong'
+  };
+}
+function makeJuspayResponse(successRspFromJuspay: Record<string, any>) {
+  if (!successRspFromJuspay) return successRspFromJuspay;
+  if (successRspFromJuspay.http !== undefined) delete successRspFromJuspay.http;
+  return successRspFromJuspay;
+}

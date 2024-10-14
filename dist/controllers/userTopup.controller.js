@@ -16,6 +16,7 @@ const Payment_model_1 = require("../models/Payment.model");
 const phonepay_1 = require("../helpers/phonepay");
 const mailer_1 = require("../helpers/mailer");
 const constant_1 = require("../helpers/constant");
+const hdfcConfig_1 = require("../helpers/hdfcConfig");
 const buyTopup = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y;
     try {
@@ -379,24 +380,32 @@ const initiateJuspayPaymentForTopup = (req, res, next) => __awaiter(void 0, void
         let paymentObjResponse = yield new Payment_model_1.Payment(paymentObj).save();
         options.orderId = paymentObjResponse._id;
         options.mobile = userObj === null || userObj === void 0 ? void 0 : userObj.phone;
-        options.successUrl = `${process.env.BASE_URL}/userTopup/phonepePaymentStatusCheck/` + paymentObjResponse._id;
-        options.payfrom = req.body.patfrom;
-        let phoResone = yield (0, phonepay_1.createPhonePaymentOrder)(options);
-        if (phoResone && !(phoResone === null || phoResone === void 0 ? void 0 : phoResone.sucess)) {
-            throw new Error(`Phonepe is not working.Please Try Some another Payment Method`);
-        }
-        let orderPaymentObj = phoResone === null || phoResone === void 0 ? void 0 : phoResone.data;
+        const paymentPageClientId = hdfcConfig_1.hdfcConfig.PAYMENT_PAGE_CLIENT_ID;
+        const orderId = `order_${Date.now()}`;
+        // makes return url
+        const returnUrl = `${process.env.BASE_URL}/userTopup/handleJuspayPaymentForTopup`;
+        const sessionResponse = yield hdfcConfig_1.juspayConfig.orderSession.create({
+            order_id: orderId,
+            amount: options.amount,
+            payment_page_client_id: paymentPageClientId,
+            customer_id: options.userId,
+            action: 'paymentPage',
+            return_url: returnUrl,
+            currency: 'INR',
+            customer_phone: options.email,
+            customer_email: options.mobile,
+            udf6: options.req.body._id // [optional] default is INR
+        });
+        let orderPaymentObj = sessionResponse;
         let obj1 = yield Payment_model_1.Payment.findByIdAndUpdate(paymentObjResponse._id, {
             "gatwayPaymentObj": orderPaymentObj,
         })
             .lean()
             .exec();
-        res.status(200).json({
-            message: "UserTopup Successfully Created",
-            data: orderPaymentObj,
-            orderId: paymentObjResponse._id,
-            success: true,
-        });
+        console.log('upadtedx', obj1);
+        sessionResponse.orderIdx = paymentObjResponse._id;
+        // removes http field from response, typically you won't send entire structure as response
+        return res.json(makeJuspayResponse(sessionResponse));
     }
     catch (err) {
         next(err);
@@ -404,8 +413,12 @@ const initiateJuspayPaymentForTopup = (req, res, next) => __awaiter(void 0, void
 });
 exports.initiateJuspayPaymentForTopup = initiateJuspayPaymentForTopup;
 const handleJuspayPaymentForTopup = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _30, _31, _32, _33;
+    var _30, _31, _32;
     try {
+        const orderId = req.body.order_id || req.body.orderId;
+        if (orderId === undefined) {
+            return res.status(400).json(makeError('order_id not present or cannot be empty'));
+        }
         // const userObj = await User.findById(req.user.userId).lean().exec();
         let orderObj = yield Payment_model_1.Payment.findById(req.params.orderId).exec();
         if (!orderObj)
@@ -415,65 +428,102 @@ const handleJuspayPaymentForTopup = (req, res, next) => __awaiter(void 0, void 0
             res.json({ message: "Payment is already Done ", success: true, orderId: orderObj._id, data: orderObj });
             return;
         }
-        let phoneObj = orderObj === null || orderObj === void 0 ? void 0 : orderObj.gatwayPaymentObj;
-        let options = {
-            merchantId: phoneObj === null || phoneObj === void 0 ? void 0 : phoneObj.merchantId,
-            merchantTransactionId: phoneObj === null || phoneObj === void 0 ? void 0 : phoneObj.merchantTransactionId,
-        };
-        let checkPaymentStatus = yield (0, phonepay_1.checkStatusPhonePaymentOrder)(options);
-        if (checkPaymentStatus && !(checkPaymentStatus === null || checkPaymentStatus === void 0 ? void 0 : checkPaymentStatus.sucess)) {
-            throw new Error("Please Contact to Admin for payment is failed");
-        }
-        phoneObj.paymentInstrument = (_30 = checkPaymentStatus === null || checkPaymentStatus === void 0 ? void 0 : checkPaymentStatus.data) === null || _30 === void 0 ? void 0 : _30.paymentInstrument;
-        orderObj = yield Payment_model_1.Payment.findByIdAndUpdate(req.params.orderId, {
-            "paymentChk": 1,
-            "gatwayPaymentObj": phoneObj,
+        // Call Juspay API to get order status
+        const statusResponse = yield hdfcConfig_1.juspayConfig.order.status(orderId);
+        const orderStatus = statusResponse.status;
+        console.log('qwerty', statusResponse);
+        let message = '';
+        let obj1 = yield Payment_model_1.Payment.findByIdAndUpdate(orderObj._id, {
+            "statusResponse": statusResponse,
         })
             .lean()
             .exec();
-        let userObj = yield user_model_1.User.findById((_31 = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj) === null || _31 === void 0 ? void 0 : _31.userId).exec();
-        let patObj = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj;
-        let totalSubscription = yield userTopup_model_1.UserTopup.countDocuments({});
-        let invoiceId = (0, constant_1.getTopUpOrderIdSequence)(totalSubscription + 1);
-        patObj.orderId = invoiceId;
-        yield user_model_1.User.findByIdAndUpdate((_32 = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj) === null || _32 === void 0 ? void 0 : _32.userId, {
-            $inc: {
-                numberOfSales: patObj.numberOfSales,
-                saleDays: patObj === null || patObj === void 0 ? void 0 : patObj.saleDays,
-                numberOfAdvertisement: patObj === null || patObj === void 0 ? void 0 : patObj.numberOfAdvertisement,
-                advertisementDays: patObj === null || patObj === void 0 ? void 0 : patObj.advertisementDays,
-                numberOfBannerImages: patObj === null || patObj === void 0 ? void 0 : patObj.numberOfBannerImages,
-                bannerimagesDays: patObj === null || patObj === void 0 ? void 0 : patObj.bannerimagesDays,
-                numberOfOpportunities: patObj === null || patObj === void 0 ? void 0 : patObj.numberOfOpportunities,
-                OpportunitiesDays: patObj === null || patObj === void 0 ? void 0 : patObj.OpportunitiesDays,
-            },
-            subscriptionEndDate: patObj.endDate,
-        }).exec();
-        orderObj = yield new userTopup_model_1.UserTopup(patObj).save();
-        let email = (userObj === null || userObj === void 0 ? void 0 : userObj.email) ? userObj === null || userObj === void 0 ? void 0 : userObj.email : (_33 = userObj === null || userObj === void 0 ? void 0 : userObj.companyObj) === null || _33 === void 0 ? void 0 : _33.email;
-        let name = userObj === null || userObj === void 0 ? void 0 : userObj.name;
-        let orderId = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderId;
-        let emailArr = [
-            {
-                name,
-                email,
-            },
-        ];
-        let customerTitle = `Topup has been confirmed ${orderId}`;
-        let adminTitle = `New Topup ${orderId} -  ${name}`;
-        let obj3 = Object.assign({}, orderObj);
-        console.log(obj3);
-        obj3.order_id = orderId;
-        obj3.createdAtDate2 = new Date(orderObj.createdAt).toDateString();
-        yield (0, mailer_1.sendMail)(emailArr, orderObj._id, customerTitle, orderObj);
-        let emailAr2 = [{ name: "Plywood Bazar", email: "admin@plywoodbazar.com" }];
-        yield (0, mailer_1.sendMail)(emailAr2, orderObj._id, adminTitle, orderObj);
-        console.log("asdsadad", process.env.APP_URL);
-        res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}`);
-        // res.json({ message: "Payment Successfull", success: true, orderId: orderObj._id, data: phoneObj });
+        if (orderStatus === "PENDING") {
+            message = "order payment pending";
+            res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${orderId}&orderStatus=${orderStatus}&txn_id=${statusResponse.txn_id}&effective_amount=${statusResponse.effective_amount}&txn_uuid=${statusResponse.txn_uuid}&type=topup`);
+        }
+        if (orderStatus === "PENDING_VBV") {
+            message = "order payment pending";
+            res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${orderId}&orderStatus=${orderStatus}&txn_id=${statusResponse.txn_id}&effective_amount=${statusResponse.effective_amount}&txn_uuid=${statusResponse.txn_uuid}&type=topup`);
+        }
+        if (orderStatus === "AUTHORIZATION_FAILED") {
+            message = "order payment authorization failed";
+            res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${orderId}&orderStatus=${orderStatus}&txn_id=${statusResponse.txn_id}&effective_amount=${statusResponse.effective_amount}&txn_uuid=${statusResponse.txn_uuid}&type=topup`);
+        }
+        if (orderStatus === "AUTHENTICATION_FAILED") {
+            message = "order payment authentication failed";
+            res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${orderId}&orderStatus=${orderStatus}&txn_id=${statusResponse.txn_id}&effective_amount=${statusResponse.effective_amount}&txn_uuid=${statusResponse.txn_uuid}&type=topup`);
+        }
+        let orderIdForBlock = orderId;
+        if (orderStatus === "CHARGED") {
+            const updatedPayment = yield Payment_model_1.Payment.findOneAndUpdate({ 'gatwayPaymentObj.order_id': orderIdForBlock }, // Find payment by order_id in gatwayPaymentObj
+            { $set: { "paymentChk": 1,
+                    "gatwayPaymentObj": statusResponse }
+            }, // Update order_id
+            { new: true } // Return the updated document
+            ).exec();
+            if (updatedPayment) {
+                console.log('Updated Payment:', updatedPayment);
+            }
+            else {
+                console.log('No payment found with the given order_id.');
+            }
+            orderObj = updatedPayment;
+            let userObj = yield user_model_1.User.findById((_30 = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj) === null || _30 === void 0 ? void 0 : _30.userId).exec();
+            let patObj = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj;
+            let totalSubscription = yield userTopup_model_1.UserTopup.countDocuments({});
+            let invoiceId = (0, constant_1.getTopUpOrderIdSequence)(totalSubscription + 1);
+            patObj.orderId = invoiceId;
+            yield user_model_1.User.findByIdAndUpdate((_31 = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj) === null || _31 === void 0 ? void 0 : _31.userId, {
+                $inc: {
+                    numberOfSales: patObj.numberOfSales,
+                    saleDays: patObj === null || patObj === void 0 ? void 0 : patObj.saleDays,
+                    numberOfAdvertisement: patObj === null || patObj === void 0 ? void 0 : patObj.numberOfAdvertisement,
+                    advertisementDays: patObj === null || patObj === void 0 ? void 0 : patObj.advertisementDays,
+                    numberOfBannerImages: patObj === null || patObj === void 0 ? void 0 : patObj.numberOfBannerImages,
+                    bannerimagesDays: patObj === null || patObj === void 0 ? void 0 : patObj.bannerimagesDays,
+                    numberOfOpportunities: patObj === null || patObj === void 0 ? void 0 : patObj.numberOfOpportunities,
+                    OpportunitiesDays: patObj === null || patObj === void 0 ? void 0 : patObj.OpportunitiesDays,
+                },
+                subscriptionEndDate: patObj.endDate,
+            }).exec();
+            orderObj = yield new userTopup_model_1.UserTopup(patObj).save();
+            let email = (userObj === null || userObj === void 0 ? void 0 : userObj.email) ? userObj === null || userObj === void 0 ? void 0 : userObj.email : (_32 = userObj === null || userObj === void 0 ? void 0 : userObj.companyObj) === null || _32 === void 0 ? void 0 : _32.email;
+            let name = userObj === null || userObj === void 0 ? void 0 : userObj.name;
+            let orderIdForScope = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderId;
+            let emailArr = [
+                {
+                    name,
+                    email,
+                },
+            ];
+            let customerTitle = `Topup has been confirmed ${orderIdForScope}`;
+            let adminTitle = `New Topup ${orderIdForScope} -  ${name}`;
+            let obj3 = Object.assign({}, orderObj);
+            console.log(obj3);
+            obj3.order_id = orderIdForScope;
+            obj3.createdAtDate2 = new Date(orderObj.createdAt).toDateString();
+            yield (0, mailer_1.sendMail)(emailArr, orderObj._id, customerTitle, orderObj);
+            let emailAr2 = [{ name: "Plywood Bazar", email: "admin@plywoodbazar.com" }];
+            yield (0, mailer_1.sendMail)(emailAr2, orderObj._id, adminTitle, orderObj);
+            console.log("asdsadad", process.env.APP_URL);
+            res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?orderStatus=${orderStatus}&txn_id=${statusResponse.txn_id}&effective_amount=${statusResponse.effective_amount}&txn_uuid=${statusResponse.txn_uuid}&type=topup`);
+        }
     }
     catch (err) {
         next(err);
     }
 });
 exports.handleJuspayPaymentForTopup = handleJuspayPaymentForTopup;
+function makeError(message) {
+    return {
+        message: message || 'Something went wrong'
+    };
+}
+function makeJuspayResponse(successRspFromJuspay) {
+    if (!successRspFromJuspay)
+        return successRspFromJuspay;
+    if (successRspFromJuspay.http !== undefined)
+        delete successRspFromJuspay.http;
+    return successRspFromJuspay;
+}
