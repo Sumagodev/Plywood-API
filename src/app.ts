@@ -44,6 +44,7 @@ import dealershipUSerRoutes from './routes/dealershipUesrRoutes.routes'
 import notificationRoutes from './routes/notification.routes'
 import VendorReviewRoutes from './routes/vendorReviews.routes'
 import VerifiedUsers from "./routes/verifiedUsers.routes";
+import webhookRoutes from "./routes/webhook.routes";
 mongoose.connect(CONFIG.MONGOURI, (err) => {
   if (err) {
     console.log(err);
@@ -100,6 +101,7 @@ app.use("/websiteData", websiteDataRouter);
 app.use("/seo", seoRouter);
 app.use("/homepageBanners", homepageBannerRouter);
 app.use("/notifications", notificationRoutes);
+app.use("/webhooks", webhookRoutes);
 
 app.use(errorHandler);
 
