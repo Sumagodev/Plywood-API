@@ -13,5 +13,6 @@ const payment = new mongoose_1.Schema({
         default: 0, // if payment is not 1 then it wont be able to proceed
     },
     gatewayPaymentArr: Array,
+    statusResponse: Object,
 }, { timestamps: true });
 exports.Payment = (0, mongoose_1.model)("payment", payment);
