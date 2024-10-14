@@ -810,7 +810,7 @@ export const handleJuspayPaymentForSubcription = async (req: Request, res: Respo
           crmObj.City = cityObj?.name ? cityObj?.name : "";
         }
         await postSpiCrmLead(crmObj);
-        res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}`);
+        res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?txn_id=${statusResponse.txn_id}&effective_amount=${statusResponse.effective_amount}&txn_uuid=${statusResponse.txn_uuid}`);
       }
       
       // Remove unnecessary fields from the response
