@@ -21,21 +21,27 @@ const Payment_model_1 = require("../models/Payment.model");
 const user_model_1 = require("../models/user.model");
 dotenv_1.default.config(); // Load environment variables from .env file
 // Load expected credentials from environment variables (configured in your Dashboard)
-const EXPECTED_USERNAME = process.env.USERNAME || 'yourUsername';
-const EXPECTED_PASSWORD = process.env.PASSWORD || 'yourPassword';
+const EXPECTED_USERNAME = process.env.WEBHOOK_USER_NAME;
+const EXPECTED_PASSWORD = process.env.WEBHOOK_PASSWORD;
+// const decodeBase64AuthHeader = (authHeader: string): { username: string, password: string } | null => {
+//     if (!authHeader.startsWith('Basic ')) {
+//         return null;
+//     }
+//     // Extract the Base64 encoded part
+//     const base64Credentials = authHeader.split(' ')[1];
+//     // Decode the Base64 string
+//     const decodedCredentials = Buffer.from(base64Credentials, 'base64').toString('utf8');
+//     // Split the decoded string into username and password
+//     const [username, password] = decodedCredentials.split(':');
+//     if (!username || !password) {
+//         return null;
+//     }
+//     return { username, password };
+// };
 const decodeBase64AuthHeader = (authHeader) => {
-    if (!authHeader.startsWith('Basic ')) {
-        return null;
-    }
-    // Extract the Base64 encoded part
-    const base64Credentials = authHeader.split(' ')[1];
-    // Decode the Base64 string
-    const decodedCredentials = buffer_1.Buffer.from(base64Credentials, 'base64').toString('utf8');
-    // Split the decoded string into username and password
+    const base64Credentials = authHeader.split(' ')[1]; // Split to remove 'Basic' prefix
+    const decodedCredentials = buffer_1.Buffer.from(base64Credentials, 'base64').toString('ascii');
     const [username, password] = decodedCredentials.split(':');
-    if (!username || !password) {
-        return null;
-    }
     return { username, password };
 };
 const handleHdfcWebhook = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {

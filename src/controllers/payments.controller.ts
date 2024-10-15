@@ -9,28 +9,35 @@ import { User } from "../models/user.model";
 
 dotenv.config();  // Load environment variables from .env file
 // Load expected credentials from environment variables (configured in your Dashboard)
-const EXPECTED_USERNAME = process.env.USERNAME || 'yourUsername';
-const EXPECTED_PASSWORD = process.env.PASSWORD || 'yourPassword';
+const EXPECTED_USERNAME = process.env.WEBHOOK_USER_NAME 
+const EXPECTED_PASSWORD = process.env.WEBHOOK_PASSWORD;
 
-const decodeBase64AuthHeader = (authHeader: string): { username: string, password: string } | null => {
-    if (!authHeader.startsWith('Basic ')) {
-        return null;
-    }
+// const decodeBase64AuthHeader = (authHeader: string): { username: string, password: string } | null => {
+//     if (!authHeader.startsWith('Basic ')) {
+//         return null;
+//     }
 
-    // Extract the Base64 encoded part
-    const base64Credentials = authHeader.split(' ')[1];
+//     // Extract the Base64 encoded part
+//     const base64Credentials = authHeader.split(' ')[1];
 
-    // Decode the Base64 string
-    const decodedCredentials = Buffer.from(base64Credentials, 'base64').toString('utf8');
+//     // Decode the Base64 string
+//     const decodedCredentials = Buffer.from(base64Credentials, 'base64').toString('utf8');
 
-    // Split the decoded string into username and password
-    const [username, password] = decodedCredentials.split(':');
+//     // Split the decoded string into username and password
+//     const [username, password] = decodedCredentials.split(':');
 
-    if (!username || !password) {
-        return null;
-    }
+//     if (!username || !password) {
+//         return null;
+//     }
 
-    return { username, password };
+//     return { username, password };
+// };
+
+const decodeBase64AuthHeader = (authHeader: string) => {
+  const base64Credentials = authHeader.split(' ')[1]; // Split to remove 'Basic' prefix
+  const decodedCredentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+  const [username, password] = decodedCredentials.split(':');
+  return { username, password };
 };
 
 export const handleHdfcWebhook = async (req: Request, res: Response, next: NextFunction) => {
