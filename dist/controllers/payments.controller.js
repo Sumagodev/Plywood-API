@@ -148,7 +148,7 @@ const verifyPayment = (req, res, next) => __awaiter(void 0, void 0, void 0, func
                 statusCode = 200; // OK
                 break;
             default:
-                message = "Unknown payment status";
+                message = `payment status ${orderStatus}`;
                 statusCode = 500; // Internal server error for unknown status
                 break;
         }

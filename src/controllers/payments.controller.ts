@@ -164,10 +164,9 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
           case "CHARGED":
             message = "Order payment successful";
             statusCode = 200; // OK
-            break;
-    
+            break;            
           default:
-            message = "Unknown payment status";
+            message = `payment status ${orderStatus}`;
             statusCode = 500; // Internal server error for unknown status
             break;
         }
