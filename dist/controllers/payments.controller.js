@@ -82,7 +82,7 @@ const handleHdfcWebhook = (req, res, next) => __awaiter(void 0, void 0, void 0, 
 });
 exports.handleHdfcWebhook = handleHdfcWebhook;
 const verifyPayment = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f, _g;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
     try {
         let existsCheck = yield user_model_1.User.findOne({ userId: (_a = req === null || req === void 0 ? void 0 : req.user) === null || _a === void 0 ? void 0 : _a.userId }).sort({ endDate: -1 }).exec();
         console.log(existsCheck, "existsCheck");
@@ -157,11 +157,16 @@ const verifyPayment = (req, res, next) => __awaiter(void 0, void 0, void 0, func
             result: orderStatus === "CHARGED" ? true : false,
             message: message,
             orderId: orderId,
-            orderStatus: orderStatus,
-            txn_id: statusResponse.txn_id,
-            effective_amount: statusResponse.effective_amount,
-            txn_uuid: statusResponse.txn_uuid,
-            payload: statusResponse
+            orderStatus: (_h = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _h === void 0 ? void 0 : _h.status,
+            txn_id: (_j = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _j === void 0 ? void 0 : _j.txn_id,
+            effective_amount: (_k = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _k === void 0 ? void 0 : _k.effective_amount,
+            txn_uuid: (_l = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _l === void 0 ? void 0 : _l.txn_uuid,
+            date_created: paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse.date_created,
+            last_updated: paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse.last_updated,
+            customer_email: paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse.customer_email,
+            customer_phone: paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse.customer_phone,
+            customer_id: paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse.customer_id,
+            status: paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse.status,
         });
     }
     catch (error) {
