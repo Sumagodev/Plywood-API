@@ -61,14 +61,15 @@ export const handleHdfcWebhook = async (req: Request, res: Response, next: NextF
 
     // Step 2: Decode and verify the Authorization header
     const credentials = decodeBase64AuthHeader(authHeader);
-    console.log(decodeBase64(credentials.password))
-    console.log(decodeBase64(credentials.password))
+    console.log(decodeBase64(credentials.username))
     console.log(decodeBase64(credentials.password))
     console.log(EXPECTED_PASSWORD)
+    console.log(EXPECTED_USERNAME)
     
-    if (decodeBase64(credentials.username) !== EXPECTED_USERNAME || decodeBase64(credentials.password) !== EXPECTED_PASSWORD) {
-        return res.status(401).json({ message: 'Unauthorized: Invalid credentials' });
-    }
+        
+
+    if(decodeBase64(credentials.username)===EXPECTED_USERNAME && decodeBase64(credentials.password)===EXPECTED_PASSWORD)
+    {
 
     // Step 3: (Optional) Validate any custom headers
     const customHeaderValue = req.headers['customheadername1'];
@@ -104,6 +105,10 @@ export const handleHdfcWebhook = async (req: Request, res: Response, next: NextF
     } catch (error) {
         console.error('Error saving webhook data:', error);
         res.status(500).json({ message: 'Internal Server Error', error: error });
+    }
+  }
+    else{
+      return res.status(401).json({ message: 'Unauthorized: Invalid credentials' });
     }
 };
 

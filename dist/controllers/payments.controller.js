@@ -59,43 +59,45 @@ const handleHdfcWebhook = (req, res, next) => __awaiter(void 0, void 0, void 0, 
     console.log();
     // Step 2: Decode and verify the Authorization header
     const credentials = decodeBase64AuthHeader(authHeader);
-    console.log(decodeBase64(credentials.password));
-    console.log(decodeBase64(credentials.password));
+    console.log(decodeBase64(credentials.username));
     console.log(decodeBase64(credentials.password));
     console.log(EXPECTED_PASSWORD);
-    if (decodeBase64(credentials.username) !== EXPECTED_USERNAME || decodeBase64(credentials.password) !== EXPECTED_PASSWORD) {
-        return res.status(401).json({ message: 'Unauthorized: Invalid credentials' });
-    }
-    // Step 3: (Optional) Validate any custom headers
-    const customHeaderValue = req.headers['customheadername1'];
-    if (customHeaderValue && customHeaderValue !== 'expectedCustomValue') {
-        return res.status(401).json({ message: 'Unauthorized: Invalid custom header' });
-    }
-    // Step 4: Retrieve the payload from the webhook request
-    const payload = req.body;
-    try {
-        // Step 5: Create an instance of the PaymentWebhook model and save the payload to MongoDB
-        const webhookData = new PaymentWebhook_model_1.PaymentWebhook({
-            payload: payload, // assuming your model has a 'payload' field
-        });
-        // Save the data
-        const result = yield webhookData.save();
-        // Check if the save operation returned a valid result
-        if (!result || !result._id) {
-            return res.status(500).json({
-                message: 'Error: Webhook data was not saved correctly',
-                error: 'No valid document ID returned from MongoDB',
+    console.log(EXPECTED_USERNAME);
+    if (decodeBase64(credentials.username) === EXPECTED_USERNAME && decodeBase64(credentials.password) === EXPECTED_PASSWORD) {
+        // Step 3: (Optional) Validate any custom headers
+        const customHeaderValue = req.headers['customheadername1'];
+        if (customHeaderValue && customHeaderValue !== 'expectedCustomValue') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid custom header' });
+        }
+        // Step 4: Retrieve the payload from the webhook request
+        const payload = req.body;
+        try {
+            // Step 5: Create an instance of the PaymentWebhook model and save the payload to MongoDB
+            const webhookData = new PaymentWebhook_model_1.PaymentWebhook({
+                payload: payload, // assuming your model has a 'payload' field
+            });
+            // Save the data
+            const result = yield webhookData.save();
+            // Check if the save operation returned a valid result
+            if (!result || !result._id) {
+                return res.status(500).json({
+                    message: 'Error: Webhook data was not saved correctly',
+                    error: 'No valid document ID returned from MongoDB',
+                });
+            }
+            // Respond with a success message if save was successful
+            res.status(200).json({
+                message: 'Webhook data saved successfully',
+                result: result,
             });
         }
-        // Respond with a success message if save was successful
-        res.status(200).json({
-            message: 'Webhook data saved successfully',
-            result: result,
-        });
+        catch (error) {
+            console.error('Error saving webhook data:', error);
+            res.status(500).json({ message: 'Internal Server Error', error: error });
+        }
     }
-    catch (error) {
-        console.error('Error saving webhook data:', error);
-        res.status(500).json({ message: 'Internal Server Error', error: error });
+    else {
+        return res.status(401).json({ message: 'Unauthorized: Invalid credentials' });
     }
 });
 exports.handleHdfcWebhook = handleHdfcWebhook;
