@@ -1627,6 +1627,7 @@ const getTopVendors = (req, res, next) => __awaiter(void 0, void 0, void 0, func
                 "$group": {
                     "_id": "$_id",
                     "name": { "$first": "$name" },
+                    "role": { "$first": "$role" },
                     "companyName": { "$first": "$companyObj.name" },
                     "bannerImage": { "$first": "$bannerImage" },
                     "profileImage": { "$first": "$profileImage" },
