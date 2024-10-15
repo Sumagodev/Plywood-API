@@ -58,6 +58,9 @@ export const handleHdfcWebhook = async (req: Request, res: Response, next: NextF
     console.log(EXPECTED_PASSWORD,'EXPECTED_PASSWORD')
     console.log(credentials.username,'credentials.username')
     console.log(credentials.password,'credentials.password')
+    console.log(`Decoded Username: '${credentials.username}'`);
+console.log(`Decoded Password: '${credentials.password}'`); // This should show the trimmed password
+
     if (!credentials || credentials.username !== EXPECTED_USERNAME || credentials.password !== EXPECTED_PASSWORD) {
         return res.status(401).json({ message: 'Unauthorized: Invalid credentials' });
     }
