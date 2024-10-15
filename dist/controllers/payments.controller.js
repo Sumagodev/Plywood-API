@@ -108,7 +108,6 @@ const verifyPayment = (req, res, next) => __awaiter(void 0, void 0, void 0, func
                     txn_id: (_e = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _e === void 0 ? void 0 : _e.txn_id,
                     effective_amount: (_f = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _f === void 0 ? void 0 : _f.effective_amount,
                     txn_uuid: (_g = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _g === void 0 ? void 0 : _g.txn_uuid,
-                    payload: paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse,
                     date_created: paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse.date_created,
                     last_updated: paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse.last_updated,
                     customer_email: paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse.customer_email,
