@@ -44,6 +44,11 @@ const decodeBase64AuthHeader = (authHeader: string) => {
   return { username, password };
 };
 
+const decodeBase64 = (base64String:String) => {
+  const decodedString = Buffer.from(base64String, 'base64').toString('ascii');
+  return decodedString;
+};
+
 
 export const handleHdfcWebhook = async (req: Request, res: Response, next: NextFunction) => {
 
@@ -56,16 +61,10 @@ export const handleHdfcWebhook = async (req: Request, res: Response, next: NextF
 
     // Step 2: Decode and verify the Authorization header
     const credentials = decodeBase64AuthHeader(authHeader);
-    console.log(authHeader,'authHeader')
-    console.log(credentials,'credentials')
-    console.log(EXPECTED_USERNAME,'EXPECTED_USERNAME')
-    console.log(EXPECTED_PASSWORD,'EXPECTED_PASSWORD')
-    console.log(credentials.username,'credentials.username')
-    console.log(credentials.password,'credentials.password')
-    console.log(`Decoded Username: '${credentials.username}'`);
-console.log(`Decoded Password: '${credentials.password}'`); // This should show the trimmed password
-
-    if (!credentials || credentials.username !== EXPECTED_USERNAME || credentials.password !== EXPECTED_PASSWORD) {
+    decodeBase64('=============')
+    decodeBase64(credentials.password)
+    decodeBase64(credentials.password)
+    if (!credentials || decodeBase64(credentials.username) !== EXPECTED_USERNAME || decodeBase64(credentials.password) !== EXPECTED_PASSWORD) {
         return res.status(401).json({ message: 'Unauthorized: Invalid credentials' });
     }
 
