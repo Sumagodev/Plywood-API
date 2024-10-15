@@ -62,6 +62,7 @@ const handleHdfcWebhook = (req, res, next) => __awaiter(void 0, void 0, void 0, 
     console.log(decodeBase64(credentials.password));
     console.log(decodeBase64(credentials.password));
     console.log(decodeBase64(credentials.password));
+    console.log(EXPECTED_PASSWORD);
     if (!credentials || decodeBase64(credentials.username) !== EXPECTED_USERNAME || decodeBase64(credentials.password) !== EXPECTED_PASSWORD) {
         return res.status(401).json({ message: 'Unauthorized: Invalid credentials' });
     }
