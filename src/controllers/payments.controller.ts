@@ -35,10 +35,11 @@ const EXPECTED_PASSWORD = process.env.WEBHOOK_PASSWORD;
 
 const decodeBase64AuthHeader = (authHeader: string) => {
   const base64Credentials = authHeader.split(' ')[1]; // Split to remove 'Basic' prefix
-  const decodedCredentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+  const decodedCredentials = Buffer.from(base64Credentials, 'base64').toString('ascii').trim(); // trim whitespace/newline
   const [username, password] = decodedCredentials.split(':');
   return { username, password };
 };
+
 
 export const handleHdfcWebhook = async (req: Request, res: Response, next: NextFunction) => {
 
@@ -53,6 +54,10 @@ export const handleHdfcWebhook = async (req: Request, res: Response, next: NextF
     const credentials = decodeBase64AuthHeader(authHeader);
     console.log(authHeader,'authHeader')
     console.log(credentials,'credentials')
+    console.log(EXPECTED_USERNAME,'EXPECTED_USERNAME')
+    console.log(EXPECTED_PASSWORD,'EXPECTED_PASSWORD')
+    console.log(credentials.username,'credentials.username')
+    console.log(credentials.password,'credentials.password')
     if (!credentials || credentials.username !== EXPECTED_USERNAME || credentials.password !== EXPECTED_PASSWORD) {
         return res.status(401).json({ message: 'Unauthorized: Invalid credentials' });
     }
