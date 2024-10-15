@@ -23,21 +23,6 @@ dotenv_1.default.config(); // Load environment variables from .env file
 // Load expected credentials from environment variables (configured in your Dashboard)
 const EXPECTED_USERNAME = process.env.WEBHOOK_USER_NAME;
 const EXPECTED_PASSWORD = process.env.WEBHOOK_PASSWORD;
-// const decodeBase64AuthHeader = (authHeader: string): { username: string, password: string } | null => {
-//     if (!authHeader.startsWith('Basic ')) {
-//         return null;
-//     }
-//     // Extract the Base64 encoded part
-//     const base64Credentials = authHeader.split(' ')[1];
-//     // Decode the Base64 string
-//     const decodedCredentials = Buffer.from(base64Credentials, 'base64').toString('utf8');
-//     // Split the decoded string into username and password
-//     const [username, password] = decodedCredentials.split(':');
-//     if (!username || !password) {
-//         return null;
-//     }
-//     return { username, password };
-// };
 const decodeBase64AuthHeader = (authHeader) => {
     if (!authHeader.startsWith('Basic ')) {
         throw new Error('Authorization header must start with "Basic "');
@@ -47,10 +32,6 @@ const decodeBase64AuthHeader = (authHeader) => {
     const [username, password] = decodedCredentials.split(':').map((str) => str.trim()); // Split into username and password
     return { username, password };
 };
-const decodeBase64 = (base64String) => {
-    const decodedString = buffer_1.Buffer.from(base64String, 'base64').toString('ascii');
-    return decodedString;
-};
 const handleHdfcWebhook = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
@@ -58,11 +39,13 @@ const handleHdfcWebhook = (req, res, next) => __awaiter(void 0, void 0, void 0, 
     }
     // Step 2: Decode and verify the Authorization header
     const credentials = decodeBase64AuthHeader(authHeader);
-    console.log(decodeBase64(credentials.username));
-    console.log(decodeBase64(credentials.password));
-    console.log(EXPECTED_PASSWORD);
-    console.log(EXPECTED_USERNAME);
-    if (decodeBase64(credentials.username) === EXPECTED_USERNAME && decodeBase64(credentials.password) === EXPECTED_PASSWORD) {
+    // Log decoded credentials for debugging
+    console.log(credentials.username, 'Decoded Username');
+    console.log(credentials.password, 'Decoded Password');
+    console.log(EXPECTED_USERNAME, 'Expected Username');
+    console.log(EXPECTED_PASSWORD, 'Expected Password');
+    // Compare decoded credentials with the expected values
+    if (credentials.username === EXPECTED_USERNAME && credentials.password === EXPECTED_PASSWORD) {
         // Step 3: (Optional) Validate any custom headers
         const customHeaderValue = req.headers['customheadername1'];
         if (customHeaderValue && customHeaderValue !== 'expectedCustomValue') {
@@ -85,18 +68,25 @@ const handleHdfcWebhook = (req, res, next) => __awaiter(void 0, void 0, void 0, 
                 });
             }
             // Respond with a success message if save was successful
-            res.status(200).json({
+            return res.status(200).json({
                 message: 'Webhook data saved successfully',
                 result: result,
             });
         }
         catch (error) {
             console.error('Error saving webhook data:', error);
-            res.status(500).json({ message: 'Internal Server Error', error: error });
+            return res.status(500).json({ message: 'Internal Server Error', error: error });
         }
     }
     else {
-        return res.status(401).json({ message: 'Unauthorized: Invalid credentials', result: decodeBase64(credentials.username) === EXPECTED_USERNAME && decodeBase64(credentials.password) === EXPECTED_PASSWORD });
+        // Respond with unauthorized if the credentials do not match
+        return res.status(401).json({
+            message: 'Unauthorized: Invalid credentials',
+            result: {
+                usernameMatch: credentials.username === EXPECTED_USERNAME,
+                passwordMatch: credentials.password === EXPECTED_PASSWORD
+            }
+        });
     }
 });
 exports.handleHdfcWebhook = handleHdfcWebhook;

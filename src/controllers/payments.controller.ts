@@ -11,27 +11,6 @@ dotenv.config();  // Load environment variables from .env file
 // Load expected credentials from environment variables (configured in your Dashboard)
 const EXPECTED_USERNAME = process.env.WEBHOOK_USER_NAME 
 const EXPECTED_PASSWORD = process.env.WEBHOOK_PASSWORD;
-
-// const decodeBase64AuthHeader = (authHeader: string): { username: string, password: string } | null => {
-//     if (!authHeader.startsWith('Basic ')) {
-//         return null;
-//     }
-
-//     // Extract the Base64 encoded part
-//     const base64Credentials = authHeader.split(' ')[1];
-
-//     // Decode the Base64 string
-//     const decodedCredentials = Buffer.from(base64Credentials, 'base64').toString('utf8');
-
-//     // Split the decoded string into username and password
-//     const [username, password] = decodedCredentials.split(':');
-
-//     if (!username || !password) {
-//         return null;
-//     }
-
-//     return { username, password };
-// };
 const decodeBase64AuthHeader = (authHeader: string) => {
   if (!authHeader.startsWith('Basic ')) {
     throw new Error('Authorization header must start with "Basic "');
@@ -44,12 +23,6 @@ const decodeBase64AuthHeader = (authHeader: string) => {
   return { username, password };
 };
 
-const decodeBase64 = (base64String:String) => {
-  const decodedString = Buffer.from(base64String, 'base64').toString('ascii');
-  return decodedString;
-};
-
-
 export const handleHdfcWebhook = async (req: Request, res: Response, next: NextFunction) => {
 
     const authHeader = req.headers.authorization;
@@ -59,57 +32,63 @@ export const handleHdfcWebhook = async (req: Request, res: Response, next: NextF
     }
 
     // Step 2: Decode and verify the Authorization header
-    const credentials =  decodeBase64AuthHeader(authHeader);
-    console.log(decodeBase64(credentials.username))
-    console.log(decodeBase64(credentials.password))
-    console.log(EXPECTED_PASSWORD)
-    console.log(EXPECTED_USERNAME)
+    const credentials = decodeBase64AuthHeader(authHeader);
     
-        
-
-    if(decodeBase64(credentials.username)===EXPECTED_USERNAME && decodeBase64(credentials.password)===EXPECTED_PASSWORD)
-    {
-
-    // Step 3: (Optional) Validate any custom headers
-    const customHeaderValue = req.headers['customheadername1'];
-    if (customHeaderValue && customHeaderValue !== 'expectedCustomValue') {
-        return res.status(401).json({ message: 'Unauthorized: Invalid custom header' });
-    }
-
-    // Step 4: Retrieve the payload from the webhook request
-    const payload = req.body;
-
-    try {
-        // Step 5: Create an instance of the PaymentWebhook model and save the payload to MongoDB
-        const webhookData = new PaymentWebhook({
-            payload: payload,  // assuming your model has a 'payload' field
-        });
-
-        // Save the data
-        const result = await webhookData.save();
-
-        // Check if the save operation returned a valid result
-        if (!result || !result._id) {
-            return res.status(500).json({
-                message: 'Error: Webhook data was not saved correctly',
-                error: 'No valid document ID returned from MongoDB',
-            });
+    // Log decoded credentials for debugging
+    console.log(credentials.username, 'Decoded Username');
+    console.log(credentials.password, 'Decoded Password');
+    console.log(EXPECTED_USERNAME, 'Expected Username');
+    console.log(EXPECTED_PASSWORD, 'Expected Password');
+    
+    // Compare decoded credentials with the expected values
+    if (credentials.username === EXPECTED_USERNAME && credentials.password === EXPECTED_PASSWORD) {
+        // Step 3: (Optional) Validate any custom headers
+        const customHeaderValue = req.headers['customheadername1'];
+        if (customHeaderValue && customHeaderValue !== 'expectedCustomValue') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid custom header' });
         }
 
-        // Respond with a success message if save was successful
-        res.status(200).json({
-            message: 'Webhook data saved successfully',
-            result: result,
+        // Step 4: Retrieve the payload from the webhook request
+        const payload = req.body;
+
+        try {
+            // Step 5: Create an instance of the PaymentWebhook model and save the payload to MongoDB
+            const webhookData = new PaymentWebhook({
+                payload: payload,  // assuming your model has a 'payload' field
+            });
+
+            // Save the data
+            const result = await webhookData.save();
+
+            // Check if the save operation returned a valid result
+            if (!result || !result._id) {
+                return res.status(500).json({
+                    message: 'Error: Webhook data was not saved correctly',
+                    error: 'No valid document ID returned from MongoDB',
+                });
+            }
+
+            // Respond with a success message if save was successful
+            return res.status(200).json({
+                message: 'Webhook data saved successfully',
+                result: result,
+            });
+        } catch (error) {
+            console.error('Error saving webhook data:', error);
+            return res.status(500).json({ message: 'Internal Server Error', error: error });
+        }
+    } else {
+        // Respond with unauthorized if the credentials do not match
+        return res.status(401).json({ 
+            message: 'Unauthorized: Invalid credentials', 
+            result: {
+                usernameMatch: credentials.username === EXPECTED_USERNAME, 
+                passwordMatch: credentials.password === EXPECTED_PASSWORD
+            } 
         });
-    } catch (error) {
-        console.error('Error saving webhook data:', error);
-        res.status(500).json({ message: 'Internal Server Error', error: error });
-    }
-  }
-    else{
-      return res.status(401).json({ message: 'Unauthorized: Invalid credentials',result:decodeBase64(credentials.username)===EXPECTED_USERNAME && decodeBase64(credentials.password)===EXPECTED_PASSWORD });
     }
 };
+
 
 export const verifyPayment = async (req: Request, res: Response, next: NextFunction) => {
 
