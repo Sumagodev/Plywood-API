@@ -39,11 +39,6 @@ const handleHdfcWebhook = (req, res, next) => __awaiter(void 0, void 0, void 0, 
     }
     // Step 2: Decode and verify the Authorization header
     const credentials = decodeBase64AuthHeader(authHeader);
-    // Log decoded credentials for debugging
-    console.log(credentials.username, 'Decoded Username');
-    console.log(credentials.password, 'Decoded Password');
-    console.log(EXPECTED_USERNAME, 'Expected Username');
-    console.log(EXPECTED_PASSWORD, 'Expected Password');
     // Compare decoded credentials with the expected values
     if (credentials.username === EXPECTED_USERNAME && credentials.password === EXPECTED_PASSWORD) {
         // Step 3: (Optional) Validate any custom headers
@@ -70,7 +65,7 @@ const handleHdfcWebhook = (req, res, next) => __awaiter(void 0, void 0, void 0, 
             // Respond with a success message if save was successful
             return res.status(200).json({
                 message: 'Webhook data saved successfully',
-                result: result,
+                result: true,
             });
         }
         catch (error) {
@@ -101,11 +96,12 @@ const verifyPayment = (req, res, next) => __awaiter(void 0, void 0, void 0, func
         }
         const orderId = req.body.order_id || req.body.orderId;
         if (orderId === undefined) {
-            return res.status(400).json(makeError('order_id not present or cannot be empty'));
+            //            return res.status(400).json(makeError('order_id not present or cannot be empty'));
+            return res.status(400).json({ result: false, message: 'order id not present or cannot be empty' });
         }
         let paymentObj = yield Payment_model_1.Payment.findOne({ 'gatwayPaymentObj.order_id': orderId }).exec();
         if (!paymentObj) {
-            return res.status(400).json(makeError('order not found'));
+            return res.status(400).json({ result: false, message: 'order not found' });
         }
         if (paymentObj && (paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse)) {
             if (((_c = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _c === void 0 ? void 0 : _c.status) === 'CHARGED') {

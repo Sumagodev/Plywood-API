@@ -34,12 +34,6 @@ export const handleHdfcWebhook = async (req: Request, res: Response, next: NextF
     // Step 2: Decode and verify the Authorization header
     const credentials = decodeBase64AuthHeader(authHeader);
     
-    // Log decoded credentials for debugging
-    console.log(credentials.username, 'Decoded Username');
-    console.log(credentials.password, 'Decoded Password');
-    console.log(EXPECTED_USERNAME, 'Expected Username');
-    console.log(EXPECTED_PASSWORD, 'Expected Password');
-    
     // Compare decoded credentials with the expected values
     if (credentials.username === EXPECTED_USERNAME && credentials.password === EXPECTED_PASSWORD) {
         // Step 3: (Optional) Validate any custom headers
@@ -71,7 +65,7 @@ export const handleHdfcWebhook = async (req: Request, res: Response, next: NextF
             // Respond with a success message if save was successful
             return res.status(200).json({
                 message: 'Webhook data saved successfully',
-                result: result,
+                result: true,
             });
         } catch (error) {
             console.error('Error saving webhook data:', error);
@@ -104,11 +98,12 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
         const orderId: string | undefined = req.body.order_id || req.body.orderId;
 
         if (orderId === undefined) {
-            return res.status(400).json(makeError('order_id not present or cannot be empty'));
+//            return res.status(400).json(makeError('order_id not present or cannot be empty'));
+            return res.status(400).json({result:  false,message:'order id not present or cannot be empty'});
         }
          let paymentObj : any = await Payment.findOne({ 'gatwayPaymentObj.order_id': orderId }).exec();      
          if (!paymentObj) {
-          return res.status(400).json(makeError('order not found'));
+          return res.status(400).json({result:  false,message:'order not found'});
          }
 
          if(paymentObj && paymentObj?.statusResponse){
