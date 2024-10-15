@@ -118,8 +118,8 @@ export const getProduct = async (req: Request, res: Response, next: NextFunction
       };
     });
 
-    const totalElements = await Product.find(query).countDocuments().exec();
-
+    const totalElements = await Product.find(query).sort({ createdAt: -1 }).countDocuments().exec();
+    
     res.status(200).json({ message: "getProduct", data: populatedProducts, totalElements, success: true });
   } catch (err) {
     next(err);

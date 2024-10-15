@@ -104,7 +104,7 @@ const getProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
                 isVerified,
                 phone }, product);
         });
-        const totalElements = yield product_model_1.Product.find(query).countDocuments().exec();
+        const totalElements = yield product_model_1.Product.find(query).sort({ createdAt: -1 }).countDocuments().exec();
         res.status(200).json({ message: "getProduct", data: populatedProducts, totalElements, success: true });
     }
     catch (err) {
