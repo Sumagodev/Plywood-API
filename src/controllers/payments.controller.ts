@@ -5,6 +5,7 @@ import dotenv from 'dotenv';  // To load environment variables
 import { PaymentWebhook } from "../models/PaymentWebhook.model";
 import { juspayConfig } from "../helpers/hdfcConfig";
 import { Payment } from "../models/Payment.model";
+import { User } from "../models/user.model";
 
 dotenv.config();  // Load environment variables from .env file
 // Load expected credentials from environment variables (configured in your Dashboard)
@@ -87,6 +88,13 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
 
     try {
 
+      let existsCheck: any = await User.findOne({ userId: req?.user?.userId }).sort({ endDate: -1 }).exec();
+      console.log(existsCheck, "existsCheck");
+      let userObj: any = await User.findOne({ userId: req?.user?.userId }).exec();
+      if (!(userObj || userObj._id)) {
+        throw new Error("Could not find user please contact admin !!!");
+      }
+  
         const orderId: string | undefined = req.body.order_id || req.body.orderId;
 
         if (orderId === undefined) {
@@ -99,6 +107,7 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
 
          if(paymentObj && paymentObj?.statusResponse){
 
+            
             if(paymentObj?.statusResponse?.status==='CHARGED')    
             {
                 return res.status(200).json({
@@ -109,7 +118,13 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
                     txn_id: paymentObj?.statusResponse?.txn_id,
                     effective_amount: paymentObj?.statusResponse?.effective_amount,
                     txn_uuid: paymentObj?.statusResponse?.txn_uuid,
-                    payload:paymentObj?.statusResponse
+                    payload:paymentObj?.statusResponse,
+                    date_created:paymentObj?.statusResponse.date_created,
+                    last_updated:paymentObj?.statusResponse.last_updated,
+                    customer_email:paymentObj?.statusResponse.customer_email,
+                    customer_phone:paymentObj?.statusResponse.customer_phone,
+                    customer_id:paymentObj?.statusResponse.customer_id,
+                    status:paymentObj?.statusResponse.status,
                   });
             }
          }

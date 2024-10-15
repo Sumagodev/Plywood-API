@@ -18,6 +18,7 @@ const dotenv_1 = __importDefault(require("dotenv")); // To load environment vari
 const PaymentWebhook_model_1 = require("../models/PaymentWebhook.model");
 const hdfcConfig_1 = require("../helpers/hdfcConfig");
 const Payment_model_1 = require("../models/Payment.model");
+const user_model_1 = require("../models/user.model");
 dotenv_1.default.config(); // Load environment variables from .env file
 // Load expected credentials from environment variables (configured in your Dashboard)
 const EXPECTED_USERNAME = process.env.USERNAME || 'yourUsername';
@@ -81,8 +82,14 @@ const handleHdfcWebhook = (req, res, next) => __awaiter(void 0, void 0, void 0, 
 });
 exports.handleHdfcWebhook = handleHdfcWebhook;
 const verifyPayment = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f, _g;
     try {
+        let existsCheck = yield user_model_1.User.findOne({ userId: (_a = req === null || req === void 0 ? void 0 : req.user) === null || _a === void 0 ? void 0 : _a.userId }).sort({ endDate: -1 }).exec();
+        console.log(existsCheck, "existsCheck");
+        let userObj = yield user_model_1.User.findOne({ userId: (_b = req === null || req === void 0 ? void 0 : req.user) === null || _b === void 0 ? void 0 : _b.userId }).exec();
+        if (!(userObj || userObj._id)) {
+            throw new Error("Could not find user please contact admin !!!");
+        }
         const orderId = req.body.order_id || req.body.orderId;
         if (orderId === undefined) {
             return res.status(400).json(makeError('order_id not present or cannot be empty'));
@@ -92,16 +99,22 @@ const verifyPayment = (req, res, next) => __awaiter(void 0, void 0, void 0, func
             return res.status(400).json(makeError('order not found'));
         }
         if (paymentObj && (paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse)) {
-            if (((_a = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _a === void 0 ? void 0 : _a.status) === 'CHARGED') {
+            if (((_c = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _c === void 0 ? void 0 : _c.status) === 'CHARGED') {
                 return res.status(200).json({
                     result: true,
                     message: "Order payment successful",
                     orderId: orderId,
-                    orderStatus: (_b = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _b === void 0 ? void 0 : _b.status,
-                    txn_id: (_c = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _c === void 0 ? void 0 : _c.txn_id,
-                    effective_amount: (_d = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _d === void 0 ? void 0 : _d.effective_amount,
-                    txn_uuid: (_e = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _e === void 0 ? void 0 : _e.txn_uuid,
-                    payload: paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse
+                    orderStatus: (_d = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _d === void 0 ? void 0 : _d.status,
+                    txn_id: (_e = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _e === void 0 ? void 0 : _e.txn_id,
+                    effective_amount: (_f = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _f === void 0 ? void 0 : _f.effective_amount,
+                    txn_uuid: (_g = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _g === void 0 ? void 0 : _g.txn_uuid,
+                    payload: paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse,
+                    date_created: paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse.date_created,
+                    last_updated: paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse.last_updated,
+                    customer_email: paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse.customer_email,
+                    customer_phone: paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse.customer_phone,
+                    customer_id: paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse.customer_id,
+                    status: paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse.status,
                 });
             }
         }
