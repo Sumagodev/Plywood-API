@@ -43,8 +43,11 @@ const handleHdfcWebhook = (req, res, next) => __awaiter(void 0, void 0, void 0, 
     if (!authHeader) {
         return res.status(401).json({ message: 'Authorization header missing' });
     }
+    console.log();
     // Step 2: Decode and verify the Authorization header
     const credentials = decodeBase64AuthHeader(authHeader);
+    console.log(authHeader, 'authHeader');
+    console.log(credentials, 'credentials');
     if (!credentials || credentials.username !== EXPECTED_USERNAME || credentials.password !== EXPECTED_PASSWORD) {
         return res.status(401).json({ message: 'Unauthorized: Invalid credentials' });
     }
