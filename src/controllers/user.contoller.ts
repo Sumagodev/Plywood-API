@@ -1777,6 +1777,7 @@ export const getTopVendors = async (req: Request, res: Response, next: NextFunct
           "_id": "$_id",
           "name": { "$first": "$name" },
           "companyName": { "$first": "$companyObj.name" },
+          "role": { "$first": "$role" },
           "bannerImage": { "$first": "$bannerImage" },
           "profileImage": { "$first": "$profileImage" },
           "productsCount": { "$first": "$productsCount" },
