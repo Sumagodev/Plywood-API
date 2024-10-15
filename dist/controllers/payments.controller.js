@@ -39,9 +39,12 @@ const EXPECTED_PASSWORD = process.env.WEBHOOK_PASSWORD;
 //     return { username, password };
 // };
 const decodeBase64AuthHeader = (authHeader) => {
-    const base64Credentials = authHeader.split(' ')[1]; // Split to remove 'Basic' prefix
-    const decodedCredentials = buffer_1.Buffer.from(base64Credentials, 'base64').toString('ascii').trim(); // Trim whitespace/newline
-    const [username, password] = decodedCredentials.split(':').map((str) => str.trim()); // Trim both username and password
+    if (!authHeader.startsWith('Basic ')) {
+        throw new Error('Authorization header must start with "Basic "');
+    }
+    const base64Credentials = authHeader.split(' ')[1]; // Remove 'Basic' prefix
+    const decodedCredentials = buffer_1.Buffer.from(base64Credentials, 'base64').toString('ascii').trim(); // Decode and trim
+    const [username, password] = decodedCredentials.split(':').map((str) => str.trim()); // Split into username and password
     return { username, password };
 };
 const handleHdfcWebhook = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
