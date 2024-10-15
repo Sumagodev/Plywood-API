@@ -118,7 +118,6 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
                     txn_id: paymentObj?.statusResponse?.txn_id,
                     effective_amount: paymentObj?.statusResponse?.effective_amount,
                     txn_uuid: paymentObj?.statusResponse?.txn_uuid,
-                    payload:paymentObj?.statusResponse,
                     date_created:paymentObj?.statusResponse.date_created,
                     last_updated:paymentObj?.statusResponse.last_updated,
                     customer_email:paymentObj?.statusResponse.customer_email,
