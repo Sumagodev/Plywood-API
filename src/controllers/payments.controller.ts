@@ -57,10 +57,9 @@ export const handleHdfcWebhook = async (req: Request, res: Response, next: NextF
     if (!authHeader) {
         return res.status(401).json({ message: 'Authorization header missing' });
     }
-    console.log()
 
     // Step 2: Decode and verify the Authorization header
-    const credentials = decodeBase64AuthHeader(authHeader);
+    const credentials =  decodeBase64AuthHeader(authHeader);
     console.log(decodeBase64(credentials.username))
     console.log(decodeBase64(credentials.password))
     console.log(EXPECTED_PASSWORD)
@@ -108,7 +107,7 @@ export const handleHdfcWebhook = async (req: Request, res: Response, next: NextF
     }
   }
     else{
-      return res.status(401).json({ message: 'Unauthorized: Invalid credentials' });
+      return res.status(401).json({ message: 'Unauthorized: Invalid credentials',result:decodeBase64(credentials.username)===EXPECTED_USERNAME && decodeBase64(credentials.password)===EXPECTED_PASSWORD });
     }
 };
 
