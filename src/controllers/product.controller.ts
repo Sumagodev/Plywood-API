@@ -201,30 +201,30 @@ export const addProduct = async (req: Request, res: Response, next: NextFunction
     res.status(200).json({ message: "Product Successfully Created", success: true });
 
     const newNotification = new Notifications({
-      userId: req?.user?.userId,
+      userId: req?.user?.userId,         
       type: 'product_under_review',
-      title: 'Product Under Review',
+      title: 'Product Under Review',  
       content: ` Hi , ${userDataObj?.companyObj?.name} Your Product is Now Under Review!  Our team is currently checking the details.`,
-      sourceId: '',
-      isRead: false,
+      sourceId:'',             
+      isRead: false,                      
       viewCount: 1,
       lastAccessTime: new Date(),           // Set initial last access time
       payload: {                            // Dynamic payload data
-        productDetails: newEntry,
-        userObj: userDataObj,
-        productObj: newEntry,
-        slug: req?.body?.slug,
+         productDetails:newEntry,
+         userObj:userDataObj,
+         productObj:newEntry,
+         slug:req?.body?.slug,
       }
-    });
-    // Save the new notification to the database
-    try {
+  });
+  // Save the new notification to the database
+  try {
       await newNotification.save();
-
-    } catch (error) {
-
+      
+  } catch (error) {
+    
       console.error('Error saving new notification:', error);
-
-    }
+      
+  }
 
 
 
@@ -428,80 +428,81 @@ export const getProductById = async (req: Request, res: Response, next: NextFunc
     if (visitorUserId && mongoose.Types.ObjectId.isValid(visitorUserId)) {
       // Fetch the user who accessed the profile
       let leadUser = await User.findById(visitorUserId).lean().exec();
-
+      
       // Check if leadUser is found
       if (!leadUser) throw new Error("Lead User Not Found");
-
+  
       // Define the current day range (start and end of today)
       const startOfToday = startOfDay(new Date());
       const endOfToday = endOfDay(new Date());
-
+  
       console.log('Product Creator ID:', ProductObj.createdById.toString());
       console.log('Visitor User ID:', visitorUserId);
 
-
-      if (ProductObj.createdById.toString() === visitorUserId) {
-        return;
-      }
+  
+      if(ProductObj.createdById.toString()===visitorUserId)
+        {
+          return ;
+        }
 
       let existingNotification = await Notifications.findOne({
         userId: ProductObj.createdById.toString(), // Profile owner
         sourceId: visitorUserId, // The user who accessed the profile
         type: 'product_view',
         createdAt: { // Created today
-          $gte: startOfToday, // Greater than or equal to the start of the day
-          $lte: endOfToday // Less than or equal to the end of the day
+            $gte: startOfToday, // Greater than or equal to the start of the day
+            $lte: endOfToday // Less than or equal to the end of the day
         },
         'payload.productId': ProductObj._id, // Check for the product ID in payload
         'payload.accessedBy': visitorUserId // Also check the accessedBy in the payload
-      });
-
+    });
+  
       console.log('Existing Notification:', existingNotification);
-
+  
       if (existingNotification) {
-        // If a notification exists, increment the view count and update the last access time
-        await Notifications.updateOne(
-          { _id: existingNotification._id },
-          {
-            $inc: { viewCount: 1 }, // Increment viewCount by 1
-            $set: {
-              lastAccessTime: new Date(),
-              isRead: false,
-            } // Update lastAccessTime to current time
-          }
-        );
-        console.log('Notification updated with incremented view count and updated last access time');
+          // If a notification exists, increment the view count and update the last access time
+          await Notifications.updateOne(
+              { _id: existingNotification._id },
+              {
+                  $inc: { viewCount: 1 }, // Increment viewCount by 1
+                  $set: {
+                      lastAccessTime: new Date(),
+                      isRead: false,
+                  } // Update lastAccessTime to current time
+              }
+          );
+          console.log('Notification updated with incremented view count and updated last access time');
       } else {
-        // If no notification exists, create a new one
-        const newNotification = new Notifications({
-          userId: ProductObj.createdById.toString(), // ID of the user related to the notification
-          type: 'product_view', // Type of notification
-          title: 'Your product was accessed', // Title of the notification
-          content: `Your product was accessed by user ${visitorUserId}`, // Message content
-          sourceId: visitorUserId, // ID of the user who accessed the profile
-          isRead: false, // Notification status
-          viewCount: 1, // Initialize viewCount to 1
-          lastAccessTime: new Date(), // Set initial last access time
-          payload: { // Dynamic payload data
-            accessedBy: visitorUserId,
-            accessTime: new Date(),
-            organizationName: leadUser?.companyObj?.name || 'Unknown',
-            productName: ProductObj?.name || 'Unknown',
-            productId: ProductObj._id // Include product ID in the payload
+          // If no notification exists, create a new one
+          const newNotification = new Notifications({
+              userId: ProductObj.createdById.toString(), // ID of the user related to the notification
+              type: 'product_view', // Type of notification
+              title: 'Your product was accessed', // Title of the notification
+              content: `Your product was accessed by user ${visitorUserId}`, // Message content
+              sourceId: visitorUserId, // ID of the user who accessed the profile
+              isRead: false, // Notification status
+              viewCount: 1, // Initialize viewCount to 1
+              lastAccessTime: new Date(), // Set initial last access time
+              payload: { // Dynamic payload data
+                  accessedBy: visitorUserId,
+                  accessTime: new Date(),
+                  organizationName: leadUser?.companyObj?.name || 'Unknown',
+                  productName: ProductObj?.name || 'Unknown',
+                  productId: ProductObj._id // Include product ID in the payload
+              }
+          });
+  
+          // Save the new notification to the database
+          try {
+              await newNotification.save();
+              console.log('New notification created:', newNotification);
+          } catch (error) {
+              console.error('Error saving new notification:', error);
           }
-        });
-
-        // Save the new notification to the database
-        try {
-          await newNotification.save();
-          console.log('New notification created:', newNotification);
-        } catch (error) {
-          console.error('Error saving new notification:', error);
-        }
       }
-    } else {
+  } else {
       console.error('Invalid Visitor User ID:', visitorUserId);
-    }
+  }
 
 
 
@@ -537,7 +538,7 @@ export const getSimilarProducts: RequestHandler = async (req, res, next) => {
       const cityName = user ? cityMap.get(user.cityId.toString()) || 'Unknown City' : 'Unknown City';
 
       return {
-
+        
         categoryId: product.categoryId,
         cityName, // City name fetched based on user's cityId
         productName: product.name,
@@ -546,7 +547,7 @@ export const getSimilarProducts: RequestHandler = async (req, res, next) => {
         isVerified: user?.isVerified || false, // Assuming isVerified is a property on the user
         price: product.sellingprice,
         productImage: product.mainImage || 'No image available', // Assuming mainImage field exists
-        userMobileNumber: user ? user.phone || 'No mobile number available' : 'No mobile number available',
+        userMobileNumber: user ? user.phone || 'No mobile number available' : 'No mobile number available', 
         slug: product.slug
       };
     });
@@ -587,7 +588,7 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
 
     // Name, creator's name, short description, long description, and brand name filter
     if (req.query.name) {
-      const regex = new RegExp(`${req.query.name}`, "i");
+      const regex = new RegExp(`${req.query.name}`, "i");  // Corrected interpolation
       let brandArr = await Brand.find({ name: regex }).exec();
       let brandIds = brandArr.length > 0 ? brandArr.map(el => el._id) : [];
 
@@ -609,7 +610,28 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
       query = { ...query, categoryId: categoryId };
     }
 
-    // Price filter
+    // if (req.query.categoryId) {
+    //   query = { ...query, "categoryId": req.query.categoryId };
+    // }
+
+    // // Price filter
+    // if (req.query.minPrice || req.query.maxPrice) {
+    //   const priceQuery: any = {};
+    //   if (req.query.minPrice) priceQuery.$gte = parseFloat(req.query.minPrice as string);
+    //   if (req.query.maxPrice) priceQuery.$lte = parseFloat(req.query.maxPrice as string);
+    //   query = { ...query, "price": priceQuery };
+    // }
+
+    // // Selling Price filter
+    // if (req.query.minSellingPrice || req.query.maxSellingPrice) {
+    //   const sellingPriceQuery: any = {};
+    //   if (req.query.minSellingPrice) sellingPriceQuery.$gte = parseFloat(req.query.minSellingPrice as string);
+    //   if (req.query.maxSellingPrice) sellingPriceQuery.$lte = parseFloat(req.query.maxSellingPrice as string);
+    //   query = { ...query, "sellingprice": sellingPriceQuery };
+    // }
+
+
+    // Price filter (corrected)
     if (req.query.minPrice || req.query.maxPrice) {
       const priceQuery: any = {};
       if (req.query.minPrice) priceQuery.$gte = parseFloat((req.query.minPrice as string).replace(/,/g, ''));
@@ -626,7 +648,7 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
       };
     }
 
-    // Selling Price filter
+    // Selling Price filter (corrected)
     if (req.query.minSellingPrice || req.query.maxSellingPrice) {
       const sellingPriceQuery: any = {};
       if (req.query.minSellingPrice) sellingPriceQuery.$gte = parseFloat((req.query.minSellingPrice as string).replace(/,/g, ''));
@@ -643,19 +665,35 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
       };
     }
 
-    // Brand filter
     if (req.query.brand) {
       const brand = new mongoose.Types.ObjectId(req.query.brand as string);
       query = { ...query, brand: brand };
     }
-
     // Specification filters
-    const specifications = ['thickness', 'application', 'grade', 'color', 'size', 'wood', 'glue', 'warranty'];
-    specifications.forEach(spec => {
-      if (req.query[spec]) {
-        query = { ...query, [`specification.${spec}`]: new RegExp(`${req.query[spec]}`, "i") };
-      }
-    });
+    if (req.query.thickness) {
+      query = { ...query, "specification.thickness": new RegExp(`${req.query.thickness}`, "i") };
+    }
+    if (req.query.application) {
+      query = { ...query, "specification.application": new RegExp(`${req.query.application}`, "i") };
+    }
+    if (req.query.grade) {
+      query = { ...query, "specification.grade": new RegExp(`${req.query.grade}`, "i") };
+    }
+    if (req.query.color) {
+      query = { ...query, "specification.color": new RegExp(`${req.query.color}`, "i") };
+    }
+    if (req.query.size) {
+      query = { ...query, "specification.size": new RegExp(`${req.query.size}`, "i") };
+    }
+    if (req.query.wood) {
+      query = { ...query, "specification.wood": new RegExp(`${req.query.wood}`, "i") };
+    }
+    if (req.query.glue) {
+      query = { ...query, "specification.glue": new RegExp(`${req.query.glue}`, "i") };
+    }
+    if (req.query.warranty) {
+      query = { ...query, "specification.warranty": new RegExp(`${req.query.warranty}`, "i") };
+    }
 
     // Status filter
     if (req.query.status) {
@@ -672,7 +710,7 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
       const userQuery: any = {};
 
       if (req.query.userName) {
-        userQuery.name = new RegExp(`${req.query.userName}`, "i");
+        userQuery.name = new RegExp(`${req.query.userName}`, "i");  // Corrected interpolation
       }
       if (req.query.userEmail) {
         userQuery.email = new RegExp(`${req.query.userEmail}`, "i");
@@ -680,6 +718,8 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
       if (req.query.userPhone) {
         userQuery.phone = new RegExp(`${req.query.userPhone}`, "i");
       }
+
+      
 
       const users = await User.find(userQuery).select('_id').exec();
       const userIds = users.map(user => user._id);
@@ -692,60 +732,18 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
     // Execute the query and return the result
     const arr = await Product.find(query)
       .populate('createdById', 'name email phone mainImage approved')
+      .populate({
+        path: 'stateId',
+        select: 'name'})
       .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainImage: 1, approved: 1 })
       .lean()
       .exec();
-
-    if (!arr || arr.length === 0) {
-      return res.status(404).json({
-        message: "No products found matching the search query",
-        success: false
-      });
-    }
-
-    // Extract userIds from products
-    const userIds = arr.map(product => product.createdById).filter(id => id);
-
-    // Fetch users associated with these products
-    const users = await User.find({ _id: { $in: userIds } }).lean().exec();
-
-    // Extract cityIds and stateIds from users
-    const cityIds = users.map(user => user.cityId).filter(id => id);
-    const stateIds = users.map(user => user.stateId).filter(id => id);
-
-    // Fetch cities and states by their IDs
-    const cities = await City.find({ _id: { $in: cityIds } }).lean().exec();
-    const states = await State.find({ _id: { $in: stateIds } }).lean().exec();
-
-    // Create a mapping of cityId to city name
-    const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
-    // Create a mapping of stateId to state name
-    const stateMap = new Map(states.map(state => [state._id.toString(), state.name]));
-
-    // Map through products and include the desired fields along with city and state names
-    const filteredProducts = arr.map((product: any) => {
-      const user = product.createdById; // Already populated user details
-      const cityName = user ? cityMap.get(user.cityId.toString()) || 'Unknown City' : 'Unknown City';
-      const stateName = user ? stateMap.get(user.stateId.toString()) || 'Unknown State' : 'Unknown State';
-
-      return {
-        ...product, // Include all original product details
-        cityName, // City name fetched based on user's cityId
-        stateName, // State name fetched based on user's stateId
-      };
-    });
-
-    res.status(200).json({
-      message: "Filtered Products with City and State Names",
-      data: filteredProducts,
-      success: true
-    });
-
+    // Check if the array is populated and return the result
+    res.status(200).json({ message: "Search successful", data: arr, success: true });
   } catch (error) {
     next(error);
   }
 };
-
 // export const searchProductWithQuery: RequestHandler = async (req, res, next) => {
 //   try {
 //     let query: any = {};
@@ -823,7 +821,7 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
 //     }
 
 //     // Other filters (unchanged)...
-
+    
 //     // Pagination logic (new feature)
 //     const page = parseInt(req.query.page as string) || 1;
 //     const limit = parseInt(req.query.limit as string) || 10;
@@ -987,7 +985,7 @@ export const getProductYouMayLike = async (req: Request, res: Response, next: Ne
         }
 
         return {
-
+        
           cityName,
           stateName,   // Include stateName in the response
           address,
