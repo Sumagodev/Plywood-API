@@ -632,10 +632,6 @@ const searchProductWithQuery = (req, res, next) => __awaiter(void 0, void 0, voi
         // Execute the query and return the result
         const arr = yield product_model_1.Product.find(query)
             .populate('createdById', 'name email phone mainImage approved')
-            .populate({
-            path: 'stateId',
-            select: 'name'
-        })
             .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainImage: 1, approved: 1 })
             .lean()
             .exec();
