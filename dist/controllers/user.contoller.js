@@ -390,6 +390,7 @@ const getUserById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
         console.log(user, "user");
         if (!user)
             throw new Error("User Not Found");
+        yield user_model_1.User.findByIdAndUpdate(req.params.userId, { $inc: { profileCount: 1 } });
         if (user.countryId) {
             user.countryObj = yield country_model_1.Country.findById(user.countryId).exec();
         }

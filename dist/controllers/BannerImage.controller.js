@@ -131,7 +131,7 @@ exports.getBannerImagesByUserId = getBannerImagesByUserId;
 const updateBannerImage = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
-        const { type, productId, userId, image } = req.body;
+        const { type, productId, userId, image, isVerified } = req.body;
         let storedImage = image;
         if (image && image.includes("base64")) {
             storedImage = yield (0, fileSystem_1.storeFileAndReturnNameBase64)(image);
@@ -141,6 +141,7 @@ const updateBannerImage = (req, res, next) => __awaiter(void 0, void 0, void 0, 
             type: type,
             userId: userId,
             productId: productId,
+            isVerified: isVerified, // Updating isVerified field
         }, { new: true } // Return the updated document
         );
         if (!updatedBannerImage) {

@@ -130,7 +130,7 @@ export const getBannerImagesByUserId = async (req: Request, res: Response, next:
 export const updateBannerImage = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        const { type, productId, userId, image } = req.body;
+        const { type, productId, userId, image ,isVerified} = req.body;
 
         let storedImage = image;
         if (image && image.includes("base64")) {
@@ -144,6 +144,8 @@ export const updateBannerImage = async (req: Request, res: Response, next: NextF
                 type: type,
                 userId: userId,
                 productId: productId,
+                isVerified: isVerified, // Updating isVerified field
+
             },
             { new: true } // Return the updated document
         );

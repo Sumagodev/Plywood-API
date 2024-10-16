@@ -423,6 +423,7 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
     let user: any = await User.findById(req.params.userId).lean().exec();
     console.log(user, "user");
     if (!user) throw new Error("User Not Found");
+    await User.findByIdAndUpdate(req.params.userId, { $inc: { profileCount: 1 } });
     if (user.countryId) {
       user.countryObj = await Country.findById(user.countryId).exec();
     }

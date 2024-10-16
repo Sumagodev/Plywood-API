@@ -11,6 +11,7 @@ export interface IUser {
   role: string;
   aniversaryDate: Date,
   landline: String,
+  profileCount:Number;
   dob: String,
   firmName: String;
   gstNumber: String;
@@ -101,6 +102,7 @@ const userSchema = new Schema<IUser>(
     profileImage: String,
     bannerImage: String,
     isBlocked: { default: false, type: Boolean },
+    profileCount:Number,
     subscriptionEndDate: Date,
     categoryArr: [
       {
