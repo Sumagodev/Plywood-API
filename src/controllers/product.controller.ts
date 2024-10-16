@@ -585,9 +585,9 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
       query = { ...query, "createdByObj.role": { $ne: req.query.role } };
     }
 
-
+    // Name, creator's name, short description, long description, and brand name filter
     if (req.query.name) {
-      const regex = new RegExp(`${req.query.name}`, "i");
+      const regex = new RegExp(`${req.query.name}`, "i");  // Corrected interpolation
       let brandArr = await Brand.find({ name: regex }).exec();
       let brandIds = brandArr.length > 0 ? brandArr.map(el => el._id) : [];
 
@@ -603,13 +603,34 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
       };
     }
 
-
+    // Category filter
     if (req.query.categoryId) {
       const categoryId = new mongoose.Types.ObjectId(req.query.categoryId as string);
       query = { ...query, categoryId: categoryId };
     }
 
+    // if (req.query.categoryId) {
+    //   query = { ...query, "categoryId": req.query.categoryId };
+    // }
 
+    // // Price filter
+    // if (req.query.minPrice || req.query.maxPrice) {
+    //   const priceQuery: any = {};
+    //   if (req.query.minPrice) priceQuery.$gte = parseFloat(req.query.minPrice as string);
+    //   if (req.query.maxPrice) priceQuery.$lte = parseFloat(req.query.maxPrice as string);
+    //   query = { ...query, "price": priceQuery };
+    // }
+
+    // // Selling Price filter
+    // if (req.query.minSellingPrice || req.query.maxSellingPrice) {
+    //   const sellingPriceQuery: any = {};
+    //   if (req.query.minSellingPrice) sellingPriceQuery.$gte = parseFloat(req.query.minSellingPrice as string);
+    //   if (req.query.maxSellingPrice) sellingPriceQuery.$lte = parseFloat(req.query.maxSellingPrice as string);
+    //   query = { ...query, "sellingprice": sellingPriceQuery };
+    // }
+
+
+    // Price filter (corrected)
     if (req.query.minPrice || req.query.maxPrice) {
       const priceQuery: any = {};
       if (req.query.minPrice) priceQuery.$gte = parseFloat((req.query.minPrice as string).replace(/,/g, ''));
@@ -708,41 +729,173 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
     console.log(JSON.stringify(query, null, 2), "query");
 
     // Execute the query and return the result
-
-    // Check if the array is populated and return the result
-    const productArr = await Product.find(query)
+    const arr = await Product.find(query)
       .populate('createdById', 'name email phone mainImage approved')
       .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainImage: 1, approved: 1 })
       .lean()
       .exec();
 
-    // Get user and city details
-    const userIds = productArr.map(product => product.createdById).filter(id => id);  // Filter out any null/undefined ids
+    if (!arr || arr.length === 0) {
+      return res.status(404).json({
+        message: "No products found matching the search query",
+        success: false
+      });
+    }
+
+    // Extract userIds from products
+    const userIds = arr.map(product => product.createdById).filter(id => id); // Remove any null/undefined IDs
+
+    // Fetch users associated with these products
     const users = await User.find({ _id: { $in: userIds } }).lean().exec();
-    const cityIds = users.map(user => user.cityId).filter(id => id);  // Filter out null/undefined city ids
+
+    // Extract cityIds and stateIds from users
+    const cityIds = users.map(user => user.cityId).filter(id => id); // Remove any null/undefined IDs
+    const stateIds = users.map(user => user.stateId).filter(id => id); // Remove any null/undefined IDs
+
+    // Fetch cities and states by their IDs
     const cities = await City.find({ _id: { $in: cityIds } }).lean().exec();
+    const states = await State.find({ _id: { $in: stateIds } }).lean().exec();
 
-    // Map users and cities
+    // Create a mapping of cityId to city name
     const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
-    const userMap = new Map(users.map(user => [user._id.toString(), user]));
+    // Create a mapping of stateId to state name
+    const stateMap = new Map(states.map(state => [state._id.toString(), state.name]));
 
-    // Map product details with user and city info
-    const filteredProducts = productArr.map((product: any) => {
-      const user = product.createdById ? userMap.get(product.createdById.toString()) : null;
-      const cityName = user ? cityMap.get(user.cityId?.toString() || '') || 'Unknown City' : 'Unknown City';
+    // Map through products and include the desired fields along with city and state names
+    const filteredProducts = arr.map((product: any) => {
+      const user = product.createdById; // Already populated user details
+      const cityName = user ? cityMap.get(user.cityId.toString()) || 'Unknown City' : 'Unknown City';
+      const stateName = user ? stateMap.get(user.stateId.toString()) || 'Unknown State' : 'Unknown State';
 
       return {
-        ...product,
-        userName: user?.name || 'Unknown User',
-        userEmail: user?.email || 'Unknown Email',
-        cityName: cityName
+        arr,
+        cityName, // City name fetched based on user's cityId
+        stateName, // State name fetched based on user's stateId
+
       };
     });
-    res.status(200).json({ message: "Search successful", data: filteredProducts, success: true });
+
+    res.status(200).json({
+      message: "Filtered Products with City and State Names",
+      data: filteredProducts,
+      success: true
+    });
+    // Check if the array is populated and return the result
+    res.status(200).json({ message: "Search successful", data: arr, success: true });
   } catch (error) {
     next(error);
   }
 };
+// export const searchProductWithQuery: RequestHandler = async (req, res, next) => {
+//   try {
+//     let query: any = {};
+
+//     // Role filter
+//     if (req.query.role && req.query.role !== "null") {
+//       query = { ...query, "createdByObj.role": { $ne: req.query.role } };
+//     }
+
+//     // Name, creator's name, short description, long description, and brand name filter
+//     if (req.query.name) {
+//       const regex = new RegExp(`${req.query.name}`, "i");  // Corrected interpolation
+//       let brandArr = await Brand.find({ name: regex }).exec();
+//       let brandIds = brandArr.length > 0 ? brandArr.map(el => el._id) : [];
+
+//       query = {
+//         ...query,
+//         $or: [
+//           { name: regex },
+//           { "createdByObj.name": regex },
+//           { "shortDescription": regex },
+//           { "longDescription": regex },
+//           ...(brandIds.length > 0 ? [{ "brand": { $in: brandIds } }] : [])
+//         ]
+//       };
+//     }
+
+//     // Review search logic (new feature)
+//     if (req.query.reviewQuery) {
+//       const reviewRegex = new RegExp(`${req.query.reviewQuery}`, "i");
+//       query = {
+//         ...query,
+//         reviews: { $elemMatch: { content: reviewRegex } }  // Assuming review has a `content` field
+//       };
+//     }
+
+//     // Category filter
+//     if (req.query.categoryId) {
+//       const categoryId = new mongoose.Types.ObjectId(req.query.categoryId as string);
+//       query = { ...query, categoryId: categoryId };
+//     }
+
+//     // Price filter (corrected)
+//     if (req.query.minPrice || req.query.maxPrice) {
+//       const priceQuery: any = {};
+//       if (req.query.minPrice) priceQuery.$gte = parseFloat((req.query.minPrice as string).replace(/,/g, ''));
+//       if (req.query.maxPrice) priceQuery.$lte = parseFloat((req.query.maxPrice as string).replace(/,/g, ''));
+
+//       query = {
+//         ...query,
+//         $expr: {
+//           $and: [
+//             { $gte: [{ $toDouble: { $replaceAll: { input: "$price", find: ",", replacement: "" } } }, priceQuery.$gte || 0] },
+//             { $lte: [{ $toDouble: { $replaceAll: { input: "$price", find: ",", replacement: "" } } }, priceQuery.$lte || Infinity] }
+//           ]
+//         }
+//       };
+//     }
+
+//     // Selling Price filter (corrected)
+//     if (req.query.minSellingPrice || req.query.maxSellingPrice) {
+//       const sellingPriceQuery: any = {};
+//       if (req.query.minSellingPrice) sellingPriceQuery.$gte = parseFloat((req.query.minSellingPrice as string).replace(/,/g, ''));
+//       if (req.query.maxSellingPrice) sellingPriceQuery.$lte = parseFloat((req.query.maxSellingPrice as string).replace(/,/g, ''));
+
+//       query = {
+//         ...query,
+//         $expr: {
+//           $and: [
+//             { $gte: [{ $toDouble: { $replaceAll: { input: "$sellingprice", find: ",", replacement: "" } } }, sellingPriceQuery.$gte || 0] },
+//             { $lte: [{ $toDouble: { $replaceAll: { input: "$sellingprice", find: ",", replacement: "" } } }, sellingPriceQuery.$lte || Infinity] }
+//           ]
+//         }
+//       };
+//     }
+
+//     // Other filters (unchanged)...
+
+//     // Pagination logic (new feature)
+//     const page = parseInt(req.query.page as string) || 1;
+//     const limit = parseInt(req.query.limit as string) || 10;
+//     const skip = (page - 1) * limit;
+
+//     // Execute the query with pagination
+//     const arr = await Product.find(query)
+//       .populate('createdById', 'name email phone mainImage approved')
+//       .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainImage: 1, approved: 1 })
+//       .skip(skip)
+//       .limit(limit)
+//       .lean()
+//       .exec();
+
+//     // Total count of products for pagination
+//     const totalProducts = await Product.countDocuments(query);
+//     const totalPages = Math.ceil(totalProducts / limit);
+
+//     res.status(200).json({
+//       message: "Search successful",
+//       data: arr,
+//       success: true,
+//       pagination: {
+//         totalProducts,
+//         totalPages,
+//         currentPage: page
+//       }
+//     });
+//   } catch (error) {
+//     next(error);
+//   }
+// };
 
 export const updateAppById = async (req: Request, res: Response, next: NextFunction) => {
   try {
