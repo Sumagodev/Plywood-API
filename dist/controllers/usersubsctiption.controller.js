@@ -553,7 +553,7 @@ const initiateJuspayPaymentForSubcription = (req, res, next) => __awaiter(void 0
     // Add GST
     obj.price = obj.price + Math.round(obj.price * 0.18);
     let options = {
-        amount: obj.price * 100,
+        amount: obj.price,
         currency: "INR",
         receipt: new Date().getTime(),
     };

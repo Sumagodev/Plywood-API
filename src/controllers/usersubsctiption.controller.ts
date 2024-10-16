@@ -589,7 +589,7 @@ export const initiateJuspayPaymentForSubcription = async (req: Request, res: Res
           obj.price = obj.price + Math.round(obj.price * 0.18);
       
           let options: any = {
-            amount: obj.price * 100,
+            amount: obj.price,
             currency: "INR",
             receipt: new Date().getTime(),
           };
@@ -610,9 +610,6 @@ export const initiateJuspayPaymentForSubcription = async (req: Request, res: Res
               options.subscriptionId = existsCheck._id;
               options.successUrl = `${process.env.BASE_URL}/usersubscription/phonepePaymentStatusCheck/` + paymentObjResponse._id;
               options.payfrom = req.body.patfrom;
-
-
-
               console.log('xoptions',options)
 
   // makes return url
