@@ -201,30 +201,30 @@ export const addProduct = async (req: Request, res: Response, next: NextFunction
     res.status(200).json({ message: "Product Successfully Created", success: true });
 
     const newNotification = new Notifications({
-      userId: req?.user?.userId,         
+      userId: req?.user?.userId,
       type: 'product_under_review',
-      title: 'Product Under Review',  
+      title: 'Product Under Review',
       content: ` Hi , ${userDataObj?.companyObj?.name} Your Product is Now Under Review!  Our team is currently checking the details.`,
-      sourceId:'',             
-      isRead: false,                      
+      sourceId: '',
+      isRead: false,
       viewCount: 1,
       lastAccessTime: new Date(),           // Set initial last access time
       payload: {                            // Dynamic payload data
-         productDetails:newEntry,
-         userObj:userDataObj,
-         productObj:newEntry,
-         slug:req?.body?.slug,
+        productDetails: newEntry,
+        userObj: userDataObj,
+        productObj: newEntry,
+        slug: req?.body?.slug,
       }
-  });
-  // Save the new notification to the database
-  try {
+    });
+    // Save the new notification to the database
+    try {
       await newNotification.save();
-      
-  } catch (error) {
-    
+
+    } catch (error) {
+
       console.error('Error saving new notification:', error);
-      
-  }
+
+    }
 
 
 
@@ -428,81 +428,80 @@ export const getProductById = async (req: Request, res: Response, next: NextFunc
     if (visitorUserId && mongoose.Types.ObjectId.isValid(visitorUserId)) {
       // Fetch the user who accessed the profile
       let leadUser = await User.findById(visitorUserId).lean().exec();
-      
+
       // Check if leadUser is found
       if (!leadUser) throw new Error("Lead User Not Found");
-  
+
       // Define the current day range (start and end of today)
       const startOfToday = startOfDay(new Date());
       const endOfToday = endOfDay(new Date());
-  
+
       console.log('Product Creator ID:', ProductObj.createdById.toString());
       console.log('Visitor User ID:', visitorUserId);
 
-  
-      if(ProductObj.createdById.toString()===visitorUserId)
-        {
-          return ;
-        }
+
+      if (ProductObj.createdById.toString() === visitorUserId) {
+        return;
+      }
 
       let existingNotification = await Notifications.findOne({
         userId: ProductObj.createdById.toString(), // Profile owner
         sourceId: visitorUserId, // The user who accessed the profile
         type: 'product_view',
         createdAt: { // Created today
-            $gte: startOfToday, // Greater than or equal to the start of the day
-            $lte: endOfToday // Less than or equal to the end of the day
+          $gte: startOfToday, // Greater than or equal to the start of the day
+          $lte: endOfToday // Less than or equal to the end of the day
         },
         'payload.productId': ProductObj._id, // Check for the product ID in payload
         'payload.accessedBy': visitorUserId // Also check the accessedBy in the payload
-    });
-  
+      });
+
       console.log('Existing Notification:', existingNotification);
-  
+
       if (existingNotification) {
-          // If a notification exists, increment the view count and update the last access time
-          await Notifications.updateOne(
-              { _id: existingNotification._id },
-              {
-                  $inc: { viewCount: 1 }, // Increment viewCount by 1
-                  $set: {
-                      lastAccessTime: new Date(),
-                      isRead: false,
-                  } // Update lastAccessTime to current time
-              }
-          );
-          console.log('Notification updated with incremented view count and updated last access time');
-      } else {
-          // If no notification exists, create a new one
-          const newNotification = new Notifications({
-              userId: ProductObj.createdById.toString(), // ID of the user related to the notification
-              type: 'product_view', // Type of notification
-              title: 'Your product was accessed', // Title of the notification
-              content: `Your product was accessed by user ${visitorUserId}`, // Message content
-              sourceId: visitorUserId, // ID of the user who accessed the profile
-              isRead: false, // Notification status
-              viewCount: 1, // Initialize viewCount to 1
-              lastAccessTime: new Date(), // Set initial last access time
-              payload: { // Dynamic payload data
-                  accessedBy: visitorUserId,
-                  accessTime: new Date(),
-                  organizationName: leadUser?.companyObj?.name || 'Unknown',
-                  productName: ProductObj?.name || 'Unknown',
-                  productId: ProductObj._id // Include product ID in the payload
-              }
-          });
-  
-          // Save the new notification to the database
-          try {
-              await newNotification.save();
-              console.log('New notification created:', newNotification);
-          } catch (error) {
-              console.error('Error saving new notification:', error);
+        // If a notification exists, increment the view count and update the last access time
+        await Notifications.updateOne(
+          { _id: existingNotification._id },
+          {
+            $inc: { viewCount: 1 }, // Increment viewCount by 1
+            $set: {
+              lastAccessTime: new Date(),
+              isRead: false,
+            } // Update lastAccessTime to current time
           }
+        );
+        console.log('Notification updated with incremented view count and updated last access time');
+      } else {
+        // If no notification exists, create a new one
+        const newNotification = new Notifications({
+          userId: ProductObj.createdById.toString(), // ID of the user related to the notification
+          type: 'product_view', // Type of notification
+          title: 'Your product was accessed', // Title of the notification
+          content: `Your product was accessed by user ${visitorUserId}`, // Message content
+          sourceId: visitorUserId, // ID of the user who accessed the profile
+          isRead: false, // Notification status
+          viewCount: 1, // Initialize viewCount to 1
+          lastAccessTime: new Date(), // Set initial last access time
+          payload: { // Dynamic payload data
+            accessedBy: visitorUserId,
+            accessTime: new Date(),
+            organizationName: leadUser?.companyObj?.name || 'Unknown',
+            productName: ProductObj?.name || 'Unknown',
+            productId: ProductObj._id // Include product ID in the payload
+          }
+        });
+
+        // Save the new notification to the database
+        try {
+          await newNotification.save();
+          console.log('New notification created:', newNotification);
+        } catch (error) {
+          console.error('Error saving new notification:', error);
+        }
       }
-  } else {
+    } else {
       console.error('Invalid Visitor User ID:', visitorUserId);
-  }
+    }
 
 
 
@@ -538,7 +537,7 @@ export const getSimilarProducts: RequestHandler = async (req, res, next) => {
       const cityName = user ? cityMap.get(user.cityId.toString()) || 'Unknown City' : 'Unknown City';
 
       return {
-        
+
         categoryId: product.categoryId,
         cityName, // City name fetched based on user's cityId
         productName: product.name,
@@ -547,7 +546,7 @@ export const getSimilarProducts: RequestHandler = async (req, res, next) => {
         isVerified: user?.isVerified || false, // Assuming isVerified is a property on the user
         price: product.sellingprice,
         productImage: product.mainImage || 'No image available', // Assuming mainImage field exists
-        userMobileNumber: user ? user.phone || 'No mobile number available' : 'No mobile number available', 
+        userMobileNumber: user ? user.phone || 'No mobile number available' : 'No mobile number available',
         slug: product.slug
       };
     });
@@ -586,9 +585,9 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
       query = { ...query, "createdByObj.role": { $ne: req.query.role } };
     }
 
-    // Name, creator's name, short description, long description, and brand name filter
+
     if (req.query.name) {
-      const regex = new RegExp(`${req.query.name}`, "i");  // Corrected interpolation
+      const regex = new RegExp(`${req.query.name}`, "i");
       let brandArr = await Brand.find({ name: regex }).exec();
       let brandIds = brandArr.length > 0 ? brandArr.map(el => el._id) : [];
 
@@ -604,34 +603,13 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
       };
     }
 
-    // Category filter
+
     if (req.query.categoryId) {
       const categoryId = new mongoose.Types.ObjectId(req.query.categoryId as string);
       query = { ...query, categoryId: categoryId };
     }
 
-    // if (req.query.categoryId) {
-    //   query = { ...query, "categoryId": req.query.categoryId };
-    // }
 
-    // // Price filter
-    // if (req.query.minPrice || req.query.maxPrice) {
-    //   const priceQuery: any = {};
-    //   if (req.query.minPrice) priceQuery.$gte = parseFloat(req.query.minPrice as string);
-    //   if (req.query.maxPrice) priceQuery.$lte = parseFloat(req.query.maxPrice as string);
-    //   query = { ...query, "price": priceQuery };
-    // }
-
-    // // Selling Price filter
-    // if (req.query.minSellingPrice || req.query.maxSellingPrice) {
-    //   const sellingPriceQuery: any = {};
-    //   if (req.query.minSellingPrice) sellingPriceQuery.$gte = parseFloat(req.query.minSellingPrice as string);
-    //   if (req.query.maxSellingPrice) sellingPriceQuery.$lte = parseFloat(req.query.maxSellingPrice as string);
-    //   query = { ...query, "sellingprice": sellingPriceQuery };
-    // }
-
-
-    // Price filter (corrected)
     if (req.query.minPrice || req.query.maxPrice) {
       const priceQuery: any = {};
       if (req.query.minPrice) priceQuery.$gte = parseFloat((req.query.minPrice as string).replace(/,/g, ''));
@@ -719,7 +697,7 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
         userQuery.phone = new RegExp(`${req.query.userPhone}`, "i");
       }
 
-      
+
 
       const users = await User.find(userQuery).select('_id').exec();
       const userIds = users.map(user => user._id);
@@ -730,127 +708,38 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
     console.log(JSON.stringify(query, null, 2), "query");
 
     // Execute the query and return the result
-    const arr = await Product.find(query)
-      .populate('createdById', 'name email phone mainImage approved')
-      .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainImage: 1, approved: 1 })
-      .lean()
-      .exec();
+
     // Check if the array is populated and return the result
-    res.status(200).json({ message: "Search successful", data: arr, success: true });
+    const productArr = await Product.find(query)
+    .populate('createdById', 'name email phone mainImage approved')
+    .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainImage: 1, approved: 1 })
+    .lean()
+    .exec();
+
+  const userIds = productArr.map(product => product.createdById);
+  const users = await User.find({ _id: { $in: userIds } }).lean().exec();
+  const cityIds = users.map(user => user.cityId);
+  const cities = await City.find({ _id: { $in: cityIds } }).lean().exec();
+
+  const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
+  const userMap = new Map(users.map(user => [user._id.toString(), user]));
+
+  const filteredProducts = productArr.map((product: any) => {
+    const user = userMap.get(product.createdById.toString());
+    const cityName = user ? cityMap.get(user.cityId.toString()) || 'Unknown City' : 'Unknown City';
+    
+    return {
+      ...product,
+      userName: user?.name || 'Unknown User',
+      userEmail: user?.email || 'Unknown Email',
+      cityName
+    };
+  });
+    res.status(200).json({ message: "Search successful", data: filteredProducts, success: true });
   } catch (error) {
     next(error);
   }
 };
-// export const searchProductWithQuery: RequestHandler = async (req, res, next) => {
-//   try {
-//     let query: any = {};
-
-//     // Role filter
-//     if (req.query.role && req.query.role !== "null") {
-//       query = { ...query, "createdByObj.role": { $ne: req.query.role } };
-//     }
-
-//     // Name, creator's name, short description, long description, and brand name filter
-//     if (req.query.name) {
-//       const regex = new RegExp(`${req.query.name}`, "i");  // Corrected interpolation
-//       let brandArr = await Brand.find({ name: regex }).exec();
-//       let brandIds = brandArr.length > 0 ? brandArr.map(el => el._id) : [];
-
-//       query = {
-//         ...query,
-//         $or: [
-//           { name: regex },
-//           { "createdByObj.name": regex },
-//           { "shortDescription": regex },
-//           { "longDescription": regex },
-//           ...(brandIds.length > 0 ? [{ "brand": { $in: brandIds } }] : [])
-//         ]
-//       };
-//     }
-
-//     // Review search logic (new feature)
-//     if (req.query.reviewQuery) {
-//       const reviewRegex = new RegExp(`${req.query.reviewQuery}`, "i");
-//       query = {
-//         ...query,
-//         reviews: { $elemMatch: { content: reviewRegex } }  // Assuming review has a `content` field
-//       };
-//     }
-
-//     // Category filter
-//     if (req.query.categoryId) {
-//       const categoryId = new mongoose.Types.ObjectId(req.query.categoryId as string);
-//       query = { ...query, categoryId: categoryId };
-//     }
-
-//     // Price filter (corrected)
-//     if (req.query.minPrice || req.query.maxPrice) {
-//       const priceQuery: any = {};
-//       if (req.query.minPrice) priceQuery.$gte = parseFloat((req.query.minPrice as string).replace(/,/g, ''));
-//       if (req.query.maxPrice) priceQuery.$lte = parseFloat((req.query.maxPrice as string).replace(/,/g, ''));
-
-//       query = {
-//         ...query,
-//         $expr: {
-//           $and: [
-//             { $gte: [{ $toDouble: { $replaceAll: { input: "$price", find: ",", replacement: "" } } }, priceQuery.$gte || 0] },
-//             { $lte: [{ $toDouble: { $replaceAll: { input: "$price", find: ",", replacement: "" } } }, priceQuery.$lte || Infinity] }
-//           ]
-//         }
-//       };
-//     }
-
-//     // Selling Price filter (corrected)
-//     if (req.query.minSellingPrice || req.query.maxSellingPrice) {
-//       const sellingPriceQuery: any = {};
-//       if (req.query.minSellingPrice) sellingPriceQuery.$gte = parseFloat((req.query.minSellingPrice as string).replace(/,/g, ''));
-//       if (req.query.maxSellingPrice) sellingPriceQuery.$lte = parseFloat((req.query.maxSellingPrice as string).replace(/,/g, ''));
-
-//       query = {
-//         ...query,
-//         $expr: {
-//           $and: [
-//             { $gte: [{ $toDouble: { $replaceAll: { input: "$sellingprice", find: ",", replacement: "" } } }, sellingPriceQuery.$gte || 0] },
-//             { $lte: [{ $toDouble: { $replaceAll: { input: "$sellingprice", find: ",", replacement: "" } } }, sellingPriceQuery.$lte || Infinity] }
-//           ]
-//         }
-//       };
-//     }
-
-//     // Other filters (unchanged)...
-    
-//     // Pagination logic (new feature)
-//     const page = parseInt(req.query.page as string) || 1;
-//     const limit = parseInt(req.query.limit as string) || 10;
-//     const skip = (page - 1) * limit;
-
-//     // Execute the query with pagination
-//     const arr = await Product.find(query)
-//       .populate('createdById', 'name email phone mainImage approved')
-//       .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainImage: 1, approved: 1 })
-//       .skip(skip)
-//       .limit(limit)
-//       .lean()
-//       .exec();
-
-//     // Total count of products for pagination
-//     const totalProducts = await Product.countDocuments(query);
-//     const totalPages = Math.ceil(totalProducts / limit);
-
-//     res.status(200).json({
-//       message: "Search successful",
-//       data: arr,
-//       success: true,
-//       pagination: {
-//         totalProducts,
-//         totalPages,
-//         currentPage: page
-//       }
-//     });
-//   } catch (error) {
-//     next(error);
-//   }
-// };
 
 export const updateAppById = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -982,7 +871,7 @@ export const getProductYouMayLike = async (req: Request, res: Response, next: Ne
         }
 
         return {
-        
+
           cityName,
           stateName,   // Include stateName in the response
           address,
