@@ -587,7 +587,7 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
 
     // Name, creator's name, short description, long description, and brand name filter
     if (req.query.name) {
-      const regex = new RegExp(`${req.query.name}`, "i");  // Corrected interpolation
+      const regex = new RegExp(`${req.query.name}`, "i");
       let brandArr = await Brand.find({ name: regex }).exec();
       let brandIds = brandArr.length > 0 ? brandArr.map(el => el._id) : [];
 
@@ -609,28 +609,7 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
       query = { ...query, categoryId: categoryId };
     }
 
-    // if (req.query.categoryId) {
-    //   query = { ...query, "categoryId": req.query.categoryId };
-    // }
-
-    // // Price filter
-    // if (req.query.minPrice || req.query.maxPrice) {
-    //   const priceQuery: any = {};
-    //   if (req.query.minPrice) priceQuery.$gte = parseFloat(req.query.minPrice as string);
-    //   if (req.query.maxPrice) priceQuery.$lte = parseFloat(req.query.maxPrice as string);
-    //   query = { ...query, "price": priceQuery };
-    // }
-
-    // // Selling Price filter
-    // if (req.query.minSellingPrice || req.query.maxSellingPrice) {
-    //   const sellingPriceQuery: any = {};
-    //   if (req.query.minSellingPrice) sellingPriceQuery.$gte = parseFloat(req.query.minSellingPrice as string);
-    //   if (req.query.maxSellingPrice) sellingPriceQuery.$lte = parseFloat(req.query.maxSellingPrice as string);
-    //   query = { ...query, "sellingprice": sellingPriceQuery };
-    // }
-
-
-    // Price filter (corrected)
+    // Price filter
     if (req.query.minPrice || req.query.maxPrice) {
       const priceQuery: any = {};
       if (req.query.minPrice) priceQuery.$gte = parseFloat((req.query.minPrice as string).replace(/,/g, ''));
@@ -647,7 +626,7 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
       };
     }
 
-    // Selling Price filter (corrected)
+    // Selling Price filter
     if (req.query.minSellingPrice || req.query.maxSellingPrice) {
       const sellingPriceQuery: any = {};
       if (req.query.minSellingPrice) sellingPriceQuery.$gte = parseFloat((req.query.minSellingPrice as string).replace(/,/g, ''));
@@ -664,35 +643,19 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
       };
     }
 
+    // Brand filter
     if (req.query.brand) {
       const brand = new mongoose.Types.ObjectId(req.query.brand as string);
       query = { ...query, brand: brand };
     }
+
     // Specification filters
-    if (req.query.thickness) {
-      query = { ...query, "specification.thickness": new RegExp(`${req.query.thickness}`, "i") };
-    }
-    if (req.query.application) {
-      query = { ...query, "specification.application": new RegExp(`${req.query.application}`, "i") };
-    }
-    if (req.query.grade) {
-      query = { ...query, "specification.grade": new RegExp(`${req.query.grade}`, "i") };
-    }
-    if (req.query.color) {
-      query = { ...query, "specification.color": new RegExp(`${req.query.color}`, "i") };
-    }
-    if (req.query.size) {
-      query = { ...query, "specification.size": new RegExp(`${req.query.size}`, "i") };
-    }
-    if (req.query.wood) {
-      query = { ...query, "specification.wood": new RegExp(`${req.query.wood}`, "i") };
-    }
-    if (req.query.glue) {
-      query = { ...query, "specification.glue": new RegExp(`${req.query.glue}`, "i") };
-    }
-    if (req.query.warranty) {
-      query = { ...query, "specification.warranty": new RegExp(`${req.query.warranty}`, "i") };
-    }
+    const specifications = ['thickness', 'application', 'grade', 'color', 'size', 'wood', 'glue', 'warranty'];
+    specifications.forEach(spec => {
+      if (req.query[spec]) {
+        query = { ...query, [`specification.${spec}`]: new RegExp(`${req.query[spec]}`, "i") };
+      }
+    });
 
     // Status filter
     if (req.query.status) {
@@ -709,7 +672,7 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
       const userQuery: any = {};
 
       if (req.query.userName) {
-        userQuery.name = new RegExp(`${req.query.userName}`, "i");  // Corrected interpolation
+        userQuery.name = new RegExp(`${req.query.userName}`, "i");
       }
       if (req.query.userEmail) {
         userQuery.email = new RegExp(`${req.query.userEmail}`, "i");
@@ -717,8 +680,6 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
       if (req.query.userPhone) {
         userQuery.phone = new RegExp(`${req.query.userPhone}`, "i");
       }
-
-
 
       const users = await User.find(userQuery).select('_id').exec();
       const userIds = users.map(user => user._id);
@@ -743,14 +704,14 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
     }
 
     // Extract userIds from products
-    const userIds = arr.map(product => product.createdById).filter(id => id); // Remove any null/undefined IDs
+    const userIds = arr.map(product => product.createdById).filter(id => id);
 
     // Fetch users associated with these products
     const users = await User.find({ _id: { $in: userIds } }).lean().exec();
 
     // Extract cityIds and stateIds from users
-    const cityIds = users.map(user => user.cityId).filter(id => id); // Remove any null/undefined IDs
-    const stateIds = users.map(user => user.stateId).filter(id => id); // Remove any null/undefined IDs
+    const cityIds = users.map(user => user.cityId).filter(id => id);
+    const stateIds = users.map(user => user.stateId).filter(id => id);
 
     // Fetch cities and states by their IDs
     const cities = await City.find({ _id: { $in: cityIds } }).lean().exec();
@@ -768,10 +729,9 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
       const stateName = user ? stateMap.get(user.stateId.toString()) || 'Unknown State' : 'Unknown State';
 
       return {
-        arr,
+        ...product, // Include all original product details
         cityName, // City name fetched based on user's cityId
         stateName, // State name fetched based on user's stateId
-
       };
     });
 
@@ -780,12 +740,12 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
       data: filteredProducts,
       success: true
     });
-    // Check if the array is populated and return the result
-    res.status(200).json({ message: "Search successful", data: arr, success: true });
+
   } catch (error) {
     next(error);
   }
 };
+
 // export const searchProductWithQuery: RequestHandler = async (req, res, next) => {
 //   try {
 //     let query: any = {};
