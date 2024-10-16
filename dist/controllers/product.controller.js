@@ -616,16 +616,20 @@ const searchProductWithQuery = (req, res, next) => __awaiter(void 0, void 0, voi
             .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainImage: 1, approved: 1 })
             .lean()
             .exec();
-        const userIds = productArr.map(product => product.createdById);
+        // Get user and city details
+        const userIds = productArr.map(product => product.createdById).filter(id => id); // Filter out any null/undefined ids
         const users = yield user_model_1.User.find({ _id: { $in: userIds } }).lean().exec();
-        const cityIds = users.map(user => user.cityId);
+        const cityIds = users.map(user => user.cityId).filter(id => id); // Filter out null/undefined city ids
         const cities = yield City_model_1.City.find({ _id: { $in: cityIds } }).lean().exec();
+        // Map users and cities
         const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
         const userMap = new Map(users.map(user => [user._id.toString(), user]));
+        // Map product details with user and city info
         const filteredProducts = productArr.map((product) => {
-            const user = userMap.get(product.createdById.toString());
-            const cityName = user ? cityMap.get(user.cityId.toString()) || 'Unknown City' : 'Unknown City';
-            return Object.assign(Object.assign({}, product), { userName: (user === null || user === void 0 ? void 0 : user.name) || 'Unknown User', userEmail: (user === null || user === void 0 ? void 0 : user.email) || 'Unknown Email', cityName });
+            var _a;
+            const user = product.createdById ? userMap.get(product.createdById.toString()) : null;
+            const cityName = user ? cityMap.get(((_a = user.cityId) === null || _a === void 0 ? void 0 : _a.toString()) || '') || 'Unknown City' : 'Unknown City';
+            return Object.assign(Object.assign({}, product), { userName: (user === null || user === void 0 ? void 0 : user.name) || 'Unknown User', userEmail: (user === null || user === void 0 ? void 0 : user.email) || 'Unknown Email', cityName: cityName });
         });
         res.status(200).json({ message: "Search successful", data: filteredProducts, success: true });
     }

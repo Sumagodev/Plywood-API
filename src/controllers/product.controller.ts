@@ -711,30 +711,33 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
 
     // Check if the array is populated and return the result
     const productArr = await Product.find(query)
-    .populate('createdById', 'name email phone mainImage approved')
-    .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainImage: 1, approved: 1 })
-    .lean()
-    .exec();
+      .populate('createdById', 'name email phone mainImage approved')
+      .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainImage: 1, approved: 1 })
+      .lean()
+      .exec();
 
-  const userIds = productArr.map(product => product.createdById);
-  const users = await User.find({ _id: { $in: userIds } }).lean().exec();
-  const cityIds = users.map(user => user.cityId);
-  const cities = await City.find({ _id: { $in: cityIds } }).lean().exec();
+    // Get user and city details
+    const userIds = productArr.map(product => product.createdById).filter(id => id);  // Filter out any null/undefined ids
+    const users = await User.find({ _id: { $in: userIds } }).lean().exec();
+    const cityIds = users.map(user => user.cityId).filter(id => id);  // Filter out null/undefined city ids
+    const cities = await City.find({ _id: { $in: cityIds } }).lean().exec();
 
-  const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
-  const userMap = new Map(users.map(user => [user._id.toString(), user]));
+    // Map users and cities
+    const cityMap = new Map(cities.map(city => [city._id.toString(), city.name]));
+    const userMap = new Map(users.map(user => [user._id.toString(), user]));
 
-  const filteredProducts = productArr.map((product: any) => {
-    const user = userMap.get(product.createdById.toString());
-    const cityName = user ? cityMap.get(user.cityId.toString()) || 'Unknown City' : 'Unknown City';
-    
-    return {
-      ...product,
-      userName: user?.name || 'Unknown User',
-      userEmail: user?.email || 'Unknown Email',
-      cityName
-    };
-  });
+    // Map product details with user and city info
+    const filteredProducts = productArr.map((product: any) => {
+      const user = product.createdById ? userMap.get(product.createdById.toString()) : null;
+      const cityName = user ? cityMap.get(user.cityId?.toString() || '') || 'Unknown City' : 'Unknown City';
+
+      return {
+        ...product,
+        userName: user?.name || 'Unknown User',
+        userEmail: user?.email || 'Unknown Email',
+        cityName: cityName
+      };
+    });
     res.status(200).json({ message: "Search successful", data: filteredProducts, success: true });
   } catch (error) {
     next(error);
