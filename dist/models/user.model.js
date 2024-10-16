@@ -46,7 +46,7 @@ const userSchema = new mongoose_1.Schema({
     profileImage: String,
     bannerImage: String,
     isBlocked: { default: false, type: Boolean },
-    profileCount: Number,
+    profileCount: { type: Number, default: 0 },
     subscriptionEndDate: Date,
     categoryArr: [
         {
