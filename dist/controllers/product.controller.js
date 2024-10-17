@@ -101,11 +101,10 @@ const getProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
             const productImg = ((_c = product === null || product === void 0 ? void 0 : product.imageArr) === null || _c === void 0 ? void 0 : _c.length) > 0 ? product.imageArr[0] : "No Image Available";
             return Object.assign({ cityName,
                 stateName,
-                productImg, productPrice: product === null || product === void 0 ? void 0 : product.sellingprice, // Assuming 'sellingprice' is the field for the product price
-                isVerified,
+                productImg, productPrice: product === null || product === void 0 ? void 0 : product.sellingprice, isVerified,
                 phone }, product);
         });
-        const totalElements = yield product_model_1.Product.find(query).countDocuments().exec();
+        const totalElements = yield product_model_1.Product.countDocuments(query).exec();
         res.status(200).json({ message: "getProduct", data: populatedProducts, totalElements, success: true });
     }
     catch (err) {

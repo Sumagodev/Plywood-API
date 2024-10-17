@@ -110,15 +110,15 @@ export const getProduct = async (req: Request, res: Response, next: NextFunction
       return {
         cityName,
         stateName,
-        productImg, // Assuming 'img' is the field for the product image
-        productPrice: product?.sellingprice, // Assuming 'sellingprice' is the field for the product price
-        isVerified, // User verification status
+        productImg,
+        productPrice: product?.sellingprice,
+        isVerified,
         phone,
-        ...product, // User phone number
+        ...product,
       };
     });
 
-    const totalElements = await Product.find(query).countDocuments().exec();
+    const totalElements = await Product.countDocuments(query).exec();
 
     res.status(200).json({ message: "getProduct", data: populatedProducts, totalElements, success: true });
   } catch (err) {
