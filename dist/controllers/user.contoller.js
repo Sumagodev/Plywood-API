@@ -95,11 +95,8 @@ const appLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
             '8010385237',
             '8668918650'
         ];
-        if (validPhoneNumbers.includes(req.body.phone) && req.body.otp === '123456') {
-            // Your logic here
-        }
         let otp = req.body.otp;
-        if (req.body.phone === '8668918650' && req.body.otp === '123456') {
+        if (validPhoneNumbers.includes(req.body.phone) && req.body.otp === '123456') {
         }
         else {
             const response = yield otp_models_1.default.find({ phone }).sort({ createdAt: -1 }).limit(1);

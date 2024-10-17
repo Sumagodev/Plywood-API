@@ -94,11 +94,9 @@ export const appLogin = async (req: Request, res: Response, next: NextFunction) 
       '8668918650'
   ];
   
-  if (validPhoneNumbers.includes(req.body.phone) && req.body.otp === '123456') {
-      // Your logic here
-  }
+  
     let otp = req.body.otp;
-    if(req.body.phone==='8668918650' && req.body.otp==='123456'){
+    if(validPhoneNumbers.includes(req.body.phone) && req.body.otp === '123456'){
 
     }else{
       const response = await otpModels.find({ phone }).sort({ createdAt: -1 }).limit(1);
