@@ -739,6 +739,7 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
     let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
     let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
     const products = await Product.find(query).skip((pageValue - 1) * limitValue).limit(limitValue).lean().exec();
+    const review = await ProductReview.findOne({ _id: { $in: products } }).lean().exec();
 
     const userIds = products.map(product => product?.createdById).filter(Boolean); // Ensure no undefined values
 
@@ -755,7 +756,6 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
     const cityNameMap = new Map(cities.map(city => [city._id.toString(), city.name]));
     const stateNameMap = new Map(states.map(state => [state._id.toString(), state.name]));
 
-
     // Add city and state names, product image, price, verification status, and phone to the products
     const populatedProducts = products.map(product => {
       const createdByUser = users.find(user => user?._id.toString() === product?.createdById?.toString());
@@ -765,19 +765,16 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
       const phone = createdByUser?.phone || "Unknown Phone";
       const isVerified = createdByUser?.isVerified || false;
       const productImg = product?.imageArr?.length > 0 ? product.imageArr[0] : "No Image Available";
-      const review = ProductReview.findOne({ productId: product._id }).lean().exec();
 
-      
       return {
         cityName, // Add city name here
         stateName, // Add state name here
         productImg, // Assuming 'img' is the field for the product image
         productPrice: product?.sellingprice, // Assuming 'sellingprice' is the field for the product price
-        isVerified,
-        review,// User verification status
+        isVerified, // User verification status
         phone,
-        ...product,
-        // User phone number
+        review,
+        ...product, // User phone number
       };
     });
 

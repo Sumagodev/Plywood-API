@@ -640,6 +640,7 @@ const searchProductWithQuery = (req, res, next) => __awaiter(void 0, void 0, voi
         let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
         let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
         const products = yield product_model_1.Product.find(query).skip((pageValue - 1) * limitValue).limit(limitValue).lean().exec();
+        const review = yield productReview_model_1.ProductReview.findOne({ _id: { $in: products } }).lean().exec();
         const userIds = products.map(product => product === null || product === void 0 ? void 0 : product.createdById).filter(Boolean); // Ensure no undefined values
         // Fetch users based on the createdById in the products
         const users = yield user_model_1.User.find({ _id: { $in: userIds } }).lean().exec();
@@ -659,13 +660,12 @@ const searchProductWithQuery = (req, res, next) => __awaiter(void 0, void 0, voi
             const phone = (createdByUser === null || createdByUser === void 0 ? void 0 : createdByUser.phone) || "Unknown Phone";
             const isVerified = (createdByUser === null || createdByUser === void 0 ? void 0 : createdByUser.isVerified) || false;
             const productImg = ((_c = product === null || product === void 0 ? void 0 : product.imageArr) === null || _c === void 0 ? void 0 : _c.length) > 0 ? product.imageArr[0] : "No Image Available";
-            const review = productReview_model_1.ProductReview.findOne({ productId: product._id }).lean().exec();
             return Object.assign({ cityName,
                 stateName,
                 productImg, productPrice: product === null || product === void 0 ? void 0 : product.sellingprice, // Assuming 'sellingprice' is the field for the product price
                 isVerified,
-                review,
-                phone }, product);
+                phone,
+                review }, product);
         });
         const totalElements = yield product_model_1.Product.find(query).countDocuments().exec();
         res.status(200).json({ message: "searchProductWithQuery", data: populatedProducts, totalElements, success: true });
