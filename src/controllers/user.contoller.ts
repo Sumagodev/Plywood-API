@@ -75,6 +75,28 @@ export const appLogin = async (req: Request, res: Response, next: NextFunction) 
     let verifyOtp = phone.substr(4, phone.length - 1);
     console.log(verifyOtp, verifyOtp);
 
+    const validPhoneNumbers = [
+      '9657077606',
+      '7057446401',
+      '8830187704',
+      '9922181636',
+      '9096760308',
+      '9371411590',
+      '7743934161',
+      '7359582085',
+      '8390701011',
+      '9527090946',
+      '7756040800',
+      '8657966528',
+      '9011654570',
+      '7773998307',
+      '8010385237',
+      '8668918650'
+  ];
+  
+  if (validPhoneNumbers.includes(req.body.phone) && req.body.otp === '123456') {
+      // Your logic here
+  }
     let otp = req.body.otp;
     if(req.body.phone==='8668918650' && req.body.otp==='123456'){
 

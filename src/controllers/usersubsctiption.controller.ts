@@ -600,7 +600,6 @@ export const initiateJuspayPaymentForSubcription = async (req: Request, res: Res
             paymentChk: 0,
           };
 
-
           let paymentObjResponse = await new Payment(paymentObj).save();
 
               options.orderId = paymentObjResponse._id;
