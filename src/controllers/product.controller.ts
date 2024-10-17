@@ -740,8 +740,10 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
     let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
     const products = await Product.find(query).skip((pageValue - 1) * limitValue).limit(limitValue).lean().exec();
     const prd = products.map(product => product?._id).filter(Boolean); // Ensure no undefined values
-    
+
     const review = await ProductReview.findOne({ productId: prd }).lean().exec();
+    const rating = review ? review.rating : "No Rating";
+
     const userIds = products.map(product => product?.createdById).filter(Boolean); // Ensure no undefined values
 
     // Fetch users based on the createdById in the products
@@ -774,7 +776,7 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
         productPrice: product?.sellingprice, // Assuming 'sellingprice' is the field for the product price
         isVerified, // User verification status
         phone,
-        review,
+        rating,
         ...product, // User phone number
       };
     });
