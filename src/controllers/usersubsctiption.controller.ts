@@ -15,6 +15,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import { hdfcConfig, juspayConfig } from "../helpers/hdfcConfig";
+import { Subscription } from "../models/Subscription.model";
+import { Types } from "mongoose";
 
 
 export const buySubscription = async (req: Request, res: Response, next: NextFunction) => {
@@ -542,6 +544,15 @@ export const sendMailById = async (req: Request, res: Response, next: NextFuncti
 export const initiateJuspayPaymentForSubcription = async (req: Request, res: Response, next: NextFunction) => {
 
 
+  if (!Types.ObjectId.isValid(req.body._id)) {
+    // Handle the invalid ObjectId case
+    return  res.status(400).json({result:false,"message":"Invalid Subscription Id"})
+  }
+
+  if (!req?.user?.userId) {
+    // Handle the invalid ObjectId case
+    return  res.status(404).json({result:false,"message":"Unauthorized request"})
+}
 
     let existsCheck: any = await UserSubscription.findOne({ userId: req?.user?.userId }).sort({ endDate: -1 }).exec();
     console.log(existsCheck, "existsCheck");
@@ -561,17 +572,26 @@ export const initiateJuspayPaymentForSubcription = async (req: Request, res: Res
       tempEndDate = undefined;
     }
 
+    let checkSubscription: any = await Subscription
+    .findById(req.body._id)   // Find by ObjectId directly
+    .exec();
+
+    if(!checkSubscription)
+    {
+      return  res.status(400).json({result:false,"message":"Subscription not found"})
+    }
+
     let obj = {
             userId: req?.user?.userId,
             subscriptionId: req.body._id,
-            name: req.body?.name,
+            name: checkSubscription?.name,
             description: req.body?.description,
-            price: req.body?.price,
+            price: checkSubscription.price,
             startDate: tempStartDate,
-            numberOfSales: req?.body?.numberOfSales ? req?.body?.numberOfSales : 0,
-            saleDays: req?.body?.saleDays ? req?.body?.saleDays : 0,
-            numberOfAdvertisement: req?.body?.numberOfAdvertisement ? req?.body?.numberOfAdvertisement : 0,
-            advertisementDays: req?.body?.advertisementDays ? req?.body?.advertisementDays : 0,
+            numberOfSales: checkSubscription?.numberOfSales,
+            saleDays: checkSubscription?.saleDays,
+            numberOfAdvertisement: checkSubscription.numberOfAdvertisement,
+            advertisementDays:checkSubscription.advertisementDays,
             isExpired: false,
             endDate: null,
           };
@@ -599,6 +619,7 @@ export const initiateJuspayPaymentForSubcription = async (req: Request, res: Res
             orderObj: obj, // razorpay
             paymentChk: 0,
           };
+
 
           let paymentObjResponse = await new Payment(paymentObj).save();
 

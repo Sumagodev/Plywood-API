@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const usersubsctiption_controller_1 = require("../controllers/usersubsctiption.controller");
+const auth_middleware_1 = require("../middlewares/auth.middleware");
 const router = express_1.default.Router();
 router.post("/buySubscription", usersubsctiption_controller_1.buySubscription);
 router.get("/", usersubsctiption_controller_1.getSubscription);
@@ -13,6 +14,6 @@ router.get("/getAllSubscriptionbyUserId", usersubsctiption_controller_1.getAllSu
 router.get("/getByUserId/:id", usersubsctiption_controller_1.getById);
 router.get("/sendMailById/:id", usersubsctiption_controller_1.sendMailById);
 router.post("/phonepePaymentStatusCheck/:orderId", usersubsctiption_controller_1.phonepePaymentStatusCheck);
-router.post("/initiateJuspayPaymentForSubcription", usersubsctiption_controller_1.initiateJuspayPaymentForSubcription);
+router.post("/initiateJuspayPaymentForSubcription", auth_middleware_1.authorizeJwt, usersubsctiption_controller_1.initiateJuspayPaymentForSubcription);
 router.post("/handleJuspayPaymentForSubcription", usersubsctiption_controller_1.handleJuspayPaymentForSubcription);
 exports.default = router;
