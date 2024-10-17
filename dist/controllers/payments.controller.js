@@ -86,7 +86,7 @@ const handleHdfcWebhook = (req, res, next) => __awaiter(void 0, void 0, void 0, 
 });
 exports.handleHdfcWebhook = handleHdfcWebhook;
 const verifyPayment = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
     try {
         let existsCheck = yield user_model_1.User.findOne({ userId: (_a = req === null || req === void 0 ? void 0 : req.user) === null || _a === void 0 ? void 0 : _a.userId }).sort({ endDate: -1 }).exec();
         console.log(existsCheck, "existsCheck");
@@ -186,12 +186,12 @@ const verifyPayment = (req, res, next) => __awaiter(void 0, void 0, void 0, func
             txn_id: (_j = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _j === void 0 ? void 0 : _j.txn_id,
             effective_amount: (_k = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _k === void 0 ? void 0 : _k.effective_amount,
             txn_uuid: (_l = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _l === void 0 ? void 0 : _l.txn_uuid,
-            date_created: paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse.date_created,
-            last_updated: paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse.last_updated,
-            customer_email: paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse.customer_email,
-            customer_phone: paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse.customer_phone,
-            customer_id: paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse.customer_id,
-            status: paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse.status,
+            date_created: (_m = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _m === void 0 ? void 0 : _m.date_created,
+            last_updated: (_o = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _o === void 0 ? void 0 : _o.last_updated,
+            customer_email: (_p = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _p === void 0 ? void 0 : _p.customer_email,
+            customer_phone: (_q = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _q === void 0 ? void 0 : _q.customer_phone,
+            customer_id: (_r = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _r === void 0 ? void 0 : _r.customer_id,
+            status: (_s = paymentObj === null || paymentObj === void 0 ? void 0 : paymentObj.statusResponse) === null || _s === void 0 ? void 0 : _s.status,
         });
     }
     catch (error) {
