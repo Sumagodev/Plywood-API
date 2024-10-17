@@ -25,6 +25,7 @@ const State_model_1 = require("../models/State.model");
 const FlashSale_model_1 = require("../models/FlashSale.model");
 const Notifications_model_1 = require("../models/Notifications.model");
 const date_fns_1 = require("date-fns");
+const productReview_model_1 = require("../models/productReview.model");
 const getProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let query = {};
@@ -841,6 +842,8 @@ const getProductYouMayLike = (req, res, next) => __awaiter(void 0, void 0, void 
             const productName = productDetail ? productDetail.name : "Unknown Product";
             const productPrice = productDetail ? productDetail.price : "N/A";
             const productData = Object.assign({}, product); // Clone the product object
+            const review = yield productReview_model_1.ProductReview.findOne({ productId: product._id }).lean().exec();
+            const rating = review ? review.rating : "No Rating";
             // Remove the token field if it exists
             if (productData.createdByObj && 'token' in productData.createdByObj) {
                 delete productData.createdByObj.token;
@@ -854,7 +857,8 @@ const getProductYouMayLike = (req, res, next) => __awaiter(void 0, void 0, void 
                 productName,
                 productPrice,
                 createdByObj,
-                product
+                product,
+                rating
             };
         })));
         res.json({ message: 'Suggested Products', data: populatedProducts });

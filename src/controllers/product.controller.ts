@@ -11,7 +11,7 @@ import { State } from "../models/State.model";
 import { FlashSale } from "../models/FlashSale.model";
 import { Notifications } from "../models/Notifications.model";
 import { endOfDay, startOfDay } from "date-fns";
-
+import { ProductReview } from "../models/productReview.model";
 export const getProduct = async (req: Request, res: Response, next: NextFunction) => {
   try {
     let query: any = {};
@@ -201,30 +201,30 @@ export const addProduct = async (req: Request, res: Response, next: NextFunction
     res.status(200).json({ message: "Product Successfully Created", success: true });
 
     const newNotification = new Notifications({
-      userId: req?.user?.userId,         
+      userId: req?.user?.userId,
       type: 'product_under_review',
-      title: 'Product Under Review',  
+      title: 'Product Under Review',
       content: ` Hi , ${userDataObj?.companyObj?.name} Your Product is Now Under Review!  Our team is currently checking the details.`,
-      sourceId:'',             
-      isRead: false,                      
+      sourceId: '',
+      isRead: false,
       viewCount: 1,
       lastAccessTime: new Date(),           // Set initial last access time
       payload: {                            // Dynamic payload data
-         productDetails:newEntry,
-         userObj:userDataObj,
-         productObj:newEntry,
-         slug:req?.body?.slug,
+        productDetails: newEntry,
+        userObj: userDataObj,
+        productObj: newEntry,
+        slug: req?.body?.slug,
       }
-  });
-  // Save the new notification to the database
-  try {
+    });
+    // Save the new notification to the database
+    try {
       await newNotification.save();
-      
-  } catch (error) {
-    
+
+    } catch (error) {
+
       console.error('Error saving new notification:', error);
-      
-  }
+
+    }
 
 
 
@@ -428,81 +428,80 @@ export const getProductById = async (req: Request, res: Response, next: NextFunc
     if (visitorUserId && mongoose.Types.ObjectId.isValid(visitorUserId)) {
       // Fetch the user who accessed the profile
       let leadUser = await User.findById(visitorUserId).lean().exec();
-      
+
       // Check if leadUser is found
       if (!leadUser) throw new Error("Lead User Not Found");
-  
+
       // Define the current day range (start and end of today)
       const startOfToday = startOfDay(new Date());
       const endOfToday = endOfDay(new Date());
-  
+
       console.log('Product Creator ID:', ProductObj.createdById.toString());
       console.log('Visitor User ID:', visitorUserId);
 
-  
-      if(ProductObj.createdById.toString()===visitorUserId)
-        {
-          return ;
-        }
+
+      if (ProductObj.createdById.toString() === visitorUserId) {
+        return;
+      }
 
       let existingNotification = await Notifications.findOne({
         userId: ProductObj.createdById.toString(), // Profile owner
         sourceId: visitorUserId, // The user who accessed the profile
         type: 'product_view',
         createdAt: { // Created today
-            $gte: startOfToday, // Greater than or equal to the start of the day
-            $lte: endOfToday // Less than or equal to the end of the day
+          $gte: startOfToday, // Greater than or equal to the start of the day
+          $lte: endOfToday // Less than or equal to the end of the day
         },
         'payload.productId': ProductObj._id, // Check for the product ID in payload
         'payload.accessedBy': visitorUserId // Also check the accessedBy in the payload
-    });
-  
+      });
+
       console.log('Existing Notification:', existingNotification);
-  
+
       if (existingNotification) {
-          // If a notification exists, increment the view count and update the last access time
-          await Notifications.updateOne(
-              { _id: existingNotification._id },
-              {
-                  $inc: { viewCount: 1 }, // Increment viewCount by 1
-                  $set: {
-                      lastAccessTime: new Date(),
-                      isRead: false,
-                  } // Update lastAccessTime to current time
-              }
-          );
-          console.log('Notification updated with incremented view count and updated last access time');
-      } else {
-          // If no notification exists, create a new one
-          const newNotification = new Notifications({
-              userId: ProductObj.createdById.toString(), // ID of the user related to the notification
-              type: 'product_view', // Type of notification
-              title: 'Your product was accessed', // Title of the notification
-              content: `Your product was accessed by user ${visitorUserId}`, // Message content
-              sourceId: visitorUserId, // ID of the user who accessed the profile
-              isRead: false, // Notification status
-              viewCount: 1, // Initialize viewCount to 1
-              lastAccessTime: new Date(), // Set initial last access time
-              payload: { // Dynamic payload data
-                  accessedBy: visitorUserId,
-                  accessTime: new Date(),
-                  organizationName: leadUser?.companyObj?.name || 'Unknown',
-                  productName: ProductObj?.name || 'Unknown',
-                  productId: ProductObj._id // Include product ID in the payload
-              }
-          });
-  
-          // Save the new notification to the database
-          try {
-              await newNotification.save();
-              console.log('New notification created:', newNotification);
-          } catch (error) {
-              console.error('Error saving new notification:', error);
+        // If a notification exists, increment the view count and update the last access time
+        await Notifications.updateOne(
+          { _id: existingNotification._id },
+          {
+            $inc: { viewCount: 1 }, // Increment viewCount by 1
+            $set: {
+              lastAccessTime: new Date(),
+              isRead: false,
+            } // Update lastAccessTime to current time
           }
+        );
+        console.log('Notification updated with incremented view count and updated last access time');
+      } else {
+        // If no notification exists, create a new one
+        const newNotification = new Notifications({
+          userId: ProductObj.createdById.toString(), // ID of the user related to the notification
+          type: 'product_view', // Type of notification
+          title: 'Your product was accessed', // Title of the notification
+          content: `Your product was accessed by user ${visitorUserId}`, // Message content
+          sourceId: visitorUserId, // ID of the user who accessed the profile
+          isRead: false, // Notification status
+          viewCount: 1, // Initialize viewCount to 1
+          lastAccessTime: new Date(), // Set initial last access time
+          payload: { // Dynamic payload data
+            accessedBy: visitorUserId,
+            accessTime: new Date(),
+            organizationName: leadUser?.companyObj?.name || 'Unknown',
+            productName: ProductObj?.name || 'Unknown',
+            productId: ProductObj._id // Include product ID in the payload
+          }
+        });
+
+        // Save the new notification to the database
+        try {
+          await newNotification.save();
+          console.log('New notification created:', newNotification);
+        } catch (error) {
+          console.error('Error saving new notification:', error);
+        }
       }
-  } else {
+    } else {
       console.error('Invalid Visitor User ID:', visitorUserId);
-  }
+    }
 
 
 
@@ -538,7 +537,7 @@ export const getSimilarProducts: RequestHandler = async (req, res, next) => {
       const cityName = user ? cityMap.get(user.cityId.toString()) || 'Unknown City' : 'Unknown City';
 
       return {
-        
+
         categoryId: product.categoryId,
         cityName, // City name fetched based on user's cityId
         productName: product.name,
@@ -547,7 +546,7 @@ export const getSimilarProducts: RequestHandler = async (req, res, next) => {
         isVerified: user?.isVerified || false, // Assuming isVerified is a property on the user
         price: product.sellingprice,
         productImage: product.mainImage || 'No image available', // Assuming mainImage field exists
-        userMobileNumber: user ? user.phone || 'No mobile number available' : 'No mobile number available', 
+        userMobileNumber: user ? user.phone || 'No mobile number available' : 'No mobile number available',
         slug: product.slug
       };
     });
@@ -719,7 +718,7 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
         userQuery.phone = new RegExp(`${req.query.userPhone}`, "i");
       }
 
-      
+
 
       const users = await User.find(userQuery).select('_id').exec();
       const userIds = users.map(user => user._id);
@@ -818,7 +817,7 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
 //     }
 
 //     // Other filters (unchanged)...
-    
+
 //     // Pagination logic (new feature)
 //     const page = parseInt(req.query.page as string) || 1;
 //     const limit = parseInt(req.query.limit as string) || 10;
@@ -976,13 +975,16 @@ export const getProductYouMayLike = async (req: Request, res: Response, next: Ne
 
         const productData = { ...product }; // Clone the product object
 
+        const review = await ProductReview.findOne({ productId: product._id }).lean().exec();
+        const rating = review ? review.rating : "No Rating";
+
         // Remove the token field if it exists
         if (productData.createdByObj && 'token' in productData.createdByObj) {
           delete productData.createdByObj.token;
         }
 
         return {
-        
+
           cityName,
           stateName,   // Include stateName in the response
           address,
@@ -991,7 +993,8 @@ export const getProductYouMayLike = async (req: Request, res: Response, next: Ne
           productName,
           productPrice,
           createdByObj,
-          product
+          product,
+          rating
         };
       })
     );
