@@ -642,7 +642,7 @@ const searchProductWithQuery = (req, res, next) => __awaiter(void 0, void 0, voi
         const products = yield product_model_1.Product.find(query).skip((pageValue - 1) * limitValue).limit(limitValue).lean().exec();
         const prd = products.map(product => product === null || product === void 0 ? void 0 : product._id).filter(Boolean); // Ensure no undefined values
         const review = yield productReview_model_1.ProductReview.findOne({ productId: prd }).lean().exec();
-        const rating = review ? review.rating : "No Rating";
+        const productrating = review ? review.rating : "No Rating";
         const userIds = products.map(product => product === null || product === void 0 ? void 0 : product.createdById).filter(Boolean); // Ensure no undefined values
         // Fetch users based on the createdById in the products
         const users = yield user_model_1.User.find({ _id: { $in: userIds } }).lean().exec();
@@ -667,7 +667,8 @@ const searchProductWithQuery = (req, res, next) => __awaiter(void 0, void 0, voi
                 productImg, productPrice: product === null || product === void 0 ? void 0 : product.sellingprice, // Assuming 'sellingprice' is the field for the product price
                 isVerified,
                 phone,
-                rating }, product);
+                productrating,
+                review }, product);
         });
         const totalElements = yield product_model_1.Product.find(query).countDocuments().exec();
         res.status(200).json({ message: "searchProductWithQuery", data: populatedProducts, totalElements, success: true });

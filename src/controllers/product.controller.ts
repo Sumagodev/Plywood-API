@@ -742,7 +742,7 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
     const prd = products.map(product => product?._id).filter(Boolean); // Ensure no undefined values
 
     const review = await ProductReview.findOne({ productId: prd }).lean().exec();
-    const rating = review ? review.rating : "No Rating";
+    const productrating = review ? review.rating : "No Rating";
 
     const userIds = products.map(product => product?.createdById).filter(Boolean); // Ensure no undefined values
 
@@ -776,7 +776,8 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
         productPrice: product?.sellingprice, // Assuming 'sellingprice' is the field for the product price
         isVerified, // User verification status
         phone,
-        rating,
+        productrating,
+        review,
         ...product, // User phone number
       };
     });
