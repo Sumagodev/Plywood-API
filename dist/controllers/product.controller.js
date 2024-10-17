@@ -840,6 +840,7 @@ const getProductYouMayLike = (req, res, next) => __awaiter(void 0, void 0, void 
             // Fetch product details
             const productDetail = productDetails.find((p) => p._id.toString() === product._id.toString());
             const productName = productDetail ? productDetail.name : "Unknown Product";
+            const productId = productDetail ? productDetail._id : "Unknown Product";
             const productPrice = productDetail ? productDetail.price : "N/A";
             const productData = Object.assign({}, product); // Clone the product object
             const review = yield productReview_model_1.ProductReview.findOne({ productId: product._id }).lean().exec();
@@ -858,7 +859,8 @@ const getProductYouMayLike = (req, res, next) => __awaiter(void 0, void 0, void 
                 productPrice,
                 createdByObj,
                 product,
-                rating
+                rating,
+                productId
             };
         })));
         res.json({ message: 'Suggested Products', data: populatedProducts });

@@ -971,6 +971,7 @@ export const getProductYouMayLike = async (req: Request, res: Response, next: Ne
 
         const productDetail = productDetails.find((p) => p._id.toString() === product._id.toString());
         const productName = productDetail ? productDetail.name : "Unknown Product";
+        const productId = productDetail ? productDetail._id : "Unknown Product";
         const productPrice = productDetail ? productDetail.price : "N/A";
 
         const productData = { ...product }; // Clone the product object
@@ -994,7 +995,8 @@ export const getProductYouMayLike = async (req: Request, res: Response, next: Ne
           productPrice,
           createdByObj,
           product,
-          rating
+          rating,
+          productId
         };
       })
     );
