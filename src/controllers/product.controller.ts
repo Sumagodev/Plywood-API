@@ -739,8 +739,9 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
     let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
     let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
     const products = await Product.find(query).skip((pageValue - 1) * limitValue).limit(limitValue).lean().exec();
-    const review = await ProductReview.findOne({ _id: { $in: products } }).lean().exec();
-
+    const prd = products.map(product => product?._id).filter(Boolean); // Ensure no undefined values
+    
+    const review = await ProductReview.findOne({ productId: prd }).lean().exec();
     const userIds = products.map(product => product?.createdById).filter(Boolean); // Ensure no undefined values
 
     // Fetch users based on the createdById in the products
