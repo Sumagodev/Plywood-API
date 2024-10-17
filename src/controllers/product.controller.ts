@@ -110,15 +110,15 @@ export const getProduct = async (req: Request, res: Response, next: NextFunction
       return {
         cityName,
         stateName,
-        productImg,
-        productPrice: product?.sellingprice,
-        isVerified,
+        productImg, // Assuming 'img' is the field for the product image
+        productPrice: product?.sellingprice, // Assuming 'sellingprice' is the field for the product price
+        isVerified, // User verification status
         phone,
-        ...product,
+        ...product, // User phone number
       };
     });
 
-    const totalElements = await Product.countDocuments(query).exec();
+    const totalElements = await Product.find(query).countDocuments().exec();
 
     res.status(200).json({ message: "getProduct", data: populatedProducts, totalElements, success: true });
   } catch (err) {
@@ -735,6 +735,50 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
       .lean()
       .exec();
     // Check if the array is populated and return the result
+
+    let pageValue = req.query.page ? parseInt(`${req.query.page}`) : 1;
+    let limitValue = req.query.perPage ? parseInt(`${req.query.perPage}`) : 1000;
+    const products = await Product.find(query).skip((pageValue - 1) * limitValue).limit(limitValue).lean().exec();
+
+    const userIds = products.map(product => product?.createdById).filter(Boolean); // Ensure no undefined values
+
+    // Fetch users based on the createdById in the products
+    const users = await User.find({ _id: { $in: userIds } }).lean().exec();
+
+    // Create maps for city and state names
+    const cityIds = Array.from(new Set(users.map(user => user?.cityId).filter(Boolean)));
+    const stateIds = Array.from(new Set(users.map(user => user?.stateId).filter(Boolean)));
+
+    const cities = await City.find({ _id: { $in: cityIds } }).lean().exec();
+    const states = await State.find({ _id: { $in: stateIds } }).lean().exec();
+
+    const cityNameMap = new Map(cities.map(city => [city._id.toString(), city.name]));
+    const stateNameMap = new Map(states.map(state => [state._id.toString(), state.name]));
+
+    // Add city and state names, product image, price, verification status, and phone to the products
+    const populatedProducts = products.map(product => {
+      const createdByUser = users.find(user => user?._id.toString() === product?.createdById?.toString());
+
+      const cityName = createdByUser ? cityNameMap.get(createdByUser?.cityId?.toString()) : "Unknown City";
+      const stateName = createdByUser ? stateNameMap.get(createdByUser?.stateId?.toString()) : "Unknown State";
+      const phone = createdByUser?.phone || "Unknown Phone";
+      const isVerified = createdByUser?.isVerified || false;
+      const productImg = product?.imageArr?.length > 0 ? product.imageArr[0] : "No Image Available";
+
+      return {
+        cityName, // Add city name here
+        stateName, // Add state name here
+        productImg, // Assuming 'img' is the field for the product image
+        productPrice: product?.sellingprice, // Assuming 'sellingprice' is the field for the product price
+        isVerified, // User verification status
+        phone,
+        ...product, // User phone number
+      };
+    });
+
+    const totalElements = await Product.find(query).countDocuments().exec();
+
+    res.status(200).json({ message: "searchProductWithQuery", data: populatedProducts, totalElements, success: true });
     res.status(200).json({ message: "Search successful", data: arr, success: true });
   } catch (error) {
     next(error);
