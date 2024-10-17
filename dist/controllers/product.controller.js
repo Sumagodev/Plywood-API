@@ -860,6 +860,7 @@ const getProductYouMayLike = (req, res, next) => __awaiter(void 0, void 0, void 
                 createdByObj,
                 product,
                 rating,
+                review,
                 productId
             };
         })));

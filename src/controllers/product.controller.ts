@@ -996,6 +996,7 @@ export const getProductYouMayLike = async (req: Request, res: Response, next: Ne
           createdByObj,
           product,
           rating,
+          review,
           productId
         };
       })
