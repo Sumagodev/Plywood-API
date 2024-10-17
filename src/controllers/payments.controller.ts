@@ -142,32 +142,58 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
     
         // Initialize message and response variables
         let message = '';
-        let statusCode = 200; // Default status code for success
+        let statusCode = 500; // Default status code for success
     
         // Handle different order statuses
-        switch(orderStatus) {
-          case "PENDING":
-          case "PENDING_VBV":
-            message = "Order payment pending";
+        switch (orderStatus) {
+          case "NEW":
+            message = "Newly created order. This is the status if transaction is not triggered for an order.";
             statusCode = 202; // Accepted but pending
             break;
-    
-          case "AUTHORIZATION_FAILED":
-            message = "Order payment authorization failed";
-            statusCode = 400; // Bad request as the authorization failed
+        
+          case "PENDING":
+          case "PENDING_VBV":
+            message = "Order payment pending. Authentication is in progress.";
+            statusCode = 202; // Accepted but pending
             break;
-    
+        
+          case "CHARGED":
+            message = "Order payment successful. Display order confirmation page to the user.";
+            statusCode = 200; // OK
+            break;
+        
           case "AUTHENTICATION_FAILED":
-            message = "Order payment authentication failed";
+            message = "Order payment authentication failed. Allow user to retry payment.";
             statusCode = 401; // Unauthorized because authentication failed
             break;
-    
-          case "CHARGED":
-            message = "Order payment successful";
-            statusCode = 200; // OK
-            break;            
+        
+          case "AUTHORIZATION_FAILED":
+            message = "Order payment authorization failed. Allow user to retry payment.";
+            statusCode = 400; // Bad request as the authorization failed
+            break;
+        
+          case "AUTHORIZING":
+            message = "Transaction status is pending from bank. Show pending screen to customers.";
+            statusCode = 202; // Accepted but pending
+            break;
+        
+          case "STARTED":
+            message = "Transaction is pending. SmarteGateway system isn't able to find a gateway to process a transaction.";
+            statusCode = 503; // Service Unavailable for integration error
+            break;
+        
+          case "AUTO_REFUNDED":
+            message = "Transaction is automatically refunded. Display the refund status to the user.";
+            statusCode = 200; // OK, but handle refund logic
+            break;
+        
+          case "PARTIAL_CHARGED":
+            message = "The charged amount is less than the effective order amount. Display this status to the user.";
+            statusCode = 206; // Partial Content for partial charge
+            break;
+        
           default:
-            message = `payment status ${orderStatus}`;
+            message = `Payment status: ${orderStatus}`;
             statusCode = 500; // Internal server error for unknown status
             break;
         }
