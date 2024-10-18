@@ -98,6 +98,8 @@ const appLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
         if (!UserExistCheck.approved) {
             throw new Error(`Please wait while the admins verify you.`);
         }
+        const userSubscription = yield userSubscription_model_1.UserSubscription.findOne({ userId: UserExistCheck._id }).exec();
+        const subscriptionType = userSubscription ? userSubscription.subscriptiontype : 'NOSUBSCRIBED';
         let userData = {
             userId: UserExistCheck._id,
             role: UserExistCheck.role,
@@ -107,6 +109,7 @@ const appLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
                 phone: UserExistCheck.phone,
                 _id: UserExistCheck._id,
                 role: UserExistCheck.role,
+                subscriptionType
             },
         };
         const token = yield (0, jwt_1.generateAccessJwt)(userData);

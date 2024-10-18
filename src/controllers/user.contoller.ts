@@ -97,6 +97,8 @@ export const appLogin = async (req: Request, res: Response, next: NextFunction) 
     if (!UserExistCheck.approved) {
       throw new Error(`Please wait while the admins verify you.`);
     }
+    const userSubscription = await UserSubscription.findOne({ userId: UserExistCheck._id }).exec();
+    const subscriptionType = userSubscription ? userSubscription.subscriptiontype : 'NOSUBSCRIBED';
 
     let userData = {
       userId: UserExistCheck._id,
@@ -107,6 +109,7 @@ export const appLogin = async (req: Request, res: Response, next: NextFunction) 
         phone: UserExistCheck.phone,
         _id: UserExistCheck._id,
         role: UserExistCheck.role,
+        subscriptionType
       },
     };
     const token = await generateAccessJwt(userData);
