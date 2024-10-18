@@ -5,6 +5,7 @@ export interface IAdvertisement {
   productSlug: String;
   userId: string | Types.ObjectId;
   image: string;
+  isVerified: Boolean,
   message: String;
   isVideo: Boolean,
   startDate: Date;
@@ -24,6 +25,7 @@ const advertisements = new Schema<IAdvertisement>(
       ref: "User",
     },
     isVideo: { type: Boolean, default: false },
+    isVerified: { type: Boolean, default: false },
     productSlug: String,
     image: String,
     message: String,

@@ -12,6 +12,7 @@ const advertisements = new mongoose_1.Schema({
         ref: "User",
     },
     isVideo: { type: Boolean, default: false },
+    isVerified: { type: Boolean, default: false },
     productSlug: String,
     image: String,
     message: String,
