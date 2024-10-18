@@ -26,6 +26,7 @@ const FlashSale_model_1 = require("../models/FlashSale.model");
 const Notifications_model_1 = require("../models/Notifications.model");
 const date_fns_1 = require("date-fns");
 const productReview_model_1 = require("../models/productReview.model");
+const constant_1 = require("../helpers/constant");
 const getProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let query = {};
@@ -465,7 +466,7 @@ const getSimilarProducts = (req, res, next) => __awaiter(void 0, void 0, void 0,
         // Create a user map to easily get user details
         const userMap = new Map(users.map(user => [user._id.toString(), user]));
         // Map through products and include the desired fields along with city name
-        const filteredProducts = productArr.map((product) => {
+        const filteredProducts = productArr.filter(ad => ad.approved === "APPROVED").map((product) => {
             const user = userMap.get(product.createdById.toString());
             const cityName = user ? cityMap.get(user.cityId.toString()) || 'Unknown City' : 'Unknown City';
             return {
@@ -507,7 +508,7 @@ const getAllProductsBySupplierId = (req, res, next) => __awaiter(void 0, void 0,
 exports.getAllProductsBySupplierId = getAllProductsBySupplierId;
 const searchProductWithQuery = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        let query = {};
+        let query = { approved: "APPROVED" };
         // Role filter
         if (req.query.role && req.query.role !== "null") {
             query = Object.assign(Object.assign({}, query), { "createdByObj.role": { $ne: req.query.role } });
@@ -631,7 +632,7 @@ const searchProductWithQuery = (req, res, next) => __awaiter(void 0, void 0, voi
         // Log query for debugging purposes
         console.log(JSON.stringify(query, null, 2), "query");
         // Execute the query and return the result
-        const arr = yield product_model_1.Product.find(query)
+        const arr = yield product_model_1.Product.find(query, { approved: "APPROVED" })
             .populate('createdById', 'name email phone mainImage approved')
             .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainImage: 1, approved: 1 })
             .lean()
@@ -827,7 +828,7 @@ const updateAppById = (req, res, next) => __awaiter(void 0, void 0, void 0, func
 exports.updateAppById = updateAppById;
 const getProductYouMayLike = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const defaultCriteria = {};
+        const defaultCriteria = { approved: constant_1.APPROVED_STATUS.APPROVED, };
         if (req.query.category) {
             defaultCriteria.categoryId = req.query.category;
         }

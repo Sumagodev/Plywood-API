@@ -208,7 +208,7 @@ export const getAdvertisementSubscriptionForHomepage = async (req: Request, res:
         const userMap = new Map(users.map(user => [user._id.toString(), user]));
 
         // Map advertisements to include city name, product details, and user details
-        AdvertisementSubscriptionArr = advertisements.map(ad => {
+        AdvertisementSubscriptionArr = advertisements.filter(ad => ad.isVerified).map(ad => {
             const userCityId = userMap.get(ad.userId.toString())?.cityId.toString() || '';
             const userStaeid = userMap.get(ad.userId.toString())?.stateId.toString()|| '';
             const cityName = cityMap.get(userCityId) || 'Unknown City';

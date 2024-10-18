@@ -186,7 +186,7 @@ const getAdvertisementSubscriptionForHomepage = (req, res, next) => __awaiter(vo
         const productMap = new Map(products.map(product => [product._id.toString(), product]));
         const userMap = new Map(users.map(user => [user._id.toString(), user]));
         // Map advertisements to include city name, product details, and user details
-        AdvertisementSubscriptionArr = advertisements.map(ad => {
+        AdvertisementSubscriptionArr = advertisements.filter(ad => ad.isVerified).map(ad => {
             var _a, _b;
             const userCityId = ((_a = userMap.get(ad.userId.toString())) === null || _a === void 0 ? void 0 : _a.cityId.toString()) || '';
             const userStaeid = ((_b = userMap.get(ad.userId.toString())) === null || _b === void 0 ? void 0 : _b.stateId.toString()) || '';

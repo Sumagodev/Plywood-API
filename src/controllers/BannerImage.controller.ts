@@ -78,7 +78,7 @@ export const createBannerImage = async (req: Request, res: Response, next: NextF
 // Get all banner images
 export const getAllBannerImages = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const bannerImages = await BannerImage.find().populate({
+        const bannerImages = await BannerImage.find({ isVerified: true }).populate({
             path: 'productId', // This assumes `productId` is the field in BannerImage model that references the Product model
             select: 'slug',    // Only return the `slug` field from the Product model
         }).populate({
@@ -130,7 +130,7 @@ export const getBannerImagesByUserId = async (req: Request, res: Response, next:
 export const updateBannerImage = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        const { type, productId, userId, image ,isVerified} = req.body;
+        const { type, productId, userId, image, isVerified } = req.body;
 
         let storedImage = image;
         if (image && image.includes("base64")) {

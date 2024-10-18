@@ -12,6 +12,8 @@ import { FlashSale } from "../models/FlashSale.model";
 import { Notifications } from "../models/Notifications.model";
 import { endOfDay, startOfDay } from "date-fns";
 import { ProductReview } from "../models/productReview.model";
+import { APPROVED_STATUS } from "../helpers/constant";
+
 export const getProduct = async (req: Request, res: Response, next: NextFunction) => {
   try {
     let query: any = {};
@@ -532,7 +534,7 @@ export const getSimilarProducts: RequestHandler = async (req, res, next) => {
     const userMap = new Map(users.map(user => [user._id.toString(), user]));
 
     // Map through products and include the desired fields along with city name
-    const filteredProducts = productArr.map((product: any) => {
+    const filteredProducts = productArr.filter(ad => ad.approved === "APPROVED") .map((product: any) => {
       const user = userMap.get(product.createdById.toString());
       const cityName = user ? cityMap.get(user.cityId.toString()) || 'Unknown City' : 'Unknown City';
 
@@ -578,7 +580,7 @@ export const getAllProductsBySupplierId: RequestHandler = async (req, res, next)
 
 export const searchProductWithQuery: RequestHandler = async (req, res, next) => {
   try {
-    let query: any = {};
+    let query: any ={ approved: "APPROVED" };
 
     // Role filter
     if (req.query.role && req.query.role !== "null") {
@@ -729,7 +731,7 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
     console.log(JSON.stringify(query, null, 2), "query");
 
     // Execute the query and return the result
-    const arr = await Product.find(query)
+    const arr = await Product.find(query,{approved:"APPROVED"})
       .populate('createdById', 'name email phone mainImage approved')
       .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainImage: 1, approved: 1 })
       .lean()
@@ -957,7 +959,7 @@ export const updateAppById = async (req: Request, res: Response, next: NextFunct
 
 export const getProductYouMayLike = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const defaultCriteria: any = {};
+    const defaultCriteria: any = { approved: APPROVED_STATUS.APPROVED,};
 
     if (req.query.category) {
       defaultCriteria.categoryId = req.query.category;
