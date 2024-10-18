@@ -621,7 +621,7 @@ export const initiateJuspayPaymentForSubcription = async (req: Request, res: Res
           };
 
 
-          let paymentObjResponse = await new Payment(paymentObj).save();
+              let paymentObjResponse = await new Payment(paymentObj).save();
 
               options.orderId = paymentObjResponse._id;
               options.mobile = userObj?.phone;
@@ -629,7 +629,6 @@ export const initiateJuspayPaymentForSubcription = async (req: Request, res: Res
               options.email = userObj?.email;
               options.subscriptionId = checkSubscription?._id;
               options.successUrl = `${process.env.BASE_URL}/usersubscription/phonepePaymentStatusCheck/` + paymentObjResponse._id;
-              options.payfrom = req.body.patfrom;
               console.log('xoptions',options)
 
   // makes return url
@@ -676,6 +675,8 @@ export const initiateJuspayPaymentForSubcription = async (req: Request, res: Res
 export const handleJuspayPaymentForSubcription = async (req: Request, res: Response, next: NextFunction) => {
 
   const orderId: string | undefined = req.body.order_id || req.body.orderId;
+
+  console.log(req.body,'XXXXXXXXX');
 
   if (orderId === undefined) {
       return res.status(400).json(makeError('order_id not present or cannot be empty'));

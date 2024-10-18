@@ -585,7 +585,6 @@ const initiateJuspayPaymentForSubcription = (req, res, next) => __awaiter(void 0
     options.email = userObj === null || userObj === void 0 ? void 0 : userObj.email;
     options.subscriptionId = checkSubscription === null || checkSubscription === void 0 ? void 0 : checkSubscription._id;
     options.successUrl = `${process.env.BASE_URL}/usersubscription/phonepePaymentStatusCheck/` + paymentObjResponse._id;
-    options.payfrom = req.body.patfrom;
     console.log('xoptions', options);
     // makes return url
     const paymentPageClientId = hdfcConfig_1.hdfcConfig.PAYMENT_PAGE_CLIENT_ID;
@@ -629,6 +628,7 @@ exports.initiateJuspayPaymentForSubcription = initiateJuspayPaymentForSubcriptio
 const handleJuspayPaymentForSubcription = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _17, _18, _19, _20, _21, _22, _23, _24;
     const orderId = req.body.order_id || req.body.orderId;
+    console.log(req.body, 'XXXXXXXXX');
     if (orderId === undefined) {
         return res.status(400).json(makeError('order_id not present or cannot be empty'));
     }
