@@ -23,7 +23,7 @@ import { startOfDay, endOfDay } from 'date-fns'; // Use date-fns for date compar
 import OtpVerifyModel from "../models/OtpVerify.model";
 import VerifiedUsers from "../models/VerifiedUser.model";
 import { SendVerificationSMS } from "../helpers/sms";
-
+import { UserSubscription } from "../models/userSubscription.model";
 
 
 
@@ -45,6 +45,8 @@ export const webLogin = async (req: Request, res: Response, next: NextFunction) 
     if (!passwordCheck) {
       throw new Error(`Invalid Credentials`);
     }
+    const userSubscription = await UserSubscription.findOne({ userId: UserExistCheck._id }).exec();
+    const subscriptionType = userSubscription ? userSubscription.subscriptiontype : 'NOSUBSCRIBED';
 
     let userData = {
       userId: UserExistCheck._id,
@@ -55,6 +57,7 @@ export const webLogin = async (req: Request, res: Response, next: NextFunction) 
         phone: UserExistCheck.phone,
         _id: UserExistCheck._id,
         role: UserExistCheck.role,
+        subscriptionType
       },
     };
     const token = await generateAccessJwt(userData);

@@ -35,6 +35,7 @@ const date_fns_1 = require("date-fns"); // Use date-fns for date comparison if n
 const OtpVerify_model_1 = __importDefault(require("../models/OtpVerify.model"));
 const VerifiedUser_model_1 = __importDefault(require("../models/VerifiedUser.model"));
 const sms_1 = require("../helpers/sms");
+const userSubscription_model_1 = require("../models/userSubscription.model");
 const webLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const UserExistCheck = yield user_model_1.User.findOne({ $or: [{ email: new RegExp(`^${req.body.email}$`) }] }).exec();
@@ -48,6 +49,8 @@ const webLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
         if (!passwordCheck) {
             throw new Error(`Invalid Credentials`);
         }
+        const userSubscription = yield userSubscription_model_1.UserSubscription.findOne({ userId: UserExistCheck._id }).exec();
+        const subscriptionType = userSubscription ? userSubscription.subscriptiontype : 'NOSUBSCRIBED';
         let userData = {
             userId: UserExistCheck._id,
             role: UserExistCheck.role,
@@ -57,6 +60,7 @@ const webLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
                 phone: UserExistCheck.phone,
                 _id: UserExistCheck._id,
                 role: UserExistCheck.role,
+                subscriptionType
             },
         };
         const token = yield (0, jwt_1.generateAccessJwt)(userData);

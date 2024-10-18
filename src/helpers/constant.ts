@@ -16,6 +16,10 @@ export const APPROVED_STATUS = {
   PENDING: "PENDING",
   REJECTED: "REJECTED",
 };
+export const SUBSCRIPTION_TYPE = {
+  REGULAR: "REGULAR",
+  PREMIUM: "PREMIUM",
+};
 
 export const notification_text = {
   lead_notification_text_obj: {

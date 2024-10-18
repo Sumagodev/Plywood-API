@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTopUpOrderIdSequence = exports.getSubscriptionSequence = exports.notification_text = exports.APPROVED_STATUS = exports.ROLES = void 0;
+exports.getTopUpOrderIdSequence = exports.getSubscriptionSequence = exports.notification_text = exports.SUBSCRIPTION_TYPE = exports.APPROVED_STATUS = exports.ROLES = void 0;
 exports.ROLES = {
     ADMIN: "ADMIN",
     SUBADMIN: "SUBADMIN",
@@ -16,6 +16,10 @@ exports.APPROVED_STATUS = {
     APPROVED: "APPROVED",
     PENDING: "PENDING",
     REJECTED: "REJECTED",
+};
+exports.SUBSCRIPTION_TYPE = {
+    REGULAR: "REGULAR",
+    PREMIUM: "PREMIUM",
 };
 exports.notification_text = {
     lead_notification_text_obj: {

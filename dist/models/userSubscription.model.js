@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserSubscription = void 0;
 const mongoose_1 = require("mongoose");
+const constant_1 = require("../helpers/constant");
 const userSubscription = new mongoose_1.Schema({
     name: String,
     orderId: String,
@@ -15,6 +16,7 @@ const userSubscription = new mongoose_1.Schema({
     includesAdvertisements: Boolean,
     includesBannerImages: Boolean,
     includesValidity: Boolean,
+    subscriptiontype: { type: String, default: constant_1.SUBSCRIPTION_TYPE.REGULAR },
     numberOfAdvertisement: { type: Number, default: 0 },
     advertisementDays: { type: Number, default: 0 },
     numberOfBannerImages: { type: Number, default: 0 },

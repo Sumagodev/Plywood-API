@@ -1,4 +1,5 @@
 import mongoose, { model, Schema, Types } from "mongoose";
+import { SUBSCRIPTION_TYPE } from "../helpers/constant";
 
 export interface ISubscription {
   name: string;
@@ -7,7 +8,7 @@ export interface ISubscription {
   includesFlashSales: Boolean;
   includesAdvertisements: Boolean;
   includesBannerImages: Boolean,
-
+  subscriptiontype:String;
   includesValidity: Boolean;
   numberOfAdvertisement: Number,
   advertisementDays: Number,
@@ -30,9 +31,7 @@ const subscription = new Schema<ISubscription>(
     description: String,
     role: String,
     noOfMonth: { type: Number, default: 0 },
-
-
-
+    subscriptiontype: { type: String, default: SUBSCRIPTION_TYPE.REGULAR  },
     price: Number,
     includesFlashSales: Boolean,
     includesAdvertisements: Boolean,
