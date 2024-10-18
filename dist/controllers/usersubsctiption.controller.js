@@ -550,7 +550,7 @@ const initiateJuspayPaymentForSubcription = (req, res, next) => __awaiter(void 0
         subscriptionId: req.body._id,
         name: checkSubscription === null || checkSubscription === void 0 ? void 0 : checkSubscription.name,
         description: (_11 = req.body) === null || _11 === void 0 ? void 0 : _11.description,
-        price: checkSubscription.price,
+        price: checkSubscription === null || checkSubscription === void 0 ? void 0 : checkSubscription.price,
         startDate: tempStartDate,
         numberOfSales: (_12 = checkSubscription === null || checkSubscription === void 0 ? void 0 : checkSubscription.numberOfSales) !== null && _12 !== void 0 ? _12 : 0,
         saleDays: (_13 = checkSubscription === null || checkSubscription === void 0 ? void 0 : checkSubscription.saleDays) !== null && _13 !== void 0 ? _13 : 0,
@@ -581,9 +581,9 @@ const initiateJuspayPaymentForSubcription = (req, res, next) => __awaiter(void 0
     let paymentObjResponse = yield new Payment_model_1.Payment(paymentObj).save();
     options.orderId = paymentObjResponse._id;
     options.mobile = userObj === null || userObj === void 0 ? void 0 : userObj.phone;
-    options.userId = userObj._id.toString();
-    options.email = userObj.email;
-    options.subscriptionId = existsCheck._id;
+    options.userId = userObj === null || userObj === void 0 ? void 0 : userObj._id.toString();
+    options.email = userObj === null || userObj === void 0 ? void 0 : userObj.email;
+    options.subscriptionId = checkSubscription === null || checkSubscription === void 0 ? void 0 : checkSubscription._id;
     options.successUrl = `${process.env.BASE_URL}/usersubscription/phonepePaymentStatusCheck/` + paymentObjResponse._id;
     options.payfrom = req.body.patfrom;
     console.log('xoptions', options);

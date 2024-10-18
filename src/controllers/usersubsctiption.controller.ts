@@ -586,7 +586,7 @@ export const initiateJuspayPaymentForSubcription = async (req: Request, res: Res
             subscriptionId: req.body._id,
             name: checkSubscription?.name,
             description: req.body?.description,
-            price: checkSubscription.price,
+            price: checkSubscription?.price,
             startDate: tempStartDate,
             numberOfSales: checkSubscription?.numberOfSales ?? 0,
             saleDays: checkSubscription?.saleDays ?? 0,
@@ -625,9 +625,9 @@ export const initiateJuspayPaymentForSubcription = async (req: Request, res: Res
 
               options.orderId = paymentObjResponse._id;
               options.mobile = userObj?.phone;
-              options.userId = userObj._id.toString();
-              options.email = userObj.email;
-              options.subscriptionId = existsCheck._id;
+              options.userId = userObj?._id.toString();
+              options.email = userObj?.email;
+              options.subscriptionId = checkSubscription?._id;
               options.successUrl = `${process.env.BASE_URL}/usersubscription/phonepePaymentStatusCheck/` + paymentObjResponse._id;
               options.payfrom = req.body.patfrom;
               console.log('xoptions',options)
