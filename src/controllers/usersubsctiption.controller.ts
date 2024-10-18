@@ -41,6 +41,7 @@ export const buySubscription = async (req: Request, res: Response, next: NextFun
       saleDays: req?.body?.saleDays ? req?.body?.saleDays : 0,
       numberOfAdvertisement: req?.body?.numberOfAdvertisement ? req?.body?.numberOfAdvertisement : 0,
       advertisementDays: req?.body?.advertisementDays ? req?.body?.advertisementDays : 0,
+      subscriptiontype:req?.body.subscriptiontype,
       isExpired: false,
       endDate: null,
     };

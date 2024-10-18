@@ -57,6 +57,7 @@ const buySubscription = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             saleDays: ((_l = req === null || req === void 0 ? void 0 : req.body) === null || _l === void 0 ? void 0 : _l.saleDays) ? (_m = req === null || req === void 0 ? void 0 : req.body) === null || _m === void 0 ? void 0 : _m.saleDays : 0,
             numberOfAdvertisement: ((_o = req === null || req === void 0 ? void 0 : req.body) === null || _o === void 0 ? void 0 : _o.numberOfAdvertisement) ? (_p = req === null || req === void 0 ? void 0 : req.body) === null || _p === void 0 ? void 0 : _p.numberOfAdvertisement : 0,
             advertisementDays: ((_q = req === null || req === void 0 ? void 0 : req.body) === null || _q === void 0 ? void 0 : _q.advertisementDays) ? (_r = req === null || req === void 0 ? void 0 : req.body) === null || _r === void 0 ? void 0 : _r.advertisementDays : 0,
+            subscriptiontype: req === null || req === void 0 ? void 0 : req.body.subscriptiontype,
             isExpired: false,
             endDate: null,
         };
