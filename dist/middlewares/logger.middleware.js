@@ -35,11 +35,15 @@ const logger = winston_1.default.createLogger({
     ],
 });
 const requestLogger = (req, res, next) => {
-    // Log the content type of the request
-    logger.info(`Content-Type: ${req.headers['content-type']}`);
-    // Check if body exists and log appropriately
+    // Construct the full URL
+    const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+    // Log the request method and full URL
+    logger.info(`${req.method} ${fullUrl}`);
+    // Log headers
+    logger.info(`Headers: ${JSON.stringify(req.headers)}`);
+    // Log the body, handling the case where it's undefined
     const body = JSON.stringify(req.body) || 'No body found';
-    logger.info(`${req.method} ${req.url} - Body: ${body}`);
+    logger.info(`Body: ${body}`);
     next();
 };
 exports.requestLogger = requestLogger;
