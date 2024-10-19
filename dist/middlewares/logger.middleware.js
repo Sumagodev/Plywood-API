@@ -34,10 +34,12 @@ const logger = winston_1.default.createLogger({
         new winston_1.default.transports.Console(), // Optional: log to console as well
     ],
 });
-// Middleware function to log requests
 const requestLogger = (req, res, next) => {
-    const logMessage = `${req.method} ${req.url} - Body: ${JSON.stringify(req.body)}`;
-    logger.info(logMessage);
+    // Log the content type of the request
+    logger.info(`Content-Type: ${req.headers['content-type']}`);
+    // Check if body exists and log appropriately
+    const body = JSON.stringify(req.body) || 'No body found';
+    logger.info(`${req.method} ${req.url} - Body: ${body}`);
     next();
 };
 exports.requestLogger = requestLogger;
