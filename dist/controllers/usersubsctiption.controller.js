@@ -714,7 +714,7 @@ const initiateJuspayPaymentForSubcriptionForApp = (req, res, next) => __awaiter(
             payment_page_client_id: paymentPageClientId,
             customer_id: options.userId,
             action: 'paymentPage',
-            return_url: 'https://webhook.site/2dfd637d-ccf9-4f7b-aadf-3325cfbd67fe',
+            return_url: returnUrl,
             currency: 'INR',
             customer_phone: options.email,
             customer_email: options.mobile,
@@ -893,6 +893,10 @@ const handleJuspayPaymentForSubcription = (req, res, next) => __awaiter(void 0, 
             }
             yield (0, sipCrm_service_1.postSpiCrmLead)(crmObj);
             res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?orderStatus=${orderStatus}&orderId=${statusResponse.order_id}`);
+        }
+        else {
+            message = "UNKNOWN PAYMENT STATUS";
+            res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${statusResponse.order_id}&orderStatus=${orderStatus}`);
         }
         // Remove unnecessary fields from the response
         //return res.send(makeJuspayResponse(statusResponse));

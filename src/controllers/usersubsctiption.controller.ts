@@ -775,7 +775,7 @@ export const initiateJuspayPaymentForSubcription = async (req: Request, res: Res
             payment_page_client_id: paymentPageClientId,                    // [required] shared with you, in config.json
             customer_id: options.userId,                       // [optional] your customer id here
             action: 'paymentPage',                                          // [optional] default is paymentPage
-            return_url: 'https://webhook.site/2dfd637d-ccf9-4f7b-aadf-3325cfbd67fe',                                          // [optional] default is value given from dashboard
+            return_url: returnUrl,                                          // [optional] default is value given from dashboard
             currency: 'INR',
             customer_phone:options.email,                                                 // [optional] default is INR
             customer_email:options.mobile,
@@ -984,6 +984,9 @@ export const handleJuspayPaymentForSubcription = async (req: Request, res: Respo
         }
         await postSpiCrmLead(crmObj);
         res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?orderStatus=${orderStatus}&orderId=${statusResponse.order_id}`);
+      }else{
+        message = "UNKNOWN PAYMENT STATUS";
+        res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${statusResponse.order_id}&orderStatus=${orderStatus}`);
       }
       
       // Remove unnecessary fields from the response

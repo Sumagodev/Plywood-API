@@ -7,6 +7,8 @@ import { checkStatusPhonePaymentOrder, createPhonePaymentOrder } from "../helper
 import { sendMail } from "../helpers/mailer";
 import { getTopUpOrderIdSequence } from "../helpers/constant";
 import { hdfcConfig, juspayConfig } from "../helpers/hdfcConfig";
+import { Types } from "mongoose";
+import { Topup } from "../models/Topup.model";
 export const buyTopup = async (req: Request, res: Response, next: NextFunction) => {
   try {
     console.log(req.body, req.user);
@@ -331,6 +333,17 @@ export const getById = async (req: Request, res: Response, next: NextFunction) =
 
 export const initiateJuspayPaymentForTopup = async (req: Request, res: Response, next: NextFunction) => {
   try {
+
+    if (!Types.ObjectId.isValid(req.body._id)) {
+      // Handle the invalid ObjectId case
+      return  res.status(400).json({result:false,"message":"Invalid Subscription Id"})
+    }
+  
+    if (!req?.user?.userId) {
+      // Handle the invalid ObjectId case
+      return  res.status(404).json({result:false,"message":"Unauthorized request"})
+  }
+
     console.log(req.body, req.user);
 
     let existsCheck: any = await UserTopup.findOne({ userId: req?.user?.userId }).sort({ endDate: -1 }).exec();
@@ -339,23 +352,33 @@ export const initiateJuspayPaymentForTopup = async (req: Request, res: Response,
     if (!(userObj || userObj._id)) {
       throw new Error("Could not find user please contact admin !!!");
     }
-    let obj = {
-      userId: req?.user?.userId,
-      subscriptionId: req.body._id,
-      name: req.body?.name,
-      description: req.body?.description,
-      price: req.body?.price,
-      numberOfSales: req?.body?.numberOfSales ? req?.body?.numberOfSales : 0,
-      saleDays: req?.body?.saleDays ? req?.body?.saleDays : 0,
-      numberOfAdvertisement: req?.body?.numberOfAdvertisement ? req?.body?.numberOfAdvertisement : 0,
-      advertisementDays: req?.body?.advertisementDays ? req?.body?.advertisementDays : 0,
-      numberOfBannerImages: req?.body?.numberOfBannerImages ? req?.body?.numberOfBannerImages : 0,
-      bannerimagesDays: req?.body?.bannerimagesDays ? req?.body?.bannerimagesDays : 0,
-      numberOfOpportunities: req?.body?.numberOfOpportunities ? req?.body?.numberOfOpportunities : 0,
-      OpportunitiesDays: req?.body?.OpportunitiesDays ? req?.body?.OpportunitiesDays : 0,
-      isExpired: false,
-      endDate: null,
-    };
+
+
+    let checkTopup: any = await Topup
+      .findById(req.body._id)   // Find by ObjectId directly
+      .exec();
+  
+      if(!checkTopup)
+      {
+        return  res.status(400).json({result:false,"message":"Topup not found"})
+      }
+      let obj = {
+        userId: req?.user?.userId,
+        subscriptionId: req.body._id,
+        name: checkTopup?.name,
+        description: checkTopup?.description,
+        price: checkTopup?.price,
+        numberOfSales: checkTopup?.numberOfSales ? checkTopup?.numberOfSales : 0,
+        saleDays: checkTopup.saleDays ? checkTopup?.saleDays : 0,
+        numberOfAdvertisement: checkTopup?.numberOfAdvertisement ? checkTopup?.numberOfAdvertisement : 0,
+        advertisementDays: checkTopup?.advertisementDays ? checkTopup?.advertisementDays : 0,
+        numberOfBannerImages: checkTopup?.numberOfBannerImages ? checkTopup?.numberOfBannerImages : 0,
+        bannerimagesDays: checkTopup?.bannerimagesDays ? checkTopup?.bannerimagesDays : 0,
+        numberOfOpportunities: checkTopup?.numberOfOpportunities ? checkTopup?.numberOfOpportunities : 0,
+        OpportunitiesDays: checkTopup?.OpportunitiesDays ? checkTopup?.OpportunitiesDays : 0,
+        isExpired: false,
+        endDate: null,
+      };
 
     // Add GST
     obj.price = obj.price + Math.round(obj.price * 0.18);
@@ -373,9 +396,10 @@ export const initiateJuspayPaymentForTopup = async (req: Request, res: Response,
 
       },
     }).exec();
+    obj.price = obj.price + Math.round(obj.price * 0.18);
 
     let options: any = {
-      amount: obj.price * 100,
+      amount: obj.price,
       currency: "INR",
       receipt: new Date().getTime(),
     };
@@ -430,51 +454,86 @@ export const handleJuspayPaymentForTopup = async (req: Request, res: Response, n
   try {
     const orderId: string | undefined = req.body.order_id || req.body.orderId;
 
-  if (orderId === undefined) {
-      return res.status(400).json(makeError('order_id not present or cannot be empty'));
-  }
-    // const userObj = await User.findById(req.user.userId).lean().exec();
-    let orderObj: any = await Payment.findById(req.params.orderId).exec();
-    if (!orderObj) throw new Error("Order Not Found");
-    if (orderObj?.paymentChk == 1) {
-      // throw new Error("Payment is already Done");
-      res.json({ message: "Payment is already Done ", success: true, orderId: orderObj._id, data: orderObj });
-      return;
+    console.log(req.body,'XXXXXXXXX');
+
+    if (orderId === undefined) {
+        return res.status(400).json(makeError('order_id not present or cannot be empty'));
     }
-
+     
+    let orderObj : any = await Payment.findOne({ 'gatwayPaymentObj.order_id': orderId }).exec();
     
-     // Call Juspay API to get order status
-     const statusResponse = await juspayConfig.order.status(orderId);
-     const orderStatus: string = statusResponse.status;
-     console.log('qwerty',statusResponse)
-     let message: string = '';
-     let obj1 = await Payment.findByIdAndUpdate(orderObj._id, {
-       "statusResponse": statusResponse,
-     })
-       .lean()
-       .exec();
+     console.log('qazxc',orderObj)
+  
+     if (!orderObj) {
+      return res.status(400).json(makeError('order not found'));
+     }
+  
+     if (orderObj?.paymentChk == 1) {
+       // throw new Error("Payment is already Done");
+       console.log(req.body, "Payment is already Done");
+  
+       res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?msg=Payment is already Done`);
+       // res.json({ message: "Payment is already Done ", success: true, orderId: orderObj._id, data: orderObj });
+       return;
+     }
 
-     if(orderStatus === "PENDING") {
-       message = "order payment pending";
-       res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${orderId}&orderStatus=${orderStatus}&txn_id=${statusResponse.txn_id}&effective_amount=${statusResponse.effective_amount}&txn_uuid=${statusResponse.txn_uuid}&type=topup`);
-   }
-   
-   if(orderStatus === "PENDING_VBV") {
-       message = "order payment pending";
-       res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${orderId}&orderStatus=${orderStatus}&txn_id=${statusResponse.txn_id}&effective_amount=${statusResponse.effective_amount}&txn_uuid=${statusResponse.txn_uuid}&type=topup`);
-   }
-   
-   if(orderStatus === "AUTHORIZATION_FAILED") {
-       message = "order payment authorization failed";
-       res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${orderId}&orderStatus=${orderStatus}&txn_id=${statusResponse.txn_id}&effective_amount=${statusResponse.effective_amount}&txn_uuid=${statusResponse.txn_uuid}&type=topup`);
-   }
-   
-   if(orderStatus === "AUTHENTICATION_FAILED") {
-       message = "order payment authentication failed";
-       res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${orderId}&orderStatus=${orderStatus}&txn_id=${statusResponse.txn_id}&effective_amount=${statusResponse.effective_amount}&txn_uuid=${statusResponse.txn_uuid}&type=topup`);
-   }
-     let orderIdForBlock=orderId
-     if(orderStatus==="CHARGED"){
+    // Call Juspay API to get order status
+    const statusResponse = await juspayConfig.order.status(orderId);
+    const orderStatus: string = statusResponse.status;
+    console.log('qwerty',statusResponse)
+    let message: string = '';
+    let obj1 = await Payment.findByIdAndUpdate(orderObj._id, {
+      "statusResponse": statusResponse,
+    })
+      .lean()
+      .exec();
+
+      if (orderStatus === "PENDING") {
+        message = "order payment pending";
+        res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${statusResponse.order_id}&orderStatus=${orderStatus}`);
+    }
+    
+    if (orderStatus === "NEW") {
+        message = "order pending or not completed";
+        res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${statusResponse.order_id}&orderStatus=${orderStatus}`);
+    }
+    
+    if (orderStatus === "PENDING_VBV") {
+        message = "order payment pending";
+        res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${statusResponse.order_id}&orderStatus=${orderStatus}`);
+    }
+    
+    if (orderStatus === "AUTHORIZATION_FAILED") {
+        message = "order payment authorization failed";
+        res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${statusResponse.order_id}&orderStatus=${orderStatus}`);
+    }
+    
+    if (orderStatus === "AUTHENTICATION_FAILED") {
+        message = "order payment authentication failed";
+        res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${statusResponse.order_id}&orderStatus=${orderStatus}`);
+    }
+    
+    if (orderStatus === "PARTIAL_CHARGED") {
+        message = "order partially charged";
+        res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${statusResponse.order_id}&orderStatus=${orderStatus}`);
+    }
+    
+    if (orderStatus === "AUTO_REFUNDED") {
+        message = "order has been automatically refunded";
+        res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${statusResponse.order_id}&orderStatus=${orderStatus}`);
+    }
+    
+    if (orderStatus === "STARTED") {
+        message = "transaction is pending, please try again later";
+        res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${statusResponse.order_id}&orderStatus=${orderStatus}`);
+    }
+    
+    if (orderStatus === "AUTHORIZING") {
+        message = "transaction is currently being authorized";
+        res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${statusResponse.order_id}&orderStatus=${orderStatus}`);
+    }
+    let orderIdForBlock=orderId
+    if(orderStatus==="CHARGED"){
 
        const updatedPayment = await Payment.findOneAndUpdate(
          { 'gatwayPaymentObj.order_id': orderIdForBlock }, // Find payment by order_id in gatwayPaymentObj
@@ -491,7 +550,7 @@ export const handleJuspayPaymentForTopup = async (req: Request, res: Response, n
        }
        
 
-         orderObj=updatedPayment
+    orderObj=updatedPayment
 
     let userObj: any = await User.findById(orderObj?.orderObj?.userId).exec();
     let patObj = orderObj?.orderObj;
@@ -536,6 +595,9 @@ export const handleJuspayPaymentForTopup = async (req: Request, res: Response, n
     console.log("asdsadad", process.env.APP_URL);
 
         res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?orderStatus=${orderStatus}&txn_id=${statusResponse.txn_id}&effective_amount=${statusResponse.effective_amount}&txn_uuid=${statusResponse.txn_uuid}&type=topup`);
+  }else{
+    message = "UNKNOWN PAYMENT STATUS";
+    res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${statusResponse.order_id}&orderStatus=${orderStatus}`);
   }
   } catch (err) {
     next(err);

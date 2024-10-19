@@ -17,6 +17,8 @@ const phonepay_1 = require("../helpers/phonepay");
 const mailer_1 = require("../helpers/mailer");
 const constant_1 = require("../helpers/constant");
 const hdfcConfig_1 = require("../helpers/hdfcConfig");
+const mongoose_1 = require("mongoose");
+const Topup_model_1 = require("../models/Topup.model");
 const buyTopup = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y;
     try {
@@ -327,35 +329,49 @@ const getById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
 });
 exports.getById = getById;
 const initiateJuspayPaymentForTopup = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, _22, _23, _24, _25, _26, _27, _28, _29;
+    var _7, _8, _9, _10, _11;
     try {
+        if (!mongoose_1.Types.ObjectId.isValid(req.body._id)) {
+            // Handle the invalid ObjectId case
+            return res.status(400).json({ result: false, "message": "Invalid Subscription Id" });
+        }
+        if (!((_7 = req === null || req === void 0 ? void 0 : req.user) === null || _7 === void 0 ? void 0 : _7.userId)) {
+            // Handle the invalid ObjectId case
+            return res.status(404).json({ result: false, "message": "Unauthorized request" });
+        }
         console.log(req.body, req.user);
-        let existsCheck = yield userTopup_model_1.UserTopup.findOne({ userId: (_7 = req === null || req === void 0 ? void 0 : req.user) === null || _7 === void 0 ? void 0 : _7.userId }).sort({ endDate: -1 }).exec();
+        let existsCheck = yield userTopup_model_1.UserTopup.findOne({ userId: (_8 = req === null || req === void 0 ? void 0 : req.user) === null || _8 === void 0 ? void 0 : _8.userId }).sort({ endDate: -1 }).exec();
         console.log(existsCheck, "existsCheck");
-        let userObj = yield user_model_1.User.findOne({ userId: (_8 = req === null || req === void 0 ? void 0 : req.user) === null || _8 === void 0 ? void 0 : _8.userId }).exec();
+        let userObj = yield user_model_1.User.findOne({ userId: (_9 = req === null || req === void 0 ? void 0 : req.user) === null || _9 === void 0 ? void 0 : _9.userId }).exec();
         if (!(userObj || userObj._id)) {
             throw new Error("Could not find user please contact admin !!!");
         }
+        let checkTopup = yield Topup_model_1.Topup
+            .findById(req.body._id) // Find by ObjectId directly
+            .exec();
+        if (!checkTopup) {
+            return res.status(400).json({ result: false, "message": "Topup not found" });
+        }
         let obj = {
-            userId: (_9 = req === null || req === void 0 ? void 0 : req.user) === null || _9 === void 0 ? void 0 : _9.userId,
+            userId: (_10 = req === null || req === void 0 ? void 0 : req.user) === null || _10 === void 0 ? void 0 : _10.userId,
             subscriptionId: req.body._id,
-            name: (_10 = req.body) === null || _10 === void 0 ? void 0 : _10.name,
-            description: (_11 = req.body) === null || _11 === void 0 ? void 0 : _11.description,
-            price: (_12 = req.body) === null || _12 === void 0 ? void 0 : _12.price,
-            numberOfSales: ((_13 = req === null || req === void 0 ? void 0 : req.body) === null || _13 === void 0 ? void 0 : _13.numberOfSales) ? (_14 = req === null || req === void 0 ? void 0 : req.body) === null || _14 === void 0 ? void 0 : _14.numberOfSales : 0,
-            saleDays: ((_15 = req === null || req === void 0 ? void 0 : req.body) === null || _15 === void 0 ? void 0 : _15.saleDays) ? (_16 = req === null || req === void 0 ? void 0 : req.body) === null || _16 === void 0 ? void 0 : _16.saleDays : 0,
-            numberOfAdvertisement: ((_17 = req === null || req === void 0 ? void 0 : req.body) === null || _17 === void 0 ? void 0 : _17.numberOfAdvertisement) ? (_18 = req === null || req === void 0 ? void 0 : req.body) === null || _18 === void 0 ? void 0 : _18.numberOfAdvertisement : 0,
-            advertisementDays: ((_19 = req === null || req === void 0 ? void 0 : req.body) === null || _19 === void 0 ? void 0 : _19.advertisementDays) ? (_20 = req === null || req === void 0 ? void 0 : req.body) === null || _20 === void 0 ? void 0 : _20.advertisementDays : 0,
-            numberOfBannerImages: ((_21 = req === null || req === void 0 ? void 0 : req.body) === null || _21 === void 0 ? void 0 : _21.numberOfBannerImages) ? (_22 = req === null || req === void 0 ? void 0 : req.body) === null || _22 === void 0 ? void 0 : _22.numberOfBannerImages : 0,
-            bannerimagesDays: ((_23 = req === null || req === void 0 ? void 0 : req.body) === null || _23 === void 0 ? void 0 : _23.bannerimagesDays) ? (_24 = req === null || req === void 0 ? void 0 : req.body) === null || _24 === void 0 ? void 0 : _24.bannerimagesDays : 0,
-            numberOfOpportunities: ((_25 = req === null || req === void 0 ? void 0 : req.body) === null || _25 === void 0 ? void 0 : _25.numberOfOpportunities) ? (_26 = req === null || req === void 0 ? void 0 : req.body) === null || _26 === void 0 ? void 0 : _26.numberOfOpportunities : 0,
-            OpportunitiesDays: ((_27 = req === null || req === void 0 ? void 0 : req.body) === null || _27 === void 0 ? void 0 : _27.OpportunitiesDays) ? (_28 = req === null || req === void 0 ? void 0 : req.body) === null || _28 === void 0 ? void 0 : _28.OpportunitiesDays : 0,
+            name: checkTopup === null || checkTopup === void 0 ? void 0 : checkTopup.name,
+            description: checkTopup === null || checkTopup === void 0 ? void 0 : checkTopup.description,
+            price: checkTopup === null || checkTopup === void 0 ? void 0 : checkTopup.price,
+            numberOfSales: (checkTopup === null || checkTopup === void 0 ? void 0 : checkTopup.numberOfSales) ? checkTopup === null || checkTopup === void 0 ? void 0 : checkTopup.numberOfSales : 0,
+            saleDays: checkTopup.saleDays ? checkTopup === null || checkTopup === void 0 ? void 0 : checkTopup.saleDays : 0,
+            numberOfAdvertisement: (checkTopup === null || checkTopup === void 0 ? void 0 : checkTopup.numberOfAdvertisement) ? checkTopup === null || checkTopup === void 0 ? void 0 : checkTopup.numberOfAdvertisement : 0,
+            advertisementDays: (checkTopup === null || checkTopup === void 0 ? void 0 : checkTopup.advertisementDays) ? checkTopup === null || checkTopup === void 0 ? void 0 : checkTopup.advertisementDays : 0,
+            numberOfBannerImages: (checkTopup === null || checkTopup === void 0 ? void 0 : checkTopup.numberOfBannerImages) ? checkTopup === null || checkTopup === void 0 ? void 0 : checkTopup.numberOfBannerImages : 0,
+            bannerimagesDays: (checkTopup === null || checkTopup === void 0 ? void 0 : checkTopup.bannerimagesDays) ? checkTopup === null || checkTopup === void 0 ? void 0 : checkTopup.bannerimagesDays : 0,
+            numberOfOpportunities: (checkTopup === null || checkTopup === void 0 ? void 0 : checkTopup.numberOfOpportunities) ? checkTopup === null || checkTopup === void 0 ? void 0 : checkTopup.numberOfOpportunities : 0,
+            OpportunitiesDays: (checkTopup === null || checkTopup === void 0 ? void 0 : checkTopup.OpportunitiesDays) ? checkTopup === null || checkTopup === void 0 ? void 0 : checkTopup.OpportunitiesDays : 0,
             isExpired: false,
             endDate: null,
         };
         // Add GST
         obj.price = obj.price + Math.round(obj.price * 0.18);
-        yield user_model_1.User.findByIdAndUpdate((_29 = req === null || req === void 0 ? void 0 : req.user) === null || _29 === void 0 ? void 0 : _29.userId, {
+        yield user_model_1.User.findByIdAndUpdate((_11 = req === null || req === void 0 ? void 0 : req.user) === null || _11 === void 0 ? void 0 : _11.userId, {
             $inc: {
                 numberOfSales: obj.numberOfSales,
                 saleDays: obj === null || obj === void 0 ? void 0 : obj.saleDays,
@@ -367,8 +383,9 @@ const initiateJuspayPaymentForTopup = (req, res, next) => __awaiter(void 0, void
                 OpportunitiesDays: obj === null || obj === void 0 ? void 0 : obj.OpportunitiesDays,
             },
         }).exec();
+        obj.price = obj.price + Math.round(obj.price * 0.18);
         let options = {
-            amount: obj.price * 100,
+            amount: obj.price,
             currency: "INR",
             receipt: new Date().getTime(),
         };
@@ -413,19 +430,23 @@ const initiateJuspayPaymentForTopup = (req, res, next) => __awaiter(void 0, void
 });
 exports.initiateJuspayPaymentForTopup = initiateJuspayPaymentForTopup;
 const handleJuspayPaymentForTopup = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _30, _31, _32;
+    var _12, _13, _14;
     try {
         const orderId = req.body.order_id || req.body.orderId;
+        console.log(req.body, 'XXXXXXXXX');
         if (orderId === undefined) {
             return res.status(400).json(makeError('order_id not present or cannot be empty'));
         }
-        // const userObj = await User.findById(req.user.userId).lean().exec();
-        let orderObj = yield Payment_model_1.Payment.findById(req.params.orderId).exec();
-        if (!orderObj)
-            throw new Error("Order Not Found");
+        let orderObj = yield Payment_model_1.Payment.findOne({ 'gatwayPaymentObj.order_id': orderId }).exec();
+        console.log('qazxc', orderObj);
+        if (!orderObj) {
+            return res.status(400).json(makeError('order not found'));
+        }
         if ((orderObj === null || orderObj === void 0 ? void 0 : orderObj.paymentChk) == 1) {
             // throw new Error("Payment is already Done");
-            res.json({ message: "Payment is already Done ", success: true, orderId: orderObj._id, data: orderObj });
+            console.log(req.body, "Payment is already Done");
+            res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?msg=Payment is already Done`);
+            // res.json({ message: "Payment is already Done ", success: true, orderId: orderObj._id, data: orderObj });
             return;
         }
         // Call Juspay API to get order status
@@ -440,19 +461,39 @@ const handleJuspayPaymentForTopup = (req, res, next) => __awaiter(void 0, void 0
             .exec();
         if (orderStatus === "PENDING") {
             message = "order payment pending";
-            res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${orderId}&orderStatus=${orderStatus}&txn_id=${statusResponse.txn_id}&effective_amount=${statusResponse.effective_amount}&txn_uuid=${statusResponse.txn_uuid}&type=topup`);
+            res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${statusResponse.order_id}&orderStatus=${orderStatus}`);
+        }
+        if (orderStatus === "NEW") {
+            message = "order pending or not completed";
+            res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${statusResponse.order_id}&orderStatus=${orderStatus}`);
         }
         if (orderStatus === "PENDING_VBV") {
             message = "order payment pending";
-            res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${orderId}&orderStatus=${orderStatus}&txn_id=${statusResponse.txn_id}&effective_amount=${statusResponse.effective_amount}&txn_uuid=${statusResponse.txn_uuid}&type=topup`);
+            res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${statusResponse.order_id}&orderStatus=${orderStatus}`);
         }
         if (orderStatus === "AUTHORIZATION_FAILED") {
             message = "order payment authorization failed";
-            res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${orderId}&orderStatus=${orderStatus}&txn_id=${statusResponse.txn_id}&effective_amount=${statusResponse.effective_amount}&txn_uuid=${statusResponse.txn_uuid}&type=topup`);
+            res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${statusResponse.order_id}&orderStatus=${orderStatus}`);
         }
         if (orderStatus === "AUTHENTICATION_FAILED") {
             message = "order payment authentication failed";
-            res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${orderId}&orderStatus=${orderStatus}&txn_id=${statusResponse.txn_id}&effective_amount=${statusResponse.effective_amount}&txn_uuid=${statusResponse.txn_uuid}&type=topup`);
+            res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${statusResponse.order_id}&orderStatus=${orderStatus}`);
+        }
+        if (orderStatus === "PARTIAL_CHARGED") {
+            message = "order partially charged";
+            res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${statusResponse.order_id}&orderStatus=${orderStatus}`);
+        }
+        if (orderStatus === "AUTO_REFUNDED") {
+            message = "order has been automatically refunded";
+            res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${statusResponse.order_id}&orderStatus=${orderStatus}`);
+        }
+        if (orderStatus === "STARTED") {
+            message = "transaction is pending, please try again later";
+            res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${statusResponse.order_id}&orderStatus=${orderStatus}`);
+        }
+        if (orderStatus === "AUTHORIZING") {
+            message = "transaction is currently being authorized";
+            res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${statusResponse.order_id}&orderStatus=${orderStatus}`);
         }
         let orderIdForBlock = orderId;
         if (orderStatus === "CHARGED") {
@@ -469,12 +510,12 @@ const handleJuspayPaymentForTopup = (req, res, next) => __awaiter(void 0, void 0
                 console.log('No payment found with the given order_id.');
             }
             orderObj = updatedPayment;
-            let userObj = yield user_model_1.User.findById((_30 = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj) === null || _30 === void 0 ? void 0 : _30.userId).exec();
+            let userObj = yield user_model_1.User.findById((_12 = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj) === null || _12 === void 0 ? void 0 : _12.userId).exec();
             let patObj = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj;
             let totalSubscription = yield userTopup_model_1.UserTopup.countDocuments({});
             let invoiceId = (0, constant_1.getTopUpOrderIdSequence)(totalSubscription + 1);
             patObj.orderId = invoiceId;
-            yield user_model_1.User.findByIdAndUpdate((_31 = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj) === null || _31 === void 0 ? void 0 : _31.userId, {
+            yield user_model_1.User.findByIdAndUpdate((_13 = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj) === null || _13 === void 0 ? void 0 : _13.userId, {
                 $inc: {
                     numberOfSales: patObj.numberOfSales,
                     saleDays: patObj === null || patObj === void 0 ? void 0 : patObj.saleDays,
@@ -488,7 +529,7 @@ const handleJuspayPaymentForTopup = (req, res, next) => __awaiter(void 0, void 0
                 subscriptionEndDate: patObj.endDate,
             }).exec();
             orderObj = yield new userTopup_model_1.UserTopup(patObj).save();
-            let email = (userObj === null || userObj === void 0 ? void 0 : userObj.email) ? userObj === null || userObj === void 0 ? void 0 : userObj.email : (_32 = userObj === null || userObj === void 0 ? void 0 : userObj.companyObj) === null || _32 === void 0 ? void 0 : _32.email;
+            let email = (userObj === null || userObj === void 0 ? void 0 : userObj.email) ? userObj === null || userObj === void 0 ? void 0 : userObj.email : (_14 = userObj === null || userObj === void 0 ? void 0 : userObj.companyObj) === null || _14 === void 0 ? void 0 : _14.email;
             let name = userObj === null || userObj === void 0 ? void 0 : userObj.name;
             let orderIdForScope = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderId;
             let emailArr = [
@@ -508,6 +549,10 @@ const handleJuspayPaymentForTopup = (req, res, next) => __awaiter(void 0, void 0
             yield (0, mailer_1.sendMail)(emailAr2, orderObj._id, adminTitle, orderObj);
             console.log("asdsadad", process.env.APP_URL);
             res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?orderStatus=${orderStatus}&txn_id=${statusResponse.txn_id}&effective_amount=${statusResponse.effective_amount}&txn_uuid=${statusResponse.txn_uuid}&type=topup`);
+        }
+        else {
+            message = "UNKNOWN PAYMENT STATUS";
+            res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${statusResponse.order_id}&orderStatus=${orderStatus}`);
         }
     }
     catch (err) {
