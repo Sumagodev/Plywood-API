@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handleJuspayPaymentForSubcription = exports.initiateJuspayPaymentForSubcription = exports.sendMailById = exports.getById = exports.getAllSubscriptionbyUserId = exports.getSubscriptionSubscribedbyUserId = exports.getSubscription = exports.phonepePaymentStatusCheck = exports.buySubscription = void 0;
+exports.handleJuspayPaymentForSubcription = exports.initiateJuspayPaymentForSubcriptionForApp = exports.initiateJuspayPaymentForSubcription = exports.sendMailById = exports.getById = exports.getAllSubscriptionbyUserId = exports.getSubscriptionSubscribedbyUserId = exports.getSubscription = exports.phonepePaymentStatusCheck = exports.buySubscription = void 0;
 const userSubscription_model_1 = require("../models/userSubscription.model");
 const user_model_1 = require("../models/user.model");
 const moment_1 = __importDefault(require("moment"));
@@ -625,8 +625,123 @@ const initiateJuspayPaymentForSubcription = (req, res, next) => __awaiter(void 0
     }
 });
 exports.initiateJuspayPaymentForSubcription = initiateJuspayPaymentForSubcription;
+const initiateJuspayPaymentForSubcriptionForApp = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _17, _18, _19, _20, _21, _22, _23, _24, _25, _26, _27, _28;
+    if (!mongoose_1.Types.ObjectId.isValid(req.body._id)) {
+        // Handle the invalid ObjectId case
+        return res.status(400).json({ result: false, "message": "Invalid Subscription Id" });
+    }
+    if (!((_17 = req === null || req === void 0 ? void 0 : req.user) === null || _17 === void 0 ? void 0 : _17.userId)) {
+        // Handle the invalid ObjectId case
+        return res.status(404).json({ result: false, "message": "Unauthorized request" });
+    }
+    let existsCheck = yield userSubscription_model_1.UserSubscription.findOne({ userId: (_18 = req === null || req === void 0 ? void 0 : req.user) === null || _18 === void 0 ? void 0 : _18.userId }).sort({ endDate: -1 }).exec();
+    console.log(existsCheck, "existsCheck");
+    let tempStartDate = new Date();
+    let tempEndDate = new Date();
+    if (((_19 = req.body) === null || _19 === void 0 ? void 0 : _19.noOfMonth) > 0) {
+        if (existsCheck && existsCheck.endDate) {
+            tempStartDate = new Date(existsCheck.endDate);
+            tempEndDate = (0, moment_1.default)(existsCheck.endDate).add({ months: (_20 = req.body) === null || _20 === void 0 ? void 0 : _20.noOfMonth });
+        }
+        else {
+            tempEndDate = (0, moment_1.default)(tempEndDate).add({ months: (_21 = req.body) === null || _21 === void 0 ? void 0 : _21.noOfMonth });
+        }
+    }
+    else if (existsCheck && existsCheck.endDate) {
+        tempEndDate = existsCheck.endDate;
+    }
+    else {
+        tempEndDate = undefined;
+    }
+    let checkSubscription = yield Subscription_model_1.Subscription
+        .findById(req.body._id) // Find by ObjectId directly
+        .exec();
+    if (!checkSubscription) {
+        return res.status(400).json({ result: false, "message": "Subscription not found" });
+    }
+    let obj = {
+        userId: (_22 = req === null || req === void 0 ? void 0 : req.user) === null || _22 === void 0 ? void 0 : _22.userId,
+        subscriptionId: req.body._id,
+        name: checkSubscription === null || checkSubscription === void 0 ? void 0 : checkSubscription.name,
+        description: (_23 = req.body) === null || _23 === void 0 ? void 0 : _23.description,
+        price: checkSubscription === null || checkSubscription === void 0 ? void 0 : checkSubscription.price,
+        startDate: tempStartDate,
+        numberOfSales: (_24 = checkSubscription === null || checkSubscription === void 0 ? void 0 : checkSubscription.numberOfSales) !== null && _24 !== void 0 ? _24 : 0,
+        saleDays: (_25 = checkSubscription === null || checkSubscription === void 0 ? void 0 : checkSubscription.saleDays) !== null && _25 !== void 0 ? _25 : 0,
+        numberOfAdvertisement: (_26 = checkSubscription === null || checkSubscription === void 0 ? void 0 : checkSubscription.numberOfAdvertisement) !== null && _26 !== void 0 ? _26 : 0,
+        advertisementDays: (_27 = checkSubscription === null || checkSubscription === void 0 ? void 0 : checkSubscription.advertisementDays) !== null && _27 !== void 0 ? _27 : 0,
+        isExpired: false,
+        endDate: null,
+    };
+    if (tempEndDate) {
+        obj.endDate = tempEndDate;
+    }
+    let userObj = yield user_model_1.User.findById((_28 = req === null || req === void 0 ? void 0 : req.user) === null || _28 === void 0 ? void 0 : _28.userId).exec();
+    if (!(userObj || userObj._id)) {
+        throw new Error("Could not find user please contact admin !!!");
+    }
+    // Add GST
+    obj.price = obj.price + Math.round(obj.price * 0.18);
+    let options = {
+        amount: obj.price,
+        currency: "INR",
+        receipt: new Date().getTime(),
+    };
+    let paymentObj = {
+        amount: obj.price,
+        orderObj: obj,
+        paymentChk: 0,
+    };
+    let paymentObjResponse = yield new Payment_model_1.Payment(paymentObj).save();
+    options.orderId = paymentObjResponse._id;
+    options.mobile = userObj === null || userObj === void 0 ? void 0 : userObj.phone;
+    options.userId = userObj === null || userObj === void 0 ? void 0 : userObj._id.toString();
+    options.email = userObj === null || userObj === void 0 ? void 0 : userObj.email;
+    options.subscriptionId = checkSubscription === null || checkSubscription === void 0 ? void 0 : checkSubscription._id;
+    options.successUrl = `${process.env.BASE_URL}/usersubscription/phonepePaymentStatusCheck/` + paymentObjResponse._id;
+    console.log('xoptions', options);
+    // makes return url
+    const paymentPageClientId = hdfcConfig_1.hdfcConfig.PAYMENT_PAGE_CLIENT_ID;
+    const orderId = `order_${Date.now()}`;
+    const amount = 1 + Math.random() * 100 | 0;
+    // makes return url
+    const returnUrl = `${process.env.BASE_URL}/usersubscription/handleJuspayPaymentForSubcription`;
+    try {
+        const sessionResponse = yield hdfcConfig_1.juspayConfig.orderSession.create({
+            order_id: orderId,
+            amount: options.amount,
+            payment_page_client_id: paymentPageClientId,
+            customer_id: options.userId,
+            action: 'paymentPage',
+            return_url: 'https://webhook.site/2dfd637d-ccf9-4f7b-aadf-3325cfbd67fe',
+            currency: 'INR',
+            customer_phone: options.email,
+            customer_email: options.mobile,
+            udf6: options.subscriptionId // [optional] default is INR
+        });
+        let orderPaymentObj = sessionResponse;
+        let obj1 = yield Payment_model_1.Payment.findByIdAndUpdate(paymentObjResponse._id, {
+            "gatwayPaymentObj": orderPaymentObj,
+        })
+            .lean()
+            .exec();
+        console.log('upadtedx', obj1);
+        sessionResponse.orderIdx = paymentObjResponse._id;
+        // removes http field from response, typically you won't send entire structure as response
+        return res.json(makeJuspayResponse(sessionResponse));
+    }
+    catch (error) {
+        if (error instanceof expresscheckout_nodejs_1.APIError) {
+            // handle errors comming from juspay's api
+            return res.json(makeError(error.message));
+        }
+        return res.json(makeError());
+    }
+});
+exports.initiateJuspayPaymentForSubcriptionForApp = initiateJuspayPaymentForSubcriptionForApp;
 const handleJuspayPaymentForSubcription = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _17, _18, _19, _20, _21, _22, _23, _24;
+    var _29, _30, _31, _32, _33, _34, _35, _36;
     const orderId = req.body.order_id || req.body.orderId;
     console.log(req.body, 'XXXXXXXXX');
     if (orderId === undefined) {
@@ -709,15 +824,15 @@ const handleJuspayPaymentForSubcription = (req, res, next) => __awaiter(void 0, 
             }
             orderObj = updatedPayment;
             console.log(orderObj, 'zxcv');
-            console.log((_17 = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj) === null || _17 === void 0 ? void 0 : _17.userId, 'zxcv');
-            let userObj = yield user_model_1.User.findById((_18 = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj) === null || _18 === void 0 ? void 0 : _18.userId).exec();
+            console.log((_29 = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj) === null || _29 === void 0 ? void 0 : _29.userId, 'zxcv');
+            let userObj = yield user_model_1.User.findById((_30 = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj) === null || _30 === void 0 ? void 0 : _30.userId).exec();
             let patObj = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj;
-            console.log((_19 = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj) === null || _19 === void 0 ? void 0 : _19.userId, 'patObj');
+            console.log((_31 = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj) === null || _31 === void 0 ? void 0 : _31.userId, 'patObj');
             let totalSubscription = yield userSubscription_model_1.UserSubscription.countDocuments({});
             console.log(totalSubscription, 'totalSubscription');
             let invoiceId = (0, constant_1.getSubscriptionSequence)(totalSubscription + 1);
             patObj.orderId = invoiceId;
-            yield user_model_1.User.findByIdAndUpdate((_20 = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj) === null || _20 === void 0 ? void 0 : _20.userId, {
+            yield user_model_1.User.findByIdAndUpdate((_32 = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderObj) === null || _32 === void 0 ? void 0 : _32.userId, {
                 $inc: {
                     numberOfSales: patObj.numberOfSales,
                     saleDays: patObj === null || patObj === void 0 ? void 0 : patObj.saleDays,
@@ -727,7 +842,7 @@ const handleJuspayPaymentForSubcription = (req, res, next) => __awaiter(void 0, 
                 subscriptionEndDate: patObj.endDate,
             }).exec();
             orderObj = yield new userSubscription_model_1.UserSubscription(patObj).save();
-            let email = (userObj === null || userObj === void 0 ? void 0 : userObj.email) ? userObj === null || userObj === void 0 ? void 0 : userObj.email : (_21 = userObj === null || userObj === void 0 ? void 0 : userObj.companyObj) === null || _21 === void 0 ? void 0 : _21.email;
+            let email = (userObj === null || userObj === void 0 ? void 0 : userObj.email) ? userObj === null || userObj === void 0 ? void 0 : userObj.email : (_33 = userObj === null || userObj === void 0 ? void 0 : userObj.companyObj) === null || _33 === void 0 ? void 0 : _33.email;
             let name = userObj === null || userObj === void 0 ? void 0 : userObj.name;
             let orderId = orderObj === null || orderObj === void 0 ? void 0 : orderObj.orderId;
             let emailArr = [
@@ -751,7 +866,7 @@ const handleJuspayPaymentForSubcription = (req, res, next) => __awaiter(void 0, 
                 PersonName: userObj === null || userObj === void 0 ? void 0 : userObj.name,
                 MobileNo: userObj === null || userObj === void 0 ? void 0 : userObj.phone,
                 EmailID: userObj === null || userObj === void 0 ? void 0 : userObj.email,
-                CompanyName: `${(_22 = userObj === null || userObj === void 0 ? void 0 : userObj.companyObj) === null || _22 === void 0 ? void 0 : _22.name}`,
+                CompanyName: `${(_34 = userObj === null || userObj === void 0 ? void 0 : userObj.companyObj) === null || _34 === void 0 ? void 0 : _34.name}`,
                 OfficeAddress: `${userObj === null || userObj === void 0 ? void 0 : userObj.address}`,
                 MediumName: "Subscribed",
                 CampaignName: orderObj === null || orderObj === void 0 ? void 0 : orderObj.name,
@@ -761,8 +876,8 @@ const handleJuspayPaymentForSubcription = (req, res, next) => __awaiter(void 0, 
                 SourceName: "app",
                 InitialRemarks: `Start Date  : ${orderObj === null || orderObj === void 0 ? void 0 : orderObj.startDate}, End Date : ${orderObj === null || orderObj === void 0 ? void 0 : orderObj.endDate}`,
             };
-            if ((_23 = req.body) === null || _23 === void 0 ? void 0 : _23.SourceName) {
-                crmObj.SourceName = (_24 = req.body) === null || _24 === void 0 ? void 0 : _24.SourceName;
+            if ((_35 = req.body) === null || _35 === void 0 ? void 0 : _35.SourceName) {
+                crmObj.SourceName = (_36 = req.body) === null || _36 === void 0 ? void 0 : _36.SourceName;
             }
             if (userObj.countryId) {
                 let countryObj = yield country_model_1.Country.findById(userObj.countryId).exec();

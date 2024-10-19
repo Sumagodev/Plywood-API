@@ -15,5 +15,6 @@ router.get("/getByUserId/:id", usersubsctiption_controller_1.getById);
 router.get("/sendMailById/:id", usersubsctiption_controller_1.sendMailById);
 router.post("/phonepePaymentStatusCheck/:orderId", usersubsctiption_controller_1.phonepePaymentStatusCheck);
 router.post("/initiateJuspayPaymentForSubcription", auth_middleware_1.authorizeJwt, usersubsctiption_controller_1.initiateJuspayPaymentForSubcription);
+router.post("/initiateJuspayPaymentForSubcriptionForApp", auth_middleware_1.authorizeJwt, usersubsctiption_controller_1.initiateJuspayPaymentForSubcriptionForApp);
 router.post("/handleJuspayPaymentForSubcription", usersubsctiption_controller_1.handleJuspayPaymentForSubcription);
 exports.default = router;
