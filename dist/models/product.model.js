@@ -43,6 +43,6 @@ const product = new mongoose_1.Schema({
     },
     createdByObj: {},
     status: { type: Boolean, default: false },
-    approved: { type: String, default: constant_1.APPROVED_STATUS.APPROVED },
+    approved: { type: String, default: constant_1.APPROVED_STATUS.PENDING },
 }, { timestamps: true });
 exports.Product = (0, mongoose_1.model)("product", product);
