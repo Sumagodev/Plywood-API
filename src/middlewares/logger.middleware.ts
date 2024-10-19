@@ -45,7 +45,7 @@ const requestLogger = (req: express.Request, res: express.Response, next: expres
     logger.info(`${req.method} ${fullUrl}`);
 
     // Log headers
-    logger.info(`Headers: ${JSON.stringify(req.headers)}`);
+    //logger.info(`Headers: ${JSON.stringify(req.headers)}`);
 
     // Log the body, handling the case where it's undefined
     const body = JSON.stringify(req.body) || 'No body found';

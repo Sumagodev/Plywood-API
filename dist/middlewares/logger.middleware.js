@@ -40,7 +40,7 @@ const requestLogger = (req, res, next) => {
     // Log the request method and full URL
     logger.info(`${req.method} ${fullUrl}`);
     // Log headers
-    logger.info(`Headers: ${JSON.stringify(req.headers)}`);
+    //logger.info(`Headers: ${JSON.stringify(req.headers)}`);
     // Log the body, handling the case where it's undefined
     const body = JSON.stringify(req.body) || 'No body found';
     //logger.info(`Body: ${body}`);
