@@ -84,6 +84,7 @@ mongoose_1.default.connect(config_1.CONFIG.MONGOURI, (err) => {
 mongoose_1.default.set("debug", true);
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
+app.use(logger_middleware_1.requestLogger);
 app.use((0, morgan_1.default)("dev"));
 app.use(express_1.default.json({ limit: "500mb" }));
 app.use(express_1.default.urlencoded({ extended: false }));
@@ -126,5 +127,4 @@ app.use("/homepageBanners", homepageBanner_routes_1.default);
 app.use("/notifications", notification_routes_1.default);
 app.use("/payments", payments_routes_1.default);
 app.use(errorHandler_middleware_1.errorHandler);
-app.use(logger_middleware_1.requestLogger);
 exports.default = app;

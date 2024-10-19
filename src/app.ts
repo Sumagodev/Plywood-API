@@ -59,6 +59,7 @@ mongoose.set("debug", true);
 const app = express();
 
 app.use(cors());
+app.use(requestLogger)
 app.use(logger("dev"));
 app.use(express.json({ limit: "500mb" }));
 app.use(express.urlencoded({ extended: false }));
@@ -105,6 +106,5 @@ app.use("/notifications", notificationRoutes);
 app.use("/payments", paymentRoutes);
 
 app.use(errorHandler);
-app.use(requestLogger)
 
 export default app;
