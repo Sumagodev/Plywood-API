@@ -45,7 +45,7 @@ import notificationRoutes from './routes/notification.routes'
 import VendorReviewRoutes from './routes/vendorReviews.routes'
 import VerifiedUsers from "./routes/verifiedUsers.routes";
 import paymentRoutes from "./routes/payments.routes";
-import loggerX from "./middlewares/logger.middleware";
+import { requestLogger } from './middlewares/logger.middleware';
 mongoose.connect(CONFIG.MONGOURI, (err) => {
   if (err) {
     console.log(err);
@@ -105,6 +105,6 @@ app.use("/notifications", notificationRoutes);
 app.use("/payments", paymentRoutes);
 
 app.use(errorHandler);
-app.use(loggerX)
+app.use(requestLogger)
 
 export default app;
