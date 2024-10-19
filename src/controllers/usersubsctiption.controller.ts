@@ -671,6 +671,136 @@ export const initiateJuspayPaymentForSubcription = async (req: Request, res: Res
       return res.json(makeError())
   }
   }
+  export const initiateJuspayPaymentForSubcriptionForApp = async (req: Request, res: Response, next: NextFunction) => {
+
+
+    if (!Types.ObjectId.isValid(req.body._id)) {
+      // Handle the invalid ObjectId case
+      return  res.status(400).json({result:false,"message":"Invalid Subscription Id"})
+    }
+  
+    if (!req?.user?.userId) {
+      // Handle the invalid ObjectId case
+      return  res.status(404).json({result:false,"message":"Unauthorized request"})
+  }
+  
+      let existsCheck: any = await UserSubscription.findOne({ userId: req?.user?.userId }).sort({ endDate: -1 }).exec();
+      console.log(existsCheck, "existsCheck");
+      let tempStartDate: any = new Date();
+      let tempEndDate: any = new Date();
+  
+      if (req.body?.noOfMonth > 0) {
+        if (existsCheck && existsCheck.endDate) {
+          tempStartDate = new Date(existsCheck.endDate);
+          tempEndDate = moment(existsCheck.endDate).add({ months: req.body?.noOfMonth });
+        } else {
+          tempEndDate = moment(tempEndDate).add({ months: req.body?.noOfMonth });
+        }
+      } else if (existsCheck && existsCheck.endDate) {
+        tempEndDate = existsCheck.endDate;
+      } else {
+        tempEndDate = undefined;
+      }
+  
+      let checkSubscription: any = await Subscription
+      .findById(req.body._id)   // Find by ObjectId directly
+      .exec();
+  
+      if(!checkSubscription)
+      {
+        return  res.status(400).json({result:false,"message":"Subscription not found"})
+      }
+  
+      let obj = {
+              userId: req?.user?.userId,
+              subscriptionId: req.body._id,
+              name: checkSubscription?.name,
+              description: req.body?.description,
+              price: checkSubscription?.price,
+              startDate: tempStartDate,
+              numberOfSales: checkSubscription?.numberOfSales ?? 0,
+              saleDays: checkSubscription?.saleDays ?? 0,
+              numberOfAdvertisement: checkSubscription?.numberOfAdvertisement ?? 0,
+              advertisementDays: checkSubscription?.advertisementDays ?? 0,
+              isExpired: false,
+              endDate: null,
+            };
+        
+            if (tempEndDate) {
+              obj.endDate = tempEndDate;
+            }
+            let userObj: any = await User.findById(req?.user?.userId).exec();
+            if (!(userObj || userObj._id)) {
+              throw new Error("Could not find user please contact admin !!!");
+            }
+        
+            // Add GST
+        
+            obj.price = obj.price + Math.round(obj.price * 0.18);
+        
+            let options: any = {
+              amount: obj.price,
+              currency: "INR",
+              receipt: new Date().getTime(),
+            };
+        
+            let paymentObj = {
+              amount: obj.price,
+              orderObj: obj, // razorpay
+              paymentChk: 0,
+            };
+  
+  
+                let paymentObjResponse = await new Payment(paymentObj).save();
+  
+                options.orderId = paymentObjResponse._id;
+                options.mobile = userObj?.phone;
+                options.userId = userObj?._id.toString();
+                options.email = userObj?.email;
+                options.subscriptionId = checkSubscription?._id;
+                options.successUrl = `${process.env.BASE_URL}/usersubscription/phonepePaymentStatusCheck/` + paymentObjResponse._id;
+                console.log('xoptions',options)
+  
+    // makes return url
+    const paymentPageClientId=hdfcConfig.PAYMENT_PAGE_CLIENT_ID;
+    const orderId = `order_${Date.now()}`
+    const amount = 1 + Math.random() * 100 | 0
+  
+      // makes return url
+      const returnUrl = `${process.env.BASE_URL}/usersubscription/handleJuspayPaymentForSubcription`
+    try {
+        const sessionResponse = await juspayConfig.orderSession.create({
+            order_id: orderId,
+            amount: options.amount,
+            payment_page_client_id: paymentPageClientId,                    // [required] shared with you, in config.json
+            customer_id: options.userId,                       // [optional] your customer id here
+            action: 'paymentPage',                                          // [optional] default is paymentPage
+            return_url: 'https://webhook.site/2dfd637d-ccf9-4f7b-aadf-3325cfbd67fe',                                          // [optional] default is value given from dashboard
+            currency: 'INR',
+            customer_phone:options.email,                                                 // [optional] default is INR
+            customer_email:options.mobile,
+            udf6:options.subscriptionId                                                 // [optional] default is INR
+        })
+  
+        let orderPaymentObj: any = sessionResponse;
+        let obj1 = await Payment.findByIdAndUpdate(paymentObjResponse._id, {
+          "gatwayPaymentObj": orderPaymentObj,
+        })
+          .lean()
+          .exec();
+  
+          console.log('upadtedx',obj1);
+          sessionResponse.orderIdx=paymentObjResponse._id;
+        // removes http field from response, typically you won't send entire structure as response
+        return res.json(makeJuspayResponse(sessionResponse))
+    } catch (error) {
+        if (error instanceof APIError) {
+            // handle errors comming from juspay's api
+            return res.json(makeError(error.message))
+        }
+        return res.json(makeError())
+    }
+    }
 
 export const handleJuspayPaymentForSubcription = async (req: Request, res: Response, next: NextFunction) => {
 
