@@ -24,19 +24,16 @@ const transport = new winston_1.default.transports.DailyRotateFile({
 });
 // Create a logger instance
 const logger = winston_1.default.createLogger({
-    format: winston_1.default.format.printf(({ timestamp, level, message }) => {
-        return `${timestamp} [${level}] ${message}`;
-    }),
-    transports: [
-        transport,
-    ],
-});
-// Add a timestamp to logs in IST
-logger.add(new winston_1.default.transports.Console({
-    format: winston_1.default.format.combine(winston_1.default.format.timestamp({ format: () => (0, moment_timezone_1.default)().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss') }), winston_1.default.format.printf(({ timestamp, level, message }) => {
+    format: winston_1.default.format.combine(winston_1.default.format.timestamp({
+        format: () => (0, moment_timezone_1.default)().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'), // Set IST format
+    }), winston_1.default.format.printf(({ timestamp, level, message }) => {
         return `${timestamp} [${level}] ${message}`;
     })),
-}));
+    transports: [
+        transport,
+        new winston_1.default.transports.Console(), // Optional: log to console as well
+    ],
+});
 // Middleware function to log requests
 const requestLogger = (req, res, next) => {
     const logMessage = `${req.method} ${req.url} - Body: ${JSON.stringify(req.body)}`;
