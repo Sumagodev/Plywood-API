@@ -719,6 +719,10 @@ export const handleJuspayPaymentForSubcription = async (req: Request, res: Respo
         message = "order payment pending";
         res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${statusResponse.order_id}&orderStatus=${orderStatus}&txn_id=${statusResponse.txn_id}&effective_amount=${statusResponse.effective_amount}&txn_uuid=${statusResponse.txn_uuid}&type=subscription`)
     }
+    if(orderStatus === "NEW") {
+      message = "order pending or not completed";
+      res.redirect(`${process.env.APP_URL}/Payment/${orderObj._id}?result=error&message=${encodeURIComponent(message)}&orderId=${statusResponse.order_id}&orderStatus=${orderStatus}&txn_id=${statusResponse.txn_id}&effective_amount=${statusResponse.effective_amount}&txn_uuid=${statusResponse.txn_uuid}&type=subscription`)
+  }
     
     if(orderStatus === "PENDING_VBV") {
         message = "order payment pending";
