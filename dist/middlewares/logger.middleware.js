@@ -43,7 +43,7 @@ const requestLogger = (req, res, next) => {
     logger.info(`Headers: ${JSON.stringify(req.headers)}`);
     // Log the body, handling the case where it's undefined
     const body = JSON.stringify(req.body) || 'No body found';
-    logger.info(`Body: ${body}`);
+    //logger.info(`Body: ${body}`);
     next();
 };
 exports.requestLogger = requestLogger;
