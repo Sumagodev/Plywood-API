@@ -77,6 +77,7 @@ export const createBannerImage = async (req: Request, res: Response, next: NextF
 
 // Get all banner images
 export const getAllBannerImagesverifeidonly = async (req: Request, res: Response, next: NextFunction) => {
+    
     try {
         const bannerImages = await BannerImage.find({ isVerified: true }).populate({
             path: 'productId', // This assumes `productId` is the field in BannerImage model that references the Product model
