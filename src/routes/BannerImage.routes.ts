@@ -4,14 +4,15 @@ import {
     getAllBannerImages,
     getBannerImageById,
     updateBannerImage,
-    deleteBannerImage,getBannerImagesByUserId
+    deleteBannerImage,getBannerImagesByUserId,getAllBannerImagesverifeidonly
 } from "../controllers/BannerImage.controller";
 
 const router = express.Router();
 
 // Routes for banner images
 router.post("/postbanner", createBannerImage);              // Create a banner image
-router.get("/getbanner", getAllBannerImages);              // Get all banner images
+router.get("/getbanner", getAllBannerImages);       
+router.get("/getbannerforhomepage", getAllBannerImagesverifeidonly);            // Get all banner images
 router.get("/getBannerImagesByUserId/:userId", getBannerImagesByUserId);          // Get a banner image by ID
 router.put("/updatebanner/:id", updateBannerImage);   
 router.get("/getBannerImageById/:id", getBannerImageById);           // Update a banner image by ID

@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteBannerImage = exports.updateBannerImage = exports.getBannerImagesByUserId = exports.getBannerImageById = exports.getAllBannerImages = exports.createBannerImage = void 0;
+exports.deleteBannerImage = exports.updateBannerImage = exports.getBannerImagesByUserId = exports.getBannerImageById = exports.getAllBannerImages = exports.getAllBannerImagesverifeidonly = exports.createBannerImage = void 0;
 const dateUtils_1 = require("../helpers/dateUtils");
 const fileSystem_1 = require("../helpers/fileSystem");
 const BannerImages_model_1 = require("../models/BannerImages.model");
@@ -73,6 +73,23 @@ const createBannerImage = (req, res, next) => __awaiter(void 0, void 0, void 0, 
 });
 exports.createBannerImage = createBannerImage;
 // Get all banner images
+const getAllBannerImagesverifeidonly = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const bannerImages = yield BannerImages_model_1.BannerImage.find({ isVerified: true }).populate({
+            path: 'productId',
+            select: 'slug', // Only return the `slug` field from the Product model
+        }).populate({
+            path: 'userId',
+            select: 'username email', // Select fields from User (modify as per your schema)
+        });
+        ;
+        res.status(200).json({ success: true, bannerImages });
+    }
+    catch (err) {
+        next(err);
+    }
+});
+exports.getAllBannerImagesverifeidonly = getAllBannerImagesverifeidonly;
 const getAllBannerImages = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const bannerImages = yield BannerImages_model_1.BannerImage.find().populate({

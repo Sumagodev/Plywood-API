@@ -8,7 +8,8 @@ const BannerImage_controller_1 = require("../controllers/BannerImage.controller"
 const router = express_1.default.Router();
 // Routes for banner images
 router.post("/postbanner", BannerImage_controller_1.createBannerImage); // Create a banner image
-router.get("/getbanner", BannerImage_controller_1.getAllBannerImages); // Get all banner images
+router.get("/getbanner", BannerImage_controller_1.getAllBannerImages);
+router.get("/getbannerforhomepage", BannerImage_controller_1.getAllBannerImagesverifeidonly); // Get all banner images
 router.get("/getBannerImagesByUserId/:userId", BannerImage_controller_1.getBannerImagesByUserId); // Get a banner image by ID
 router.put("/updatebanner/:id", BannerImage_controller_1.updateBannerImage);
 router.get("/getBannerImageById/:id", BannerImage_controller_1.getBannerImageById); // Update a banner image by ID
