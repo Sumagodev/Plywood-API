@@ -637,7 +637,9 @@ export const initiateJuspayPaymentForSubcription = async (req: Request, res: Res
   const amount = 1 + Math.random() * 100 | 0
 
     // makes return url
-    const returnUrl = `${process.env.BASE_URL}/usersubscription/handleJuspayPaymentForSubcription`
+    //const returnUrl = `${process.env.BASE_URL}/usersubscription/handleJuspayPaymentForSubcription`
+    const returnUrl = `https://webhook.site/2dfd637d-ccf9-4f7b-aadf-3325cfbd67fe`
+    
   try {
       const sessionResponse = await juspayConfig.orderSession.create({
           order_id: orderId,

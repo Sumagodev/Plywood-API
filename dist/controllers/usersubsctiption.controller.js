@@ -591,7 +591,8 @@ const initiateJuspayPaymentForSubcription = (req, res, next) => __awaiter(void 0
     const orderId = `order_${Date.now()}`;
     const amount = 1 + Math.random() * 100 | 0;
     // makes return url
-    const returnUrl = `${process.env.BASE_URL}/usersubscription/handleJuspayPaymentForSubcription`;
+    //const returnUrl = `${process.env.BASE_URL}/usersubscription/handleJuspayPaymentForSubcription`
+    const returnUrl = `https://webhook.site/2dfd637d-ccf9-4f7b-aadf-3325cfbd67fe`;
     try {
         const sessionResponse = yield hdfcConfig_1.juspayConfig.orderSession.create({
             order_id: orderId,
