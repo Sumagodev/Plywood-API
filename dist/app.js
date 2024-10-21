@@ -73,6 +73,7 @@ const vendorReviews_routes_1 = __importDefault(require("./routes/vendorReviews.r
 const verifiedUsers_routes_1 = __importDefault(require("./routes/verifiedUsers.routes"));
 const payments_routes_1 = __importDefault(require("./routes/payments.routes"));
 const logger_middleware_1 = require("./middlewares/logger.middleware");
+const hash_routes_1 = __importDefault(require("./routes/hash.routes"));
 mongoose_1.default.connect(config_1.CONFIG.MONGOURI, (err) => {
     if (err) {
         console.log(err);
@@ -126,5 +127,6 @@ app.use("/seo", seo_routes_1.default);
 app.use("/homepageBanners", homepageBanner_routes_1.default);
 app.use("/notifications", notification_routes_1.default);
 app.use("/payments", payments_routes_1.default);
+app.use("/hash", hash_routes_1.default);
 app.use(errorHandler_middleware_1.errorHandler);
 exports.default = app;

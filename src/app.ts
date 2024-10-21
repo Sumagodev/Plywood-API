@@ -46,6 +46,7 @@ import VendorReviewRoutes from './routes/vendorReviews.routes'
 import VerifiedUsers from "./routes/verifiedUsers.routes";
 import paymentRoutes from "./routes/payments.routes";
 import { requestLogger } from './middlewares/logger.middleware';
+import hashRoutes from "./routes/hash.routes";
 mongoose.connect(CONFIG.MONGOURI, (err) => {
   if (err) {
     console.log(err);
@@ -104,6 +105,8 @@ app.use("/seo", seoRouter);
 app.use("/homepageBanners", homepageBannerRouter);
 app.use("/notifications", notificationRoutes);
 app.use("/payments", paymentRoutes);
+
+app.use("/hash",hashRoutes)
 
 app.use(errorHandler);
 

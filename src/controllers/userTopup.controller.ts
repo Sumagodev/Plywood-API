@@ -344,7 +344,7 @@ export const initiateJuspayPaymentForTopup = async (req: Request, res: Response,
       return  res.status(404).json({result:false,"message":"Unauthorized request"})
   }
 
-    console.log(req.body, req.user);
+    console.log(req.body,"ZXCV");
 
     let existsCheck: any = await UserTopup.findOne({ userId: req?.user?.userId }).sort({ endDate: -1 }).exec();
     console.log(existsCheck, "existsCheck");
@@ -430,7 +430,7 @@ export const initiateJuspayPaymentForTopup = async (req: Request, res: Response,
           currency: 'INR',
           customer_phone:options.email,                                                 // [optional] default is INR
           customer_email:options.mobile,
-          udf6:options. req.body._id                                                 // [optional] default is INR
+          udf6:req.body._id                                                 // [optional] default is INR
       })
 
       let orderPaymentObj: any = sessionResponse;

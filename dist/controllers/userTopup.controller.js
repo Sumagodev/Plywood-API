@@ -339,7 +339,7 @@ const initiateJuspayPaymentForTopup = (req, res, next) => __awaiter(void 0, void
             // Handle the invalid ObjectId case
             return res.status(404).json({ result: false, "message": "Unauthorized request" });
         }
-        console.log(req.body, req.user);
+        console.log(req.body, "ZXCV");
         let existsCheck = yield userTopup_model_1.UserTopup.findOne({ userId: (_8 = req === null || req === void 0 ? void 0 : req.user) === null || _8 === void 0 ? void 0 : _8.userId }).sort({ endDate: -1 }).exec();
         console.log(existsCheck, "existsCheck");
         let userObj = yield user_model_1.User.findOne({ userId: (_9 = req === null || req === void 0 ? void 0 : req.user) === null || _9 === void 0 ? void 0 : _9.userId }).exec();
@@ -411,7 +411,7 @@ const initiateJuspayPaymentForTopup = (req, res, next) => __awaiter(void 0, void
             currency: 'INR',
             customer_phone: options.email,
             customer_email: options.mobile,
-            udf6: options.req.body._id // [optional] default is INR
+            udf6: req.body._id // [optional] default is INR
         });
         let orderPaymentObj = sessionResponse;
         let obj1 = yield Payment_model_1.Payment.findByIdAndUpdate(paymentObjResponse._id, {
