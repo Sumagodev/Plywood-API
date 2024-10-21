@@ -25,6 +25,6 @@ router.patch("/updateById/:id", updateById);
 router.delete("/deleteById/:id", deleteById);
 router.get("/getSimilarProducts/:id", getSimilarProducts);
 router.get("/searchProductWithQuery", searchProductWithQuery);
-router.patch('/updateProductApprovalStatus',updateProductApprovalStatus)
+router.patch('/updateProductApprovalStatus/:id',updateProductApprovalStatus)
 router.patch("/updateAppById/:id",updateAppById)
 export default router;
