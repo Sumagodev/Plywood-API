@@ -9,7 +9,8 @@ import {
   getSimilarProducts,
   searchProductWithQuery,
   updateAppById,
-  updateById,getProductYouMayLike
+  updateById,getProductYouMayLike,
+  updateProductApprovalStatus
 } from "../controllers/product.controller";
 
 const router = express.Router();
@@ -24,6 +25,6 @@ router.patch("/updateById/:id", updateById);
 router.delete("/deleteById/:id", deleteById);
 router.get("/getSimilarProducts/:id", getSimilarProducts);
 router.get("/searchProductWithQuery", searchProductWithQuery);
-
+router.patch('/updateProductApprovalStatus',updateProductApprovalStatus)
 router.patch("/updateAppById/:id",updateAppById)
 export default router;
