@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getProductYouMayLike = exports.updateAppById = exports.searchProductWithQuery = exports.getAllProductsBySupplierId = exports.getSimilarProducts = exports.getProductById = exports.getById = exports.deleteById = exports.updateById = exports.addProduct = exports.getProduct = void 0;
+exports.updateProductApprovalStatus = exports.getProductYouMayLike = exports.updateAppById = exports.searchProductWithQuery = exports.getAllProductsBySupplierId = exports.getSimilarProducts = exports.getProductById = exports.getById = exports.deleteById = exports.updateById = exports.addProduct = exports.getProduct = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const fileSystem_1 = require("../helpers/fileSystem");
 const product_model_1 = require("../models/product.model");
@@ -907,3 +907,46 @@ const getProductYouMayLike = (req, res, next) => __awaiter(void 0, void 0, void 
     }
 });
 exports.getProductYouMayLike = getProductYouMayLike;
+const updateProductApprovalStatus = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _g, _h;
+    try {
+        // Find the product by ID
+        const product = yield product_model_1.Product.findById(req.params.id).populate('createdByObj'); // Assuming createdByObj contains user/company info
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+        // Validate the approved status from the request body
+        const approvedStatus = req.body.approved;
+        if (![constant_1.APPROVED_STATUS.APPROVED, constant_1.APPROVED_STATUS.PENDING, constant_1.APPROVED_STATUS.REJECTED].includes(approvedStatus)) {
+            return res.status(400).json({ message: "Invalid approved status" });
+        }
+        // Update only the approved status field
+        product.approved = approvedStatus;
+        // Save the updated product
+        yield product.save();
+        // Create and send a notification after updating the approval status
+        const newNotification = new Notifications_model_1.Notifications({
+            userId: product.createdById,
+            type: 'product_approval_status_updated',
+            title: 'Product Approval Status Updated',
+            content: `Hi, ${(_h = (_g = product.createdByObj) === null || _g === void 0 ? void 0 : _g.companyObj) === null || _h === void 0 ? void 0 : _h.name}, your product approval status has been updated to ${approvedStatus}.`,
+            sourceId: product._id,
+            isRead: false,
+            viewCount: 1,
+            lastAccessTime: new Date(),
+            payload: {
+                productDetails: product,
+                userObj: product.createdByObj,
+                approvedStatus: product.approved,
+                productId: product._id,
+            }
+        });
+        // Save the notification to the database
+        yield newNotification.save();
+        return res.status(200).json({ message: "Product approval status updated and notification sent", success: true });
+    }
+    catch (err) {
+        next(err);
+    }
+});
+exports.updateProductApprovalStatus = updateProductApprovalStatus;

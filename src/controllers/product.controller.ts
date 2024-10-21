@@ -534,7 +534,7 @@ export const getSimilarProducts: RequestHandler = async (req, res, next) => {
     const userMap = new Map(users.map(user => [user._id.toString(), user]));
 
     // Map through products and include the desired fields along with city name
-    const filteredProducts = productArr.filter(ad => ad.approved === "APPROVED") .map((product: any) => {
+    const filteredProducts = productArr.filter(ad => ad.approved === "APPROVED").map((product: any) => {
       const user = userMap.get(product.createdById.toString());
       const cityName = user ? cityMap.get(user.cityId.toString()) || 'Unknown City' : 'Unknown City';
 
@@ -580,7 +580,7 @@ export const getAllProductsBySupplierId: RequestHandler = async (req, res, next)
 
 export const searchProductWithQuery: RequestHandler = async (req, res, next) => {
   try {
-    let query: any ={ approved: "APPROVED" };
+    let query: any = { approved: "APPROVED" };
 
     // Role filter
     if (req.query.role && req.query.role !== "null") {
@@ -731,7 +731,7 @@ export const searchProductWithQuery: RequestHandler = async (req, res, next) => 
     console.log(JSON.stringify(query, null, 2), "query");
 
     // Execute the query and return the result
-    const arr = await Product.find(query,{approved:"APPROVED"})
+    const arr = await Product.find(query, { approved: "APPROVED" })
       .populate('createdById', 'name email phone mainImage approved')
       .select({ name: 1, _id: 1, slug: 1, price: 1, sellingprice: 1, brand: 1, mainImage: 1, approved: 1 })
       .lean()
@@ -959,7 +959,7 @@ export const updateAppById = async (req: Request, res: Response, next: NextFunct
 
 export const getProductYouMayLike = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const defaultCriteria: any = { approved: APPROVED_STATUS.APPROVED,};
+    const defaultCriteria: any = { approved: APPROVED_STATUS.APPROVED, };
 
     if (req.query.category) {
       defaultCriteria.categoryId = req.query.category;
@@ -1060,3 +1060,52 @@ export const getProductYouMayLike = async (req: Request, res: Response, next: Ne
   }
 };
 
+
+
+export const updateProductApprovalStatus = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // Find the product by ID
+    const product = await Product.findById(req.params.id).populate('createdByObj'); // Assuming createdByObj contains user/company info
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // Validate the approved status from the request body
+    const approvedStatus = req.body.approved;
+    if (![APPROVED_STATUS.APPROVED, APPROVED_STATUS.PENDING, APPROVED_STATUS.REJECTED].includes(approvedStatus)) {
+      return res.status(400).json({ message: "Invalid approved status" });
+    }
+
+    // Update only the approved status field
+    product.approved = approvedStatus;
+
+    // Save the updated product
+    await product.save();
+
+    // Create and send a notification after updating the approval status
+    const newNotification = new Notifications({
+      userId: product.createdById, // Assuming product has a createdById field for user
+      type: 'product_approval_status_updated',
+      title: 'Product Approval Status Updated',
+      content: `Hi, ${product.createdByObj?.companyObj?.name}, your product approval status has been updated to ${approvedStatus}.`,
+      sourceId: product._id,
+      isRead: false,
+      viewCount: 1,
+      lastAccessTime: new Date(),
+      payload: {
+        productDetails: product,
+        userObj: product.createdByObj,
+        approvedStatus: product.approved,
+        productId: product._id,
+      }
+    });
+
+    // Save the notification to the database
+    await newNotification.save();
+
+    return res.status(200).json({ message: "Product approval status updated and notification sent", success: true });
+
+  } catch (err) {
+    next(err);
+  }
+};
