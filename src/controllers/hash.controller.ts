@@ -53,7 +53,7 @@ const generateFileHash = (filePath: string): Promise<string> => {
   
   // Function to save hash in a separate log file for each file
   const saveHashToFile = (filePath: string, hash: string): void => {
-    const logDir = '/var/logs/plywood';
+    const logDir = '/var/logs/plywood/hashes';
   
     // Create filename from the original file's name and timestamp
     const fileName = path.basename(filePath);
