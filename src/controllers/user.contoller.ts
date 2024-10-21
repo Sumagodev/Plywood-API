@@ -24,7 +24,7 @@ import OtpVerifyModel from "../models/OtpVerify.model";
 import VerifiedUsers from "../models/VerifiedUser.model";
 import { SendVerificationSMS } from "../helpers/sms";
 import { UserSubscription } from "../models/userSubscription.model";
-
+import { Product } from "../models/product.model";
 
 
 
@@ -48,6 +48,8 @@ export const webLogin = async (req: Request, res: Response, next: NextFunction) 
     const userSubscription = await UserSubscription.findOne({ userId: UserExistCheck._id }).exec();
     const subscriptionType = userSubscription ? userSubscription.subscriptiontype : 'NOSUBSCRIBED';
 
+    const productCount = await Product.countDocuments({ createdById: UserExistCheck._id }).exec();
+
     let userData = {
       userId: UserExistCheck._id,
       role: UserExistCheck.role,
@@ -57,7 +59,8 @@ export const webLogin = async (req: Request, res: Response, next: NextFunction) 
         phone: UserExistCheck.phone,
         _id: UserExistCheck._id,
         role: UserExistCheck.role,
-        subscriptionType
+        subscriptionType,
+        productCount
       },
     };
     const token = await generateAccessJwt(userData);
@@ -100,6 +103,9 @@ export const appLogin = async (req: Request, res: Response, next: NextFunction) 
     const userSubscription = await UserSubscription.findOne({ userId: UserExistCheck._id }).exec();
     const subscriptionType = userSubscription ? userSubscription.subscriptiontype : 'NOSUBSCRIBED';
 
+    const productCount = await Product.countDocuments({ createdById: UserExistCheck._id }).exec();
+
+
     let userData = {
       userId: UserExistCheck._id,
       role: UserExistCheck.role,
@@ -109,7 +115,8 @@ export const appLogin = async (req: Request, res: Response, next: NextFunction) 
         phone: UserExistCheck.phone,
         _id: UserExistCheck._id,
         role: UserExistCheck.role,
-        subscriptionType
+        subscriptionType,
+        productCount
       },
     };
     const token = await generateAccessJwt(userData);
